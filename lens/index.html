@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>凸透鏡成像模擬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 版面：標題 → 光學台（SVG 畫面）→ 下方「控制」與「數據」兩欄，手機時疊成一欄 */
+:root {
+  --bg: #edf0f4;
+  --panel: #ffffff;
+  --ink: #1b2430;
+  --muted: #5b6878;
+  --line: #cfd7e0;
+  --axis: #7d8a99;
+  --lens: #4f63d6;
+  --lens-fill: rgba(79, 99, 214, 0.16);
+  --zone: rgba(79, 99, 214, 0.06);
+  --obj: #17775f;
+  --img: #c0442a;
+  --ray1: #e0572d;   /* 平行光線 */
+  --ray2: #2a7bd6;   /* 通過光心 */
+  --ray3: #b88400;   /* 通過焦點 */
+  --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --panel: #171f29; --ink: #e5eaf0; --muted: #93a2b2; --line: #2b3746;
+    --axis: #6f7e8f; --lens: #8e9cff; --lens-fill: rgba(142, 156, 255, 0.2); --zone: rgba(142, 156, 255, 0.07);
+    --obj: #4cc7a4; --img: #ff7c5e; --ray1: #ff7d55; --ray2: #5cabff; --ray3: #f1c13a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --panel: #171f29; --ink: #e5eaf0; --muted: #93a2b2; --line: #2b3746;
+  --axis: #6f7e8f; --lens: #8e9cff; --lens-fill: rgba(142, 156, 255, 0.2); --zone: rgba(142, 156, 255, 0.07);
+  --obj: #4cc7a4; --img: #ff7c5e; --ray1: #ff7d55; --ray2: #5cabff; --ray3: #f1c13a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
+
+header { display: grid; gap: 4px; }
+h1 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 3.6vw, 2.3rem);
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-wrap: balance;
+}
+.formula { font-family: var(--f-mono); color: var(--muted); font-size: 0.92rem; margin: 0; }
+.hint { color: var(--muted); margin: 0; font-size: 0.92rem; }
+
+/* 光學台 */
+.bench {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bench svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+#obj { cursor: grab; touch-action: none; outline: none; -webkit-tap-highlight-color: transparent; }
+#obj:active { cursor: grabbing; }
+#obj:focus-visible .grip { stroke: var(--ink); stroke-width: 3; }
+/* 字級由程式依螢幕寬度設定，手機上會自動放大 */
+.svg-label { font-family: var(--f-mono); fill: var(--ink); }
+.svg-small { font-family: var(--f-mono); fill: var(--muted); }
+
+/* 手機直拿時的提示 */
+.rotate-hint { display: none; margin: 0; font-size: 0.88rem; color: var(--muted); }
+@media (max-width: 600px) and (orientation: portrait) { .rotate-hint { display: block; } }
+
+/* 手機：光學台固定在上方，捲動調整拉桿時仍看得到光路 */
+@media (max-width: 720px) {
+  body { padding-block: 12px 32px; font-size: 16px; }
+  .wrap { gap: 12px; }
+  .bench { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.35); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  .formula, .hint { font-size: 0.85rem; }
+}
+
+/* 下方兩欄 */
+.below { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 720px) { .below { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 14px; align-content: start; }
+.card h2 { margin: 0; font-size: 0.8rem; letter-spacing: 0.12em; color: var(--muted); font-weight: 500; }
+
+.slider-row { display: grid; gap: 6px; }
+.slider-row .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.slider-row output { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+input[type="range"] { width: 100%; accent-color: var(--lens); height: 28px; margin: 0; }
+
+.rays { display: grid; gap: 6px; }
+.rays label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.swatch { width: 22px; height: 3px; border-radius: 2px; flex: none; }
+input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--lens); margin: 0; }
+
+button {
+  justify-self: start;
+  font: inherit; font-size: 0.9rem;
+  color: var(--ink); background: transparent;
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 14px; cursor: pointer;
+}
+button:hover { border-color: var(--lens); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--lens); outline-offset: 2px; }
+
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; }
+dt { color: var(--muted); }
+dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.verdict { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.85rem; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.chip.real { border-color: var(--img); color: var(--img); }
+.chip.virtual { border-style: dashed; border-color: var(--img); color: var(--img); }
+.region { margin: 0; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>凸透鏡成像模擬</h1>
+    <p class="formula">1/f = 1/p + 1/q　　m = −q / p</p>
+    <p class="hint">拖曳綠色箭頭（物體）：左右改變物距，上下改變高度；也可以用下方拉桿調整。靠近 F 或 2F 時會自動吸附。</p>
+    <p class="rotate-hint">手機橫拿，畫面會更大。</p>
+  </header>
+
+  <div class="bench">
+    <svg id="scene" viewBox="0 0 1000 500" aria-label="凸透鏡成像光路圖">
+      <defs>
+        <clipPath id="clip"><rect x="0" y="0" width="1000" height="500"></rect></clipPath>
+      </defs>
+      <!-- 動態內容都畫在這個群組裡，每次更新重新產生 -->
+      <g id="dyn" clip-path="url(#clip)"></g>
+      <!-- 物體（可拖曳） -->
+      <g id="obj" tabindex="0" role="slider" aria-label="物體位置，用方向鍵調整"></g>
+    </svg>
+  </div>
+
+  <div class="below">
+    <section class="card" aria-label="控制">
+      <h2>控制</h2>
+      <div class="slider-row">
+        <div class="top"><label for="fSlider">焦距 f</label><output id="fOut">60 公分</output></div>
+        <input id="fSlider" type="range" min="20" max="100" step="1" value="60">
+      </div>
+      <div class="slider-row">
+        <div class="top"><label for="pSlider">物距 p</label><output id="pSliderOut">150 公分</output></div>
+        <input id="pSlider" type="range" min="5" max="240" step="1" value="150">
+      </div>
+      <div class="slider-row">
+        <div class="top"><label for="hSlider">物高 h</label><output id="hSliderOut">40 公分</output></div>
+        <input id="hSlider" type="range" min="10" max="80" step="1" value="40">
+      </div>
+      <div class="rays">
+        <label><input type="checkbox" id="r1" checked><span class="swatch" style="background: var(--ray1)"></span>平行光軸 → 折射後通過焦點</label>
+        <label><input type="checkbox" id="r2" checked><span class="swatch" style="background: var(--ray2)"></span>通過透鏡中心 → 直線前進</label>
+        <label><input type="checkbox" id="r3" checked><span class="swatch" style="background: var(--ray3)"></span>通過焦點 → 折射後平行光軸</label>
+      </div>
+      <button id="reset" type="button">重設</button>
+    </section>
+
+    <section class="card" aria-label="數據">
+      <h2>數據</h2>
+      <p class="region" id="region"></p>
+      <dl>
+        <dt>物距 p</dt><dd id="pOut"></dd>
+        <dt>像距 q</dt><dd id="qOut"></dd>
+        <dt>物高 h</dt><dd id="hOut"></dd>
+        <dt>像高 h′</dt><dd id="hiOut"></dd>
+        <dt>放大率 m</dt><dd id="mOut"></dd>
+      </dl>
+      <div class="verdict" id="verdict"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+// ===== 基本設定 =====
+const S = 2;              // 比例：1 公分 = 2 個 SVG 單位
+const LX = 500;           // 透鏡在畫面中的 x 座標
+const AY = 250;           // 光軸的 y 座標
+const W = 1000, H = 500;  // 畫面大小
+const FAR = 2000;         // 光線延伸到畫面外的距離
+
+const DEFAULT = { f: 60, p: 150, h: 40 };
+let state = { ...DEFAULT };
+
+const svg = document.getElementById('scene');
+const dyn = document.getElementById('dyn');
+const objG = document.getElementById('obj');
+
+// 螢幕越窄，畫面裡的字、線條、箭頭就放大越多（手機上才看得清楚）
+let K = 1;
+function updateScale() {
+  const w = svg.clientWidth || 1000;
+  K = Math.min(2.2, Math.max(1, 720 / w));
+}
+
+// ===== 小工具 =====
+// 求直線 (x1,y1)-(x2,y2) 在 x 處的 y 值
+function yAt(x1, y1, x2, y2, x) {
+  return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+}
+function line(x1, y1, x2, y2, color, opts = {}) {
+  const dash = opts.dash ? `stroke-dasharray="${opts.dash.split(' ').map(n => n * K).join(' ')}"` : '';
+  const op = opts.opacity ?? 1;
+  const w = (opts.width ?? 2) * Math.sqrt(K);
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${w}" ${dash} opacity="${op}" stroke-linecap="round"/>`;
+}
+function text(x, y, str, cls, opts = {}) {
+  const size = (cls === 'svg-small' ? 12 : 15) * K;
+  const anchor = opts.anchor ?? 'middle';
+  const style = opts.color ? `style="fill:${opts.color}"` : '';
+  return `<text class="${cls}" x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" ${style}>${str}</text>`;
+}
+// 畫箭頭：從光軸上的 (x, AY) 指向 (x, tipY)
+function arrow(x, tipY, color, opts = {}) {
+  const dir = tipY < AY ? -1 : 1;           // 往上或往下
+  const head = Math.min(14 * K, Math.abs(AY - tipY) * 0.6);
+  const half = head * 0.72;
+  const baseHead = tipY - dir * head;
+  const dash = opts.dash ? `stroke-dasharray="${opts.dash.split(' ').map(n => n * K).join(' ')}"` : '';
+  const fill = opts.hollow ? 'none' : color;
+  return `
+    <line x1="${x}" y1="${AY}" x2="${x}" y2="${baseHead}" stroke="${color}" stroke-width="${4 * Math.sqrt(K)}" ${dash} stroke-linecap="round"/>
+    <polygon points="${x},${tipY} ${x - half},${baseHead} ${x + half},${baseHead}" fill="${fill}" stroke="${color}" stroke-width="${2 * Math.sqrt(K)}" stroke-linejoin="round"/>`;
+}
+const fmt = (v, d = 1) => (Math.round(v * 10 ** d) / 10 ** d).toFixed(d);
+
+// ===== 物理計算（薄透鏡公式）=====
+function solve() {
+  const { f, p, h } = state;
+  if (Math.abs(p - f) < 0.01) return { none: true };   // 物體在焦點上：不成像
+  const q = (p * f) / (p - f);   // 像距：正 = 實像（右側），負 = 虛像（左側）
+  const m = -q / p;              // 放大率：負 = 倒立，正 = 正立
+  return { q, m, hi: m * h };
+}
+
+// ===== 繪圖 =====
+function render() {
+  updateScale();
+  const { f, p, h } = state;
+  const fs = f * S;
+  const r = solve();
+  // 從 CSS 變數讀出目前主題（亮色／暗色）的顏色
+  const rootStyle = getComputedStyle(document.documentElement);
+  const css = name => rootStyle.getPropertyValue(`--${name}`).trim();
+  let out = '';
+
+  // F 與 2F 之間的淺色區域（兩側都有）
+  out += `<rect x="${LX - 2 * fs}" y="0" width="${fs}" height="${H}" fill="${css('zone')}"/>`;
+  out += `<rect x="${LX + fs}" y="0" width="${fs}" height="${H}" fill="${css('zone')}"/>`;
+
+  // 刻度尺（距離透鏡的公分數）；手機上只標 0、100、200
+  const RY = 462;
+  const labelEvery = K > 1.5 ? 100 : 50;
+  for (let cm = 0; cm * S <= LX; cm += 10) {
+    for (const side of cm === 0 ? [0] : [-1, 1]) {
+      const x = LX + side * cm * S;
+      const big = cm % 50 === 0;
+      out += line(x, RY, x, RY - (big ? 10 : 5) * K, css('axis'), { width: 1 });
+      if (cm % labelEvery === 0) out += text(x, RY + 4 + 12 * K, cm, 'svg-small');
+    }
+  }
+  out += line(0, RY, W, RY, css('axis'), { width: 1 });
+  out += text(W - 8, RY - 12 * K, '公分', 'svg-small', { anchor: 'end' });
+
+  // 光軸
+  out += line(0, AY, W, AY, css('axis'), { width: 1.5, dash: '8 6' });
+
+  // 透鏡：焦距越短，畫得越厚
+  const bulge = 8 + 600 / f;
+  out += `<path d="M${LX},${AY - 175} Q${LX + bulge * 2},${AY} ${LX},${AY + 175} Q${LX - bulge * 2},${AY} ${LX},${AY - 175} Z"
+           fill="${css('lens-fill')}" stroke="${css('lens')}" stroke-width="${2.5 * Math.sqrt(K)}"/>`;
+
+  // F 與 2F 標記（左右兩側）
+  for (const side of [-1, 1]) {
+    for (const k of [1, 2]) {
+      const x = LX + side * k * fs;
+      const name = (k === 2 ? '2F' : 'F') + (side > 0 ? '′' : '');
+      if (k === 1) {
+        out += `<circle cx="${x}" cy="${AY}" r="${6 * K}" fill="${css('panel')}" stroke="${css('ink')}" stroke-width="${2 * Math.sqrt(K)}"/>`;
+      } else {
+        out += line(x, AY - 12 * K, x, AY + 12 * K, css('ink'), { width: 2.5 });
+      }
+      out += text(x, AY + 14 * K + 15 * K, name, 'svg-label');
+    }
+  }
+
+  // ----- 三條主光線 -----
+  const xo = LX - p * S, yo = AY - h * S;   // 物體尖端
+  const show = id => document.getElementById(id).checked;
+  const xi = r.none ? null : LX + r.q * S;  // 像尖端
+  const yi = r.none ? null : AY - r.hi * S;
+  const virtual = !r.none && r.q < 0;
+
+  // 光線 1：平行光軸射向透鏡，折射後通過右側焦點 F′
+  if (show('r1')) {
+    const c = css('ray1');
+    out += line(xo, yo, LX, yo, c);
+    out += line(LX, yo, FAR, yAt(LX, yo, LX + fs, AY, FAR), c);
+    if (virtual) out += line(LX, yo, xi, yi, c, { dash: '5 6', opacity: 0.75 });
+  }
+  // 光線 2：通過透鏡中心，方向不變
+  if (show('r2')) {
+    const c = css('ray2');
+    out += line(xo, yo, FAR, yAt(xo, yo, LX, AY, FAR), c);
+    if (virtual) out += line(LX, AY, xi, yi, c, { dash: '5 6', opacity: 0.75 });
+  }
+  // 光線 3：沿著「左側焦點 F 與物體尖端」的連線射向透鏡，折射後平行光軸
+  if (show('r3') && Math.abs(p - f) > 0.01) {
+    const c = css('ray3');
+    const yb = yAt(LX - fs, AY, xo, yo, LX);   // 打到透鏡的高度
+    out += line(xo, yo, LX, yb, c);
+    out += line(LX, yb, FAR, yb, c);
+    if (p < f) out += line(LX - fs, AY, xo, yo, c, { dash: '3 6', opacity: 0.6 });  // 看起來像從 F 發出
+    if (virtual) out += line(LX, yb, xi, yi, c, { dash: '5 6', opacity: 0.75 });
+  }
+
+  // 像
+  if (!r.none) {
+    out += virtual
+      ? arrow(xi, yi, css('img'), { dash: '7 5', hollow: true })
+      : arrow(xi, yi, css('img'));
+    const ly = r.hi > 0 ? yi - 10 * K : yi + 8 * K + 15 * K;
+    out += text(xi, ly, virtual ? '虛像' : '實像', 'svg-label', { color: css('img') });
+  }
+  dyn.innerHTML = out;
+
+  // 物體（另外放在最上層才能拖曳）；透明的大圓和長方形是給手指按的觸控範圍
+  const hit = 34 * K;
+  objG.innerHTML = `
+    <rect x="${xo - hit * 0.7}" y="${yo}" width="${hit * 1.4}" height="${AY - yo + 10}" fill="transparent"/>
+    <circle cx="${xo}" cy="${yo}" r="${hit}" fill="transparent"/>
+    ${arrow(xo, yo, css('obj'))}
+    <circle class="grip" cx="${xo}" cy="${yo}" r="${10 * K}" fill="${css('obj')}" opacity="0.3"/>
+    ${text(xo, yo - 14 * K, '物體', 'svg-label', { color: css('obj') })}`;
+  objG.setAttribute('aria-valuetext', `物距 ${fmt(p)} 公分，物高 ${fmt(h)} 公分`);
+
+  updateReadout(r);
+}
+
+// ===== 數據區 =====
+function updateReadout(r) {
+  const { f, p, h } = state;
+  const near = (a, b) => Math.abs(a - b) < 0.01;
+  let region;
+  if (near(p, 2 * f)) region = '物體在 2F 上';
+  else if (p > 2 * f) region = '物體在 2F 以外';
+  else if (p > f) region = '物體在 F 與 2F 之間';
+  else if (near(p, f)) region = '物體在焦點 F 上';
+  else region = '物體在焦點 F 以內';
+  document.getElementById('region').textContent = region;
+
+  // 讓拉桿跟著拖曳結果同步
+  pSlider.value = Math.round(p);
+  hSlider.value = Math.round(h);
+  document.getElementById('fOut').textContent = `${f} 公分`;
+  document.getElementById('pSliderOut').textContent = `${fmt(p, 0)} 公分`;
+  document.getElementById('hSliderOut').textContent = `${fmt(h, 0)} 公分`;
+  document.getElementById('pOut').textContent = `${fmt(p)} 公分`;
+  document.getElementById('hOut').textContent = `${fmt(h)} 公分`;
+
+  const verdict = document.getElementById('verdict');
+  if (r.none) {
+    document.getElementById('qOut').textContent = '∞（不成像）';
+    document.getElementById('hiOut').textContent = '—';
+    document.getElementById('mOut').textContent = '—';
+    verdict.innerHTML = '<span class="chip">折射光互相平行，不成像</span>';
+    return;
+  }
+  const offscreen = Math.abs(r.q * S) > LX || Math.abs(r.hi * S) > AY;
+  document.getElementById('qOut').textContent =
+    `${fmt(r.q)} 公分${r.q < 0 ? '（物體同側）' : ''}`;
+  document.getElementById('hiOut').textContent = `${fmt(r.hi)} 公分`;
+  document.getElementById('mOut').textContent = fmt(r.m, 2);
+
+  const real = r.q > 0;
+  const size = Math.abs(r.m) > 1.005 ? '放大' : Math.abs(r.m) < 0.995 ? '縮小' : '等大';
+  verdict.innerHTML = `
+    <span class="chip ${real ? 'real' : 'virtual'}">${real ? '實像' : '虛像'}</span>
+    <span class="chip">${r.m < 0 ? '倒立' : '正立'}</span>
+    <span class="chip">${size}</span>
+    ${offscreen ? '<span class="chip">像超出畫面</span>' : ''}`;
+}
+
+// ===== 拖曳物體（滑鼠與手指都適用）=====
+function svgPoint(evt) {
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+// 靠近 F 或 2F 時吸附過去
+function snap(p) {
+  for (const t of [state.f, 2 * state.f]) if (Math.abs(p - t) < 2) return t;
+  return p;
+}
+function setObject(p, h) {
+  state.p = snap(Math.min(240, Math.max(5, p)));
+  state.h = Math.min(80, Math.max(10, h));
+  render();
+}
+
+let drag = null;
+objG.addEventListener('pointerdown', e => {
+  const pt = svgPoint(e);
+  // 記住手指與箭頭尖端的距離，拖曳時才不會跳動
+  drag = { dx: (LX - state.p * S) - pt.x, dy: (AY - state.h * S) - pt.y };
+  objG.setPointerCapture(e.pointerId);
+  objG.focus({ preventScroll: true });
+  e.preventDefault();
+});
+objG.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const pt = svgPoint(e);
+  const tipX = pt.x + drag.dx, tipY = pt.y + drag.dy;
+  setObject((LX - tipX) / S, (AY - tipY) / S);
+});
+const endDrag = () => { drag = null; };
+objG.addEventListener('pointerup', endDrag);
+objG.addEventListener('pointercancel', endDrag);
+// 防止 iOS 在拖曳時捲動頁面
+objG.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+// 鍵盤操作：左右調物距，上下調物高
+objG.addEventListener('keydown', e => {
+  const step = e.shiftKey ? 10 : 2;
+  const moves = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] };
+  const m = moves[e.key];
+  if (!m) return;
+  e.preventDefault();
+  setObject(state.p + m[0], state.h + m[1]);
+});
+
+// ===== 控制項 =====
+const fSlider = document.getElementById('fSlider');
+const pSlider = document.getElementById('pSlider');
+const hSlider = document.getElementById('hSlider');
+fSlider.addEventListener('input', () => { state.f = Number(fSlider.value); render(); });
+pSlider.addEventListener('input', () => setObject(Number(pSlider.value), state.h));
+hSlider.addEventListener('input', () => setObject(state.p, Number(hSlider.value)));
+['r1', 'r2', 'r3'].forEach(id => document.getElementById(id).addEventListener('change', render));
+document.getElementById('reset').addEventListener('click', () => {
+  state = { ...DEFAULT };
+  fSlider.value = DEFAULT.f;
+  ['r1', 'r2', 'r3'].forEach(id => document.getElementById(id).checked = true);
+  render();
+});
+
+// 螢幕旋轉或視窗大小改變時重畫；切換亮色／暗色主題時也重畫
+new ResizeObserver(() => render()).observe(svg);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+render();
+</script>
+
+</body>
+</html>
