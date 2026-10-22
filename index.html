@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>物理互動模擬</title>
+<style>
+  :root { --bg: #edf0f4; --panel: #fff; --ink: #1b2430; --muted: #5b6878; --line: #cfd7e0; --accent: #4f63d6; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0f141a; --panel: #171f29; --ink: #e5eaf0; --muted: #93a2b2; --line: #2b3746; --accent: #8e9cff; color-scheme: dark; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif; line-height: 1.6; padding: 32px 16px; }
+  main { max-width: 640px; margin: 0 auto; display: grid; gap: 16px; }
+  h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.04em; }
+  p { margin: 0; color: var(--muted); }
+  a.card { display: grid; gap: 4px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; color: inherit; text-decoration: none; }
+  a.card:hover, a.card:focus-visible { border-color: var(--accent); }
+  a.card strong { font-size: 1.15rem; color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>物理互動模擬</h1>
+  <p>點選下方的模擬開始操作，手機也可以使用。</p>
+  <a class="card" href="lens/">
+    <strong>凸透鏡成像</strong>
+    <span>拖曳物體、調整焦距，觀察 F 與 2F 位置的成像變化。</span>
+  </a>
+</main>
+</body>
+</html>
