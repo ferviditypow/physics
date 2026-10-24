@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>月相 3D 太空視角</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+:root{
+  --bg:#e9edf2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1;
+  --accent:#c2410c; --accent-soft:#fbe7dc; --blue:#1c68ad; --cyan:#0e8fb0; --sun:#d98a00;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --tap:44px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --cyan:#4fd0ee; --sun:#ffc04a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --cyan:#4fd0ee; --sun:#ffc04a; color-scheme:dark }
+@media (min-width:1700px){html{font-size:18px}:root{--tap:52px}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.55}
+body{padding:12px max(12px,env(safe-area-inset-right)) 16px max(12px,env(safe-area-inset-left))}
+.app{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,24vw,420px);grid-template-rows:auto minmax(0,1fr) auto;gap:10px;height:calc(100dvh - 28px);min-height:560px;background:var(--bg)}
+.app:fullscreen{height:100dvh;padding:10px}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:4px 18px}
+.eyebrow{font-size:.8rem;letter-spacing:.12em;color:var(--muted);font-weight:500}
+.eyebrow a{color:inherit}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(1.5rem,2.6vw,2.3rem);line-height:1.15;margin:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.stagecol{display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0}
+.viewbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel);flex-wrap:wrap}
+.seg button{border:0;border-left:1px solid var(--line);background:transparent;min-height:var(--tap);padding:0 14px;cursor:pointer;color:var(--muted);font:inherit;font-size:.95rem;font-weight:500;white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;min-height:var(--tap);padding:0 14px;cursor:pointer;font:inherit;font-size:.95rem;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:6.5em}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.spacer{flex:1}
+.stage{position:relative;flex:1;min-height:320px;border-radius:10px;overflow:hidden;background:#0b1226;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage canvas{display:block;width:100%;height:100%}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;font-weight:700;font-size:clamp(12px,.95vw,17px);color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000;will-change:transform}
+.lbl.sm{font-weight:500;font-size:clamp(11px,.8vw,15px);opacity:.9}
+.lbl.sun{color:#ffd27a}.lbl.cy{color:#7fe3ff}.lbl.ye{color:#ffe07a}.lbl.compass{font-size:clamp(16px,1.5vw,26px);color:#ffe8a3}
+#inset{position:absolute;right:10px;bottom:10px;border:2px solid rgba(255,255,255,.75);border-radius:10px;pointer-events:none;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+#inset .cap{position:absolute;left:0;right:0;top:4px;text-align:center;font-size:clamp(11px,.85vw,15px);font-weight:700;color:#fff;text-shadow:0 1px 3px #000}
+#inset .ew{position:absolute;bottom:6px;font-size:clamp(12px,.9vw,16px);font-weight:700;color:#fff;text-shadow:0 1px 3px #000}
+#inset .msg{position:absolute;left:8px;right:8px;top:50%;transform:translateY(-50%);text-align:center;font-size:clamp(12px,.9vw,16px);color:#fff;text-shadow:0 1px 3px #000}
+.hud{position:absolute;left:10px;top:10px;pointer-events:none;color:#fff;text-shadow:0 1px 3px #000;font-weight:700;font-size:clamp(14px,1.2vw,22px)}
+.hud .mono{font-family:var(--f-mono)}
+.timebar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 10px}
+.slider{display:flex;align-items:center;gap:10px;flex:1 1 260px;min-width:220px}
+.slider input{flex:1;accent-color:var(--accent);height:var(--tap)}
+.slider output{font-family:var(--f-mono);font-weight:600;min-width:4.6em;text-align:right}
+.tlabel{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.side{display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:0}
+.side .panel{padding:12px 14px}
+.big{font-family:var(--f-display);font-weight:900;font-size:1.7rem;line-height:1.2}
+.big .clk{font-family:var(--f-mono);font-weight:600;font-size:1.4rem;margin-left:8px}
+.rows{display:flex;flex-direction:column;gap:4px;font-size:.95rem;margin-top:6px}
+.kv{display:grid;grid-template-columns:4.8em minmax(0,1fr);gap:6px}
+.kv span:first-child{color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.toggles{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.tog{display:flex;align-items:center;gap:10px;min-height:var(--tap);border:1px solid var(--line);border-radius:9px;padding:4px 12px;cursor:pointer;font-size:.95rem;user-select:none}
+.tog input{width:20px;height:20px;accent-color:var(--accent);margin:0;flex:none}
+.tog:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.sw{display:inline-block;width:22px;height:4px;border-radius:2px;flex:none}
+.ptitle{font-weight:700;font-size:.95rem;margin:0 0 6px}
+.help{font-size:.9rem;color:var(--muted);margin:0}
+.help b{color:var(--ink)}
+@media (max-width:1000px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;height:auto;min-height:0}
+  .stage{flex:none;height:min(68vh,620px);min-height:340px}
+  .side{overflow:visible}
+  .toggles{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../">物理互動模擬</a> · 自然（五）7-3 · <a href="../moon/">平面版</a></div>
+      <h1>月相：3D 太空視角</h1>
+    </div>
+    <div class="viewbar">
+      <button class="btn" id="resetAll">↺ 回復預設</button>
+      <button class="btn" id="fs">⛶ 全螢幕</button>
+    </div>
+  </header>
+
+  <div class="stagecol">
+    <div class="viewbar" role="group" aria-label="視角">
+      <span class="seg" id="viewSeg">
+        <button data-v="free" aria-pressed="true">自由視角</button>
+        <button data-v="top" aria-pressed="false">北極上空俯視</button>
+        <button data-v="earth" aria-pressed="false">從地球看月亮</button>
+        <button data-v="ground" aria-pressed="false">站在地面看天空</button>
+      </span>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="c" aria-label="日地月 3D 場景，可拖曳轉動"></canvas>
+      <div id="labels"></div>
+      <div class="hud" id="hud"></div><div class="lbl compass" id="ewE" style="left:22px;top:50%;transform:translateY(-50%)" hidden>東</div><div class="lbl compass" id="ewW" style="left:auto;right:22px;top:50%;transform:translateY(-50%)" hidden>西</div>
+      <div id="inset" hidden><div class="cap">地球上看到的月亮</div><div class="ew" style="left:8px">東</div><div class="ew" style="right:8px">西</div><div class="msg" id="insetMsg"></div></div>
+    </div>
+    <div class="panel timebar">
+      <button class="btn primary" id="play">▶ 播放</button>
+      <span class="seg" id="speedSeg"><button data-v="0.1667">10 分/秒</button><button data-v="1" aria-pressed="true">1 時/秒</button><button data-v="6">6 時/秒</button><button data-v="24">1 天/秒</button><button data-v="daily">逐日</button></span>
+      <span class="seg"><button data-step="-24">−1 天</button><button data-step="-1">−1 時</button><button data-step="1">+1 時</button><button data-step="24">+1 天</button></span>
+      <label class="slider"><span class="tlabel">農曆</span><input type="range" id="dateR" min="1" max="30" step="1"><output id="dateO"></output></label>
+      <label class="slider"><span class="tlabel">時刻</span><input type="range" id="timeR" min="0" max="1435" step="5"><output id="timeO"></output></label>
+    </div>
+  </div>
+
+  <aside class="side">
+    <section class="panel">
+      <div class="big"><span id="rDate"></span><span class="clk" id="rClock"></span></div>
+      <div class="rows">
+        <div><b id="rPhase"></b>　<span id="rLit" class="tlabel"></span></div>
+        <div class="kv"><span>月亮</span><span id="rWhere"></span></div>
+        <div class="kv"><span>今日月亮</span><span id="rRise" class="mono"></span></div>
+        <div class="kv"><span>太陽</span><span id="rSun"></span></div>
+      </div>
+    </section>
+    <section class="panel">
+      <p class="ptitle" id="helpT"></p>
+      <p class="help" id="helpP"></p>
+    </section>
+    <section class="panel">
+      <p class="ptitle">顯示</p>
+      <div class="toggles">
+        <label class="tog"><input type="checkbox" id="tRings" checked><span class="sw" style="background:#ffd34d"></span><span class="sw" style="background:#4fd0ee;margin-left:-6px"></span>兩個半球的界線</label>
+        <label class="tog"><input type="checkbox" id="tInset" checked>小視窗：地球上看到的月亮</label>
+        <label class="tog"><input type="checkbox" id="tHorizon" checked>觀察者的地平面</label>
+        <label class="tog"><input type="checkbox" id="tGhost">八個位置</label>
+        <label class="tog"><input type="checkbox" id="tQ">月球定點 Q</label>
+        <label class="tog"><input type="checkbox" id="tLabels" checked>文字標籤</label>
+        <label class="tog"><input type="checkbox" id="tDark" checked>月球暗面稍微顯示</label>
+        <label class="tog"><input type="checkbox" id="tReal">實際距離比例</label>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from './vendor/OrbitControls.js';
+
+// ================= model (same as the flat version) =================
+const P=29.530589, PH=P*24, LAT=23.5;
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI, mod=(a,n)=>((a%n)+n)%n, w180=a=>mod(a+180,360)-180;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,f)=>a+(b-a)*f;
+const $=id=>document.getElementById(id);
+const S0={t:0,T0:10,playing:false,speed:1,daily:false,view:'free',real:false,
+  rings:true,inset:true,horizon:true,ghost:false,q:false,labels:true,dark:true};
+const S={...S0};
+const elong=t=>mod(360*(t-S.T0)/PH,360);
+const clock=t=>mod(t,24);
+const theta=t=>(clock(t)-12)*15;
+const monthStart=k=>Math.floor((S.T0+k*PH)/24)*24;
+function monthOf(t){let k=Math.floor((t-S.T0)/PH);while(monthStart(k+1)<=t)k++;while(monthStart(k)>t)k--;return k;}
+function lunar(t){const k=monthOf(t);return{k,d:Math.floor((t-monthStart(k))/24)+1};}
+const Hm=t=>w180(theta(t)-elong(t)), Hs=t=>w180(theta(t));
+const dayStart=t=>t-clock(t);
+const NUM='〇一二三四五六七八九';
+function lunarName(d){if(d<=10)return '初'+(d===10?'十':NUM[d]);if(d<20)return '十'+NUM[d-10];if(d===20)return '二十';if(d<30)return '二十'+NUM[d-20];return '三十';}
+function hhmm(h){h=mod(h,24);let m=Math.round(h*60);if(m===1440)m=0;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function phaseName(e){if(e<7||e>353)return '新月（朔）';if(e<83)return '眉月';if(e<97)return '上弦月';if(e<173)return '盈凸月';if(e<187)return '滿月（望）';if(e<263)return '虧凸月';if(e<277)return '下弦月';return '殘月';}
+function describe(H){const alt=90-Math.abs(H);
+  if(alt<-0.3)return H<0?'在地平線下（還沒從東方升起）':'在地平線下（已從西方落下）';
+  if(alt<8)return H<0?'剛從東方地平線升起':'接近西方地平線，快要落下';
+  if(alt>80)return '接近中天（南方高空）';
+  return (H<0?'在東方天空':'在西方天空');}
+function events(t0,len,f){const out={rise:[],transit:[],set:[]};let prev=f(t0);
+  for(let s=t0+1/30;s<=t0+len+1e-9;s+=1/30){const c=f(s);if(c-prev>0&&c-prev<20){if(prev<-90&&c>=-90)out.rise.push(s);if(prev<0&&c>=0)out.transit.push(s);if(prev<90&&c>=90)out.set.push(s);}prev=c;}
+  return out;}
+// top-view angle a (counter-clockwise from the sun direction, seen from the north) -> 3D: X toward the sun, Y north
+const dir3=(a,r=1)=>new THREE.Vector3(r*Math.cos(rad(a)),0,-r*Math.sin(rad(a)));
+
+// ================= textures (generated, no image files) =================
+function hash(x,y,z){const s=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return s-Math.floor(s);}
+function vnoise(x,y,z){const X=Math.floor(x),Y=Math.floor(y),Z=Math.floor(z),fx=x-X,fy=y-Y,fz=z-Z;
+  const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz);let r=0;
+  for(let i=0;i<2;i++)for(let j=0;j<2;j++)for(let k=0;k<2;k++)r+=hash(X+i,Y+j,Z+k)*(i?u:1-u)*(j?v:1-v)*(k?w:1-w);return r;}
+function fbm(x,y,z,o=5){let a=.5,f=1,s=0,n=0;for(let i=0;i<o;i++){s+=a*vnoise(x*f,y*f,z*f);n+=a;a*=.5;f*=2.03;}return s/n;}
+function sphereTex(W,H,fn){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),img=g.createImageData(W,H),d=img.data;
+  for(let j=0;j<H;j++){const th=(j+.5)/H*Math.PI,st=Math.sin(th),ct=Math.cos(th);
+    for(let i=0;i<W;i++){const ph=(i+.5)/W*2*Math.PI;const x=-Math.cos(ph)*st,y=ct,z=Math.sin(ph)*st;const[r,gg,b]=fn(x,y,z);const p=(j*W+i)*4;d[p]=r;d[p+1]=gg;d[p+2]=b;d[p+3]=255;}}
+  g.putImageData(img,0,0);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;}
+const earthTex=sphereTex(1024,512,(x,y,z)=>{
+  const n=fbm(x*1.7+3.1,y*1.7+1.3,z*1.7+7.7,6), m=fbm(x*3+9,y*3+2,z*3+5,4);
+  if(Math.abs(y)>0.93) return[236,242,248];
+  if(n>0.53){const k=clamp((n-.53)*6,0,1);return[lerp(70,170,m*k)|0,lerp(140,150,m)|0,lerp(64,90,m*k)|0];}
+  const k=clamp((0.53-n)*5,0,1);return[lerp(48,22,k)|0,lerp(110,70,k)|0,lerp(190,150,k)|0];});
+const moonTex=sphereTex(1024,512,(x,y,z)=>{
+  const base=fbm(x*4+1,y*4+2,z*4+3,5), fine=fbm(x*14,y*14,z*14,3);
+  const mare=fbm(x*1.6+11,y*1.6+4,z*1.6+8,5)+0.12*x;  // maria mostly on the near side (+X)
+  let v=150+70*(base-.5)+30*(fine-.5);
+  if(mare>0.6) v-=lerp(25,70,clamp((mare-.6)*6,0,1));
+  v=clamp(v,40,235);return[v|0,(v*.985)|0,(v*.96)|0];});
+function glowTex(inner,outer){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');const gr=g.createRadialGradient(128,128,0,128,128,128);
+  gr.addColorStop(0,inner);gr.addColorStop(.25,inner);gr.addColorStop(1,outer);g.fillStyle=gr;g.fillRect(0,0,256,256);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;}
+
+// ================= scene =================
+const stage=$('stage'), canvas=$('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,logarithmicDepthBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+const scene=new THREE.Scene();
+const SPACE=new THREE.Color('#0b1226');
+scene.background=SPACE.clone();
+const camera=new THREE.PerspectiveCamera(45,1,0.001,30000);
+camera.layers.enable(1);
+const insetCam=new THREE.PerspectiveCamera(10,1,0.01,30000); // sees layer 0 only (no helpers)
+const sunLight=new THREE.DirectionalLight(0xffffff,3.2);sunLight.position.set(100,0,0);scene.add(sunLight);
+const amb=new THREE.AmbientLight(0xffffff,0.12);scene.add(amb);
+const H1=o=>{o.traverse(c=>c.layers.set(1));return o;};  // helper objects: main view only
+
+// stars
+{const N=2600,pos=new Float32Array(N*3);for(let i=0;i<N;i++){const u=hash(i,1,2)*2-1,ph=hash(i,3,4)*Math.PI*2,r=9000,s=Math.sqrt(1-u*u);pos.set([r*s*Math.cos(ph),r*u,r*s*Math.sin(ph)],i*3);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  var starMat=new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:.85,depthWrite:false});
+  scene.add(new THREE.Points(g,starMat));}
+// earth
+const earth=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),new THREE.MeshStandardMaterial({map:earthTex,roughness:.95,metalness:0}));
+scene.add(earth);
+const obsLocal=new THREE.Vector3(Math.cos(rad(LAT)),Math.sin(rad(LAT)),0);
+const obsMark=H1(new THREE.Group());
+{const dot=new THREE.Mesh(new THREE.SphereGeometry(.055,16,12),new THREE.MeshBasicMaterial({color:0xffd166}));dot.position.copy(obsLocal);obsMark.add(dot);
+ const stick=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.25,8),new THREE.MeshBasicMaterial({color:0xffd166}));stick.position.copy(obsLocal.clone().multiplyScalar(1.12));stick.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),obsLocal);obsMark.add(stick);
+ H1(obsMark);earth.add(obsMark);}
+const horizon=new THREE.Group();
+{const disk=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshBasicMaterial({color:0xffe08a,transparent:true,opacity:.2,side:THREE.DoubleSide,depthWrite:false}));
+ const edge=new THREE.Mesh(new THREE.RingGeometry(.985,1,96),new THREE.MeshBasicMaterial({color:0xffe08a,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));
+ horizon.add(disk,edge);horizon.position.copy(obsLocal.clone().multiplyScalar(1.002));horizon.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),obsLocal);H1(horizon);earth.add(horizon);}
+// moon
+const moon=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),new THREE.MeshStandardMaterial({map:moonTex,roughness:1,metalness:0}));
+scene.add(moon);
+const qDot=new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),new THREE.MeshBasicMaterial({color:0xff3b3b}));qDot.position.set(.99,0,0);moon.add(qDot);
+// hemisphere boundaries
+const ringGeo=new THREE.TorusGeometry(1,.028,10,128);
+const litRing=H1(new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:0xffd34d})));
+const faceRing=H1(new THREE.Mesh(ringGeo,new THREE.MeshBasicMaterial({color:0x4fd0ee})));
+const faceCap=H1(new THREE.Mesh(new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x4fd0ee,transparent:true,opacity:.16,depthWrite:false})));
+scene.add(litRing,faceRing,faceCap);
+// orbit
+const orbit=H1(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({length:180},(_,i)=>dir3(i*2))),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.35})));
+scene.add(orbit);
+// eight positions
+const ghosts=H1(new THREE.Group());
+const ghostNames=[['甲','朔（初一）'],['','眉月'],['乙','上弦（初八）'],['','盈凸月'],['丙','望（十五）'],['','虧凸月'],['丁','下弦（二十三）'],['','殘月']];
+for(let k=0;k<8;k++){const g=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),new THREE.MeshStandardMaterial({map:moonTex,roughness:1,transparent:true,opacity:.55}));g.userData.a=k*45;ghosts.add(g);}
+H1(ghosts);scene.add(ghosts);
+// sunlight arrows + a near sun (free views) and a far sun disc (ground view)
+const arrows=H1(new THREE.Group());
+for(const z of[-.75,-.375,0,.375,.75])for(const y of[0]){const a=new THREE.ArrowHelper(new THREE.Vector3(-1,0,0),new THREE.Vector3(1.32,y,z),.22,0xffb43c,.07,.045);arrows.add(a);}
+H1(arrows);scene.add(arrows);
+const sunNear=H1(new THREE.Group());
+{const core=new THREE.Mesh(new THREE.SphereGeometry(1,48,32),new THREE.MeshBasicMaterial({color:0xffd34d}));
+ const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex('rgba(255,220,120,.9)','rgba(255,180,60,0)'),depthWrite:false,transparent:true}));gl.scale.setScalar(5);
+ sunNear.add(core,gl);H1(sunNear);scene.add(sunNear);}
+const sunFar=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex('rgba(255,250,225,1)','rgba(255,220,120,0)'),depthWrite:false,transparent:true}));
+scene.add(sunFar);
+// ground for the standing view
+const ground=new THREE.Mesh(new THREE.CircleGeometry(20000,96),new THREE.MeshBasicMaterial({color:0x2f5a2c}));
+scene.add(ground);
+
+// ================= scale =================
+let OR=6, MR=.62;           // orbit radius, moon radius (earth radius = 1)
+function applyScale(){
+  const was=OR; OR=S.real?60:6; MR=S.real?.273:.62;
+  moon.scale.setScalar(MR); orbit.scale.setScalar(OR);
+  ghosts.children.forEach(g=>{g.scale.setScalar(MR*.75);g.position.copy(dir3(g.userData.a,OR));});
+  arrows.scale.setScalar(OR); sunNear.position.set(OR*1.85,0,0); sunNear.scale.setScalar(S.real?6:1.6);
+  horizon.scale.setScalar(S.real?14:1.6);
+  if(was!==OR&&(S.view==='free'||S.view==='top')){camera.position.multiplyScalar(OR/was);controls.target.multiplyScalar(OR/was);controls.update();}
+  controls.maxDistance=OR*12;
+}
+
+// ================= camera control =================
+const controls=new OrbitControls(camera,canvas);
+controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=1.6;controls.rotateSpeed=.7;
+controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};
+const aspK=()=>camera.aspect<1?Math.pow(1/camera.aspect,.75):1;
+const camTarget=()=>new THREE.Vector3(OR*.3,0,0);
+const defaultCam=()=>camTarget().add(new THREE.Vector3(-OR*.2,OR*1.65,OR*1.7).multiplyScalar(aspK()));
+let look={yaw:0,pitch:30,fov:75}, earthZoom=1;
+let trans=null; // {from:{p,q,f}, t0, dur}
+function frameFor(view){ // target camera pose for a view, evaluated every frame
+  const t=S.t, e=elong(t), mpos=dir3(e,OR);
+  if(view==='earth'){
+    const d=mpos.clone().normalize(), p=d.clone().multiplyScalar(1.03);
+    const m=new THREE.Matrix4().lookAt(p,mpos,new THREE.Vector3(0,1,0));
+    const dist=OR-1.03, f=2*deg(Math.atan(MR*1.7/dist))/earthZoom;
+    return{p,q:new THREE.Quaternion().setFromRotationMatrix(m),f:clamp(f,.6,80)};
+  }
+  if(view==='ground'){
+    const g=groundFrame(), dv=lookDir(g);
+    const m=new THREE.Matrix4().lookAt(g.eye,g.eye.clone().add(dv),g.n);
+    return{p:g.eye,q:new THREE.Quaternion().setFromRotationMatrix(m),f:look.fov};
+  }
+  return null;
+}
+function groundFrame(){
+  const th=rad(theta(S.t));
+  const n=new THREE.Vector3(Math.cos(rad(LAT))*Math.cos(th),Math.sin(rad(LAT)),-Math.cos(rad(LAT))*Math.sin(th));
+  const north=new THREE.Vector3(0,1,0).sub(n.clone().multiplyScalar(n.y)).normalize();
+  const east=new THREE.Vector3().crossVectors(north,n).normalize();
+  return{n,north,east,south:north.clone().negate(),eye:n.clone().multiplyScalar(1.004)};
+}
+function lookDir(g){const y=rad(look.yaw),p=rad(look.pitch);
+  return g.south.clone().multiplyScalar(Math.cos(y)).add(g.east.clone().multiplyScalar(Math.sin(y))).multiplyScalar(Math.cos(p)).add(g.n.clone().multiplyScalar(Math.sin(p))).normalize();}
+const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+function setView(v){
+  const from={p:camera.position.clone(),q:camera.quaternion.clone(),f:camera.fov};
+  S.view=v; segSet('viewSeg',v);
+  if(v==='free'||v==='top'){
+    const T=camTarget(), to=v==='top'?T.clone().add(new THREE.Vector3(0,OR*3.3*aspK(),OR*.004)):defaultCam();
+    const m=new THREE.Matrix4().lookAt(to,T,new THREE.Vector3(0,1,0));
+    trans={from,to:{p:to,q:new THREE.Quaternion().setFromRotationMatrix(m),f:45},t0:performance.now(),dur:1300,after:()=>{controls.target.copy(T);controls.enabled=true;controls.update();}};
+    controls.enabled=false;
+  } else {
+    if(v==='ground'){look={yaw:0,pitch:30,fov:75};} else earthZoom=1;
+    controls.enabled=false;
+    trans={from,to:null,t0:performance.now(),dur:v==='ground'?2000:1400};
+  }
+  updateHelp(); req();
+}
+function applyCamera(now){
+  if(trans){
+    const k=clamp((now-trans.t0)/trans.dur,0,1), s=ease(k), to=trans.to||frameFor(S.view);
+    const p=trans.from.p.clone().lerp(to.p,s);
+    if(S.view==='ground'&&k<1){ // swing outward so the path never passes through the earth
+      const lift=Math.sin(Math.PI*s)*OR*.35; const out=p.clone().normalize(); p.add(out.multiplyScalar(lift)); if(p.length()<1.01)p.setLength(1.01);
+    }
+    camera.position.copy(p); camera.quaternion.copy(trans.from.q.clone().slerp(to.q,s)); camera.fov=lerp(trans.from.f,to.f,s);
+    if(S.view==='ground') camera.up.copy(groundFrame().n); else camera.up.set(0,1,0);
+    if(k>=1){const a=trans.after;trans=null;needDamp=3;a&&a();}
+  } else if(S.view==='earth'||S.view==='ground'){
+    const to=frameFor(S.view);camera.position.copy(to.p);camera.quaternion.copy(to.q);camera.fov=to.f;
+  } else { camera.up.set(0,1,0); controls.update(); }
+  camera.updateProjectionMatrix();
+}
+
+// ================= labels =================
+const labelsEl=$('labels'), LB={};
+function lbl(key,text,cls){let el=LB[key];if(!el){el=document.createElement('div');el.className='lbl '+(cls||'');labelsEl.appendChild(el);LB[key]=el;}if(el._t!==text){el.textContent=text;el._t=text;}el._used=true;return el;}
+const tmpV=new THREE.Vector3();
+function place(key,text,pos,cls,dy=0){const v=tmpV.copy(pos).project(camera);const el=lbl(key,text,cls);
+  if(v.z>1||v.z<-1||Math.abs(v.x)>1.1||Math.abs(v.y)>1.1){el.style.display='none';return;}
+  const sx=(v.x*.5+.5)*VW, sy=(-v.y*.5+.5)*VH+dy;
+  if(insetRect&&sx>insetRect[0]-30&&sy>insetRect[1]-12){el.style.display='none';return;}
+  el.style.display='';el.style.transform=`translate(${sx}px,${sy}px) translate(-50%,-50%)`;}
+let insetRect=null;
+
+// ================= frame update =================
+let VW=1,VH=1;
+function resize(){const r=stage.getBoundingClientRect();VW=Math.max(1,r.width);VH=Math.max(1,r.height);renderer.setSize(VW,VH,false);camera.aspect=VW/VH;camera.updateProjectionMatrix();}
+new ResizeObserver(()=>{resize();req();}).observe(stage);
+
+function skyColor(alt){const K=[[-18,'#050a1a'],[-8,'#18264f'],[-2,'#4a5a8e'],[4,'#7aa7dc'],[15,'#5a97df']];
+  if(alt<=K[0][0])return new THREE.Color(K[0][1]);if(alt>=K[4][0])return new THREE.Color(K[4][1]);
+  for(let i=0;i<4;i++)if(alt<=K[i+1][0]){const f=(alt-K[i][0])/(K[i+1][0]-K[i][0]);return new THREE.Color(K[i][1]).lerp(new THREE.Color(K[i+1][1]),f);}}
+
+function render(now){
+  const t=S.t, e=elong(t), th=theta(t), mpos=dir3(e,OR), ground_=S.view==='ground'&&!trans, earthV=S.view==='earth';
+  earth.rotation.y=rad(th);
+  moon.position.copy(mpos); moon.rotation.y=rad(e)+Math.PI; moon.scale.setScalar(ground_&&!S.real?OR*.028:MR);
+  qDot.visible=S.q;
+  // hemisphere boundaries
+  const toE=mpos.clone().negate().normalize(), sunD=new THREE.Vector3(1,0,0);
+  litRing.position.copy(mpos);litRing.scale.setScalar(MR*1.035);litRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),sunD);
+  faceRing.position.copy(mpos);faceRing.scale.setScalar(MR*1.045);faceRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),toE);
+  faceCap.position.copy(mpos);faceCap.scale.setScalar(MR*1.04);faceCap.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),toE);
+  const showR=S.rings&&!ground_&&!earthV; litRing.visible=faceRing.visible=faceCap.visible=showR;
+  ghosts.visible=S.ghost&&!ground_; orbit.visible=!ground_&&!earthV; arrows.visible=!ground_; sunNear.visible=!ground_&&!earthV;
+  horizon.visible=S.horizon&&!ground_&&!earthV; obsMark.visible=!ground_&&!earthV;
+  // standing on the ground
+  const g=groundFrame(), sunAlt=deg(Math.asin(clamp(g.n.x,-1,1)));
+  ground.visible=ground_; sunFar.visible=ground_;
+  let bright=0;
+  if(ground_){
+    ground.position.copy(g.n);ground.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),g.n);
+    const sky=skyColor(sunAlt);scene.background=sky;bright=clamp((sunAlt+4)/12,0,1);
+    ground.material.color.set('#2f5a2c').lerp(new THREE.Color('#0b1a0e'),1-clamp((sunAlt+8)/14,0,1));
+    sunFar.position.copy(g.eye).add(new THREE.Vector3(4000,0,0));sunFar.scale.setScalar(260);
+    starMat.opacity=.85*clamp((-sunAlt-3)/9,0,1); amb.intensity=.02;
+  } else { scene.background=SPACE; starMat.opacity=.85; amb.intensity=S.dark?.08:.012; }
+  const add=ground_&&bright>0; // daytime moon: let the blue sky show through the unlit part
+  if(moon.material.blending!==(add?THREE.AdditiveBlending:THREE.NormalBlending)){moon.material.blending=add?THREE.AdditiveBlending:THREE.NormalBlending;moon.material.transparent=add;moon.material.needsUpdate=true;}
+  sunLight.intensity=3.2;
+  applyCamera(now);
+  // main render
+  renderer.setScissorTest(false);renderer.setViewport(0,0,VW,VH);renderer.render(scene,camera);
+  // inset
+  const insetOn=S.inset&&(S.view==='free'||S.view==='top'); if(!insetOn)insetRect=null;
+  $('inset').hidden=!insetOn;
+  if(insetOn){
+    const sz=Math.round(clamp(Math.min(VW,VH)*.34,120,360));
+    const el=$('inset');el.style.width=el.style.height=sz+'px';
+    const x=VW-sz-10,y=10; insetRect=[x,VH-sz-10]; // bottom-right (webgl origin bottom-left)
+    insetCam.position.set(0,0,0);insetCam.up.set(0,1,0);insetCam.lookAt(mpos);insetCam.fov=2*deg(Math.atan(MR*1.45/OR));insetCam.aspect=1;insetCam.updateProjectionMatrix();
+    const bg=scene.background;scene.background=new THREE.Color('#070b18');
+    renderer.setScissorTest(true);renderer.setScissor(x,y,sz,sz);renderer.setViewport(x,y,sz,sz);renderer.render(scene,insetCam);
+    renderer.setScissorTest(false);scene.background=bg;
+    const lit=(1-Math.cos(rad(e)))/2;$('insetMsg').textContent=lit<.03?'新月：亮的一面背對地球，看不到':'';
+  }
+  // labels
+  Object.values(LB).forEach(el=>el._used=false);
+  if(S.labels||ground_){
+    if(!ground_&&!earthV){
+      place('earth','地球',new THREE.Vector3(0,-1.35,0));
+      place('moon','月球',mpos.clone().add(new THREE.Vector3(0,-MR*1.6,0)));
+      place('sun','太陽光',new THREE.Vector3(OR*1.45,OR*.09,OR*.75),'sun');
+      place('sunb','太陽（實際上遠得多）',new THREE.Vector3(OR*1.85,-(S.real?6:1.6)*1.5,0),'sun sm');
+      place('obs','觀察者',earth.localToWorld(obsLocal.clone().multiplyScalar(1.4)),'ye sm');
+      if(S.rings){
+        place('rl','受光的半球',mpos.clone().add(new THREE.Vector3(MR*1.9,MR*1.5,0)),'ye sm');
+        place('rf','面向地球的半球',mpos.clone().add(toE.clone().multiplyScalar(MR*2)).add(new THREE.Vector3(0,-MR*1.5,0)),'cy sm');
+      }
+      if(S.ghost) ghosts.children.forEach((gm,k)=>{const nm=ghostNames[k];place('g'+k,(nm[0]?nm[0]+' ':'')+nm[1],dir3(gm.userData.a,OR*1.18).add(new THREE.Vector3(0,MR*.9,0)),'sm');});
+      if(S.q) place('q','Q',mpos.clone().add(toE.clone().multiplyScalar(MR*1.3)),'');
+    }
+    if(ground_){
+      const at=(v,k,tx)=>place(k,tx,g.eye.clone().add(v.clone().multiplyScalar(60)).add(g.n.clone().multiplyScalar(4)),'compass');
+      at(g.south,'cS','南');at(g.east,'cE','東');at(g.east.clone().negate(),'cW','西');at(g.north,'cN','北');
+      const mDir=mpos.clone().sub(g.eye);if(mDir.dot(g.n)>0) place('mL','月亮',mpos.clone().add(g.n.clone().multiplyScalar(MR*2.2)),'sm');
+    }
+  }
+  Object.values(LB).forEach(el=>{if(!el._used)el.style.display='none';});
+  $('ewE').hidden=$('ewW').hidden=!(earthV&&!trans);
+  // hud
+  $('hud').innerHTML=`農曆${lunarName(lunar(t).d)}　<span class="mono">${hhmm(clock(t))}</span>`+(ground_?`<div style="font-size:.75em;font-weight:500;opacity:.9">北緯約 23.5°・視線：${['南','西南','西','西北','北','東北','東','東南'][mod(Math.round(look.yaw/45),8)]}方</div>`:'');
+  readouts();
+}
+function readouts(){
+  const t=S.t,e=elong(t),ld=lunar(t);
+  $('rDate').textContent='農曆'+lunarName(ld.d);$('rClock').textContent=hhmm(clock(t));
+  $('rPhase').textContent=phaseName(e);
+  const lit=Math.round((1-Math.cos(rad(e)))/2*100);
+  $('rLit').textContent=(lit<1?'看不到亮面':lit>99?'整面都亮':(e<180?'亮面在西側（右）':'亮面在東側（左）'))+`・亮面 ${lit}%`;
+  $('rWhere').textContent=describe(Hm(t));
+  const ds=dayStart(t),ev=events(ds,30,Hm),f=a=>{const x=a.filter(v=>v<ds+24);return x.length?x.map(hhmm).join('、'):(a.length?'次日 '+hhmm(a[0]):'—');};
+  $('rRise').textContent=`東升 ${f(ev.rise)}　中天 ${f(ev.transit)}　西落 ${f(ev.set)}`;
+  $('rSun').textContent=describe(Hs(t)).replace('（還沒從東方升起）','（夜晚）').replace('（已從西方落下）','（夜晚）')+'（06:00 升、18:00 落）';
+  if(document.activeElement!==$('dateR'))$('dateR').value=ld.d;
+  $('dateO').textContent=lunarName(ld.d);
+  if(document.activeElement!==$('timeR'))$('timeR').value=Math.round(clock(t)*12)*5%1440;
+  $('timeO').textContent=hhmm(clock(t));
+}
+const HELP={
+  free:['自由視角','拖曳空白處轉動，兩指（或滾輪）縮放。<b>拖曳月球</b>換農曆日期，<b>拖曳地球</b>換時刻。黃圈是月球「受光的半球」的界線，藍色半透明是「面向地球的半球」；兩者重疊的部分，就是我們在地球上看到的亮面（右下小視窗）。'],
+  top:['北極上空俯視','和課本圖㈠一樣：太陽光從右邊來，地球和月球都逆時針轉。月球永遠有一半被照亮，但轉到不同位置時，面向地球的那一半裡，亮的部分多寡不同，所以有月相變化。也可以再拖曳轉動視角。'],
+  earth:['從地球看月亮','鏡頭放在地球上、對準月球，北方朝上，所以左邊是東、右邊是西。播放或換日期，月相會跟著改變。兩指或滾輪可以縮放。'],
+  ground:['站在地面看天空','你站在北緯約 23.5°（臺灣）的地面上，一開始面向南方。拖曳畫面轉頭，兩指或滾輪縮放。播放時可以看到月亮和太陽從東方升起、往西方落下；白天的月亮會淡淡地出現在藍天裡。']
+};
+function updateHelp(){const h=HELP[S.view];$('helpT').textContent=h[0];$('helpP').innerHTML=h[1];}
+
+// ================= loop =================
+let raf=0;const req=()=>{if(!raf)raf=requestAnimationFrame(tick);};
+let last=0,acc=0;
+function tick(now){
+  raf=0;
+  const dt=last?Math.min(.1,(now-last)/1000):0;last=now;
+  if(S.playing){ if(S.daily){acc+=dt;if(acc>=.8){acc=0;S.t+=24;}} else S.t+=dt*S.speed; }
+  render(now);
+  if(S.playing||trans||needDamp>0){if(needDamp>0)needDamp--;req();}
+  else last=0;
+}
+let needDamp=0;
+controls.addEventListener('change',()=>{needDamp=30;req();});
+
+// ================= input =================
+function segSet(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));}
+document.querySelectorAll('#viewSeg button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.v)));
+function setPlay(p){S.playing=p;$('play').textContent=p?'❚❚ 暫停':'▶ 播放';acc=0;last=0;req();}
+$('play').addEventListener('click',()=>setPlay(!S.playing));
+document.querySelectorAll('#speedSeg button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.v==='daily'){S.daily=true;}else{S.daily=false;S.speed=+b.dataset.v;}segSet('speedSeg',b.dataset.v);req();}));
+document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{S.t+= +b.dataset.step;req();}));
+function setDateKeepClock(d){const k=lunar(S.t).k;S.t=monthStart(k)+(d-1)*24+clock(S.t);req();}
+$('dateR').addEventListener('input',e=>setDateKeepClock(+e.target.value));
+$('timeR').addEventListener('input',e=>{S.t=dayStart(S.t)+(+e.target.value)/60;req();});
+const tg=(id,k,after)=>$(id).addEventListener('change',e=>{S[k]=e.target.checked;after&&after();req();});
+tg('tRings','rings');tg('tInset','inset');tg('tHorizon','horizon');tg('tGhost','ghost');tg('tQ','q');tg('tLabels','labels');tg('tDark','dark');tg('tReal','real',applyScale);
+function syncToggles(){[['tRings','rings'],['tInset','inset'],['tHorizon','horizon'],['tGhost','ghost'],['tQ','q'],['tLabels','labels'],['tDark','dark'],['tReal','real']].forEach(([i,k])=>$(i).checked=S[k]);
+  segSet('speedSeg',S.daily?'daily':S.speed);}
+$('fs').addEventListener('click',()=>{const a=$('app');if(document.fullscreenElement)document.exitFullscreen();else (a.requestFullscreen||a.webkitRequestFullscreen).call(a);});
+$('resetAll').addEventListener('click',()=>{setPlay(false);Object.assign(S,S0);S.t=monthStart(0)+7*24+18;syncToggles();applyScale();setView('free');});
+
+// dragging the moon / the earth, and looking around in the ground view
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+let drag=null; const pointers=new Map();
+function setNdc(ev){const r=stage.getBoundingClientRect();ndc.set((ev.clientX-r.left)/r.width*2-1,-((ev.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,camera);}
+function planeAngle(){const p=new THREE.Vector3();if(!ray.ray.intersectPlane(plane,p))return null;return deg(Math.atan2(-p.z,p.x));}
+stage.addEventListener('pointerdown',ev=>{
+  pointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+  if(S.view==='ground'||S.view==='earth'){ if(trans)return; drag={type:'look',x:ev.clientX,y:ev.clientY};stage.setPointerCapture(ev.pointerId);ev.stopPropagation();return; }
+  if(pointers.size>1){drag=null;return;}
+  setNdc(ev);
+  const hitM=ray.intersectObject(moon,false)[0], hitE=ray.intersectObject(earth,false)[0];
+  const near=(o,hit)=>hit&&(!o||hit.distance<o.distance);
+  if(hitM&&near(hitE,hitM)){drag={type:'moon'};}
+  else if(hitE){drag={type:'earth',a:planeAngle()};}
+  else return;
+  setPlay(false);controls.enabled=false;stage.setPointerCapture(ev.pointerId);ev.stopPropagation();ev.preventDefault();
+},{capture:true});
+stage.addEventListener('pointermove',ev=>{
+  const prev=pointers.get(ev.pointerId); if(prev){pointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY,px:prev.x,py:prev.y});}
+  if(!drag)return;
+  if(drag.type==='look'){
+    if(pointers.size>=2){ // pinch to zoom
+      const ps=[...pointers.values()];const d=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y),pd=Math.hypot((ps[0].px??ps[0].x)-(ps[1].px??ps[1].x),(ps[0].py??ps[0].y)-(ps[1].py??ps[1].y));
+      if(pd>0)zoomBy(pd/d);return;}
+    if(S.view==='ground'){const k=look.fov/VH;look.yaw=mod(look.yaw-(ev.clientX-drag.x)*k+180,360)-180;look.pitch=clamp(look.pitch+(ev.clientY-drag.y)*k,-10,89);}
+    drag.x=ev.clientX;drag.y=ev.clientY;req();return;}
+  setNdc(ev);const a=planeAngle();if(a===null)return;
+  if(drag.type==='moon'){const k=lunar(S.t).k,c=clock(S.t);let best=S.t,bd=1e9;for(let d=1;d<=30;d++){const tt=monthStart(k)+(d-1)*24+c;const df=Math.abs(w180(elong(tt)-a));if(df<bd){bd=df;best=tt;}}S.t=best;}
+  else if(drag.type==='earth'&&drag.a!==null){S.t+=w180(a-drag.a)/15;drag.a=a;}
+  req();
+},{capture:true});
+const endDrag=ev=>{pointers.delete(ev.pointerId);if(drag&&drag.type!=='look'&&(S.view==='free'||S.view==='top'))controls.enabled=true;if(pointers.size===0)drag=null;};
+stage.addEventListener('pointerup',endDrag,{capture:true});stage.addEventListener('pointercancel',endDrag,{capture:true});
+function zoomBy(f){ if(S.view==='ground'){look.fov=clamp(look.fov*f,15,110);} else if(S.view==='earth'){earthZoom=clamp(earthZoom/f,.25,4);} req(); }
+stage.addEventListener('wheel',ev=>{if(S.view==='ground'||S.view==='earth'){ev.preventDefault();ev.stopPropagation();zoomBy(Math.exp(ev.deltaY*.001));}},{capture:true,passive:false});
+// hover cursor
+stage.addEventListener('pointermove',ev=>{if(drag||ev.pointerType!=='mouse'||!(S.view==='free'||S.view==='top'))return;setNdc(ev);stage.style.cursor=ray.intersectObjects([moon,earth],false).length?'pointer':'grab';});
+
+// ================= start =================
+S.t=monthStart(0)+7*24+18;
+syncToggles();applyScale();resize();
+camera.position.copy(defaultCam());controls.target.copy(camTarget());controls.update();
+updateHelp();req();
+</script>
+</body>
+</html>
