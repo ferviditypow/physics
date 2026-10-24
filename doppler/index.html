@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>都卜勒效應實驗台</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* Layout: one wide "wave tank" stage on top, then source / observer / readout panels beneath, like a lab bench */
+:root{
+  --bg:#eaeef2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1; --grid:#e6ebf0;
+  --wave:#2a3a4b; --src:#d9481c; --src-soft:#fbe4da; --obs:#1c68ad; --obs-soft:#dcebf8;
+  --up:#c2410c; --down:#1d5fa3;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#1d262f;
+  --wave:#c6d2de; --src:#ff7b47; --src-soft:#3a2219; --obs:#5ba8ec; --obs-soft:#17293a;
+  --up:#ff9a6b; --down:#7cb9f0; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#1d262f;
+  --wave:#c6d2de; --src:#ff7b47; --src-soft:#3a2219; --obs:#5ba8ec; --obs-soft:#17293a;
+  --up:#ff9a6b; --down:#7cb9f0; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:500}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(28px,4vw,40px);line-height:1.15;margin:2px 0 0;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:46ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.stage{overflow:hidden}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.toolbar .spacer{flex:1}
+button,.seg label{font:inherit;font-size:14px;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:6px 12px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.sound-on{background:var(--src);border-color:var(--src);color:#fff}
+:focus-visible{outline:2px solid var(--obs);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:5px 10px;cursor:pointer;color:var(--muted);border-left:1px solid var(--line);white-space:nowrap}
+.seg label:first-of-type{border-left:0}
+.seg input:checked+label{background:var(--ink);color:var(--panel)}
+.seg input:focus-visible+label{outline:2px solid var(--obs);outline-offset:-2px}
+.tlabel{font-size:12px;color:var(--muted);margin-right:-6px}
+.canvas-box{position:relative}
+#stage{display:block;width:100%;touch-action:none;cursor:default}
+.hint{position:absolute;left:12px;bottom:8px;font-size:12px;color:var(--muted);pointer-events:none}
+.presets{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.presets .tlabel{margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 14px;cursor:pointer;font-weight:500}
+.chip:hover{border-color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:16px}
+@media (max-width:900px){.grid{grid-template-columns:1fr 1fr}.readout{grid-column:1/-1}}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+.card{padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.dot.s{background:var(--src)} .dot.o{background:var(--obs)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.field .lab{font-size:13px;color:var(--muted)}
+.val{font-family:var(--f-mono);font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+.dir{font-size:12px;color:var(--muted);margin-left:4px;font-family:var(--f-body);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--ink);margin:2px 0}
+#srcV{accent-color:var(--src)} #obsV{accent-color:var(--obs)}
+.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.mini{display:flex;gap:6px;flex-wrap:wrap}
+.mini .btn{padding:3px 10px;font-size:13px}
+.note{font-size:13px;color:var(--muted);margin:0}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big .num{font-family:var(--f-mono);font-weight:600;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.big .unit{font-family:var(--f-mono);font-size:18px;color:var(--muted)}
+.tag{font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;border:1px solid currentColor}
+.tag.up{color:var(--up)} .tag.down{color:var(--down)} .tag.same{color:var(--muted)}
+.formula{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;font-family:var(--f-mono);font-size:15px;font-variant-numeric:tabular-nums;background:var(--bg);border-radius:8px;padding:10px 12px;overflow-x:auto}
+.formula.general{font-size:14px;color:var(--muted);background:none;padding:0}
+.frac{display:inline-flex;flex-direction:column;align-items:center;text-align:center}
+.frac>span{padding:0 6px;white-space:nowrap}
+.frac>span:first-child{border-bottom:1.5px solid currentColor}
+.formula b{font-weight:600}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.hist{padding:12px 14px 6px}
+.hist h3{margin:0 0 4px;font-size:14px;font-weight:700}
+#histc{display:block;width:100%;height:150px}
+footer{font-size:13px;color:var(--muted);max-width:75ch}
+footer p{margin:0 0 6px}
+@media (max-width:560px){.big .num{font-size:36px}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">聲波 · 互動模擬</div>
+      <h1>都卜勒效應實驗台</h1>
+    </div>
+    <p>聲源和觀察者都能移動。按「開啟聲音」聽觀察者實際聽到的音高，同時看波前在聲源前方被擠密、後方被拉開。</p>
+  </header>
+
+  <section class="panel stage">
+    <div class="toolbar">
+      <button class="btn primary" id="play" aria-label="暫停"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg><span>暫停</span></button>
+      <button class="btn" id="reset"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/><path d="M2 2.5v3h3"/></svg>重設</button>
+      <button class="btn" id="sound"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/><path d="M11.5 5.5a3.5 3.5 0 0 1 0 5M13.3 3.5a6.3 6.3 0 0 1 0 9"/></svg><span>開啟聲音</span></button>
+      <span class="tlabel">音色</span>
+      <div class="seg" role="radiogroup" aria-label="音色">
+        <input type="radio" name="timbre" id="t-siren" value="siren" checked><label for="t-siren">救護車</label>
+        <input type="radio" name="timbre" id="t-tone" value="tone"><label for="t-tone">純音</label>
+      </div>
+      <span class="spacer"></span>
+      <span class="tlabel">聽</span>
+      <div class="seg" role="radiogroup" aria-label="播放哪個聲音">
+        <input type="radio" name="listen" id="l-obs" value="obs" checked><label for="l-obs">觀察者聽到</label>
+        <input type="radio" name="listen" id="l-src" value="src"><label for="l-src">聲源原音</label>
+      </div>
+      <span class="tlabel">速度</span>
+      <div class="seg" role="radiogroup" aria-label="播放速度">
+        <input type="radio" name="ts" id="ts1" value="1" checked><label for="ts1">1×</label>
+        <input type="radio" name="ts" id="ts05" value="0.5"><label for="ts05">½×</label>
+        <input type="radio" name="ts" id="ts025" value="0.25"><label for="ts025">¼×</label>
+      </div>
+      <span class="tlabel">碰到邊界</span>
+      <div class="seg" role="radiogroup" aria-label="碰到邊界時">
+        <input type="radio" name="edge" id="e-b" value="bounce" checked><label for="e-b">反彈</label>
+        <input type="radio" name="edge" id="e-w" value="wrap"><label for="e-w">從另一側出現</label>
+        <input type="radio" name="edge" id="e-s" value="stop"><label for="e-s">停住</label>
+      </div>
+    </div>
+    <div class="canvas-box">
+      <canvas id="stage" aria-label="聲源與觀察者的波前動畫"></canvas>
+      <div class="hint">可直接拖曳聲源或觀察者改變位置（上下拖可偏離同一直線）</div>
+    </div>
+  </section>
+
+  <div class="presets" id="presets"><span class="tlabel">情境</span></div>
+
+  <div class="grid">
+    <section class="panel card">
+      <h2><span class="dot s"></span>聲源 S</h2>
+      <div class="field">
+        <div class="row"><span class="lab">速度 v<sub>s</sub></span><span><span class="val" id="srcVo">0</span> <span class="val" style="font-weight:500">m/s</span><span class="dir" id="srcDir"></span></span></div>
+        <input type="range" id="srcV" min="-250" max="250" step="5" value="0">
+        <div class="ticks"><span>← 250</span><span>0</span><span>250 →</span></div>
+      </div>
+      <div class="mini"><button class="btn" data-set="src" data-v="0">停止</button><button class="btn" data-flip="src">反向</button></div>
+      <div class="field">
+        <div class="row"><span class="lab">原本頻率 f<sub>0</sub></span><span><span class="val" id="f0o">440</span> <span class="val" style="font-weight:500">Hz</span></span></div>
+        <input type="range" id="f0" min="200" max="800" step="10" value="440">
+        <div class="ticks"><span>200</span><span>500</span><span>800</span></div>
+      </div>
+      <p class="note">頻率越高，畫面上的波前也越密。救護車音色會在 f<sub>0</sub> 與 0.8 f<sub>0</sub> 兩個音之間交替，兩個音都照同一個比例升高或降低。</p>
+    </section>
+
+    <section class="panel card">
+      <h2><span class="dot o"></span>觀察者 O</h2>
+      <div class="field">
+        <div class="row"><span class="lab">速度 v<sub>o</sub></span><span><span class="val" id="obsVo">0</span> <span class="val" style="font-weight:500">m/s</span><span class="dir" id="obsDir"></span></span></div>
+        <input type="range" id="obsV" min="-250" max="250" step="5" value="0">
+        <div class="ticks"><span>← 250</span><span>0</span><span>250 →</span></div>
+      </div>
+      <div class="mini"><button class="btn" data-set="obs" data-v="0">停止</button><button class="btn" data-flip="obs">反向</button></div>
+      <p class="note">觀察者每接收到一個波峰，外圈會閃一下。閃得越快，聽到的音越高。</p>
+      <div class="field">
+        <span class="lab">聽到的音高</span>
+        <div class="seg" role="radiogroup" aria-label="聽到的音高何時改變">
+          <input type="radio" name="prop" id="p-i" value="instant" checked><label for="p-i">即時反應</label>
+          <input type="radio" name="prop" id="p-d" value="delay"><label for="p-d">等聲波傳到才改變</label>
+        </div>
+      </div>
+      <p class="note">聲速 v 固定為 340 m/s（空氣，約 15 °C）。</p>
+    </section>
+
+    <section class="panel card readout" aria-live="off">
+      <h2>觀察者聽到的頻率 f′</h2>
+      <div class="big"><span class="num" id="fobs">—</span><span class="unit">Hz</span><span class="tag same" id="ftag">—</span></div>
+      <div class="formula general">f′ = f<sub>0</sub> ×
+        <span class="frac"><span>v + v<sub>o</sub></span><span>v − v<sub>s</sub></span></span>
+        <span style="font-family:var(--f-body);font-size:12px">（v<sub>o</sub>、v<sub>s</sub> 以「朝向對方」為正）</span>
+      </div>
+      <div class="formula" id="formula">
+        <span>f′ =</span><span id="fx0">440</span><span>×</span>
+        <span class="frac"><span id="fxTop">340 + 0</span><span id="fxBot">340 − 0</span></span>
+        <span>=</span><b id="fxRes">440 Hz</b>
+      </div>
+      <dl>
+        <dt>原本波長 λ<sub>0</sub> = v / f<sub>0</sub></dt><dd id="l0">—</dd>
+        <dt>聲源前方波長</dt><dd id="lf">—</dd>
+        <dt>聲源後方波長</dt><dd id="lb">—</dd>
+        <dt>傳到觀察者的波長</dt><dd id="lo">—</dd>
+        <dt>波相對觀察者的速度</dt><dd id="vrel">—</dd>
+      </dl>
+    </section>
+  </div>
+
+  <section class="panel hist">
+    <h3>頻率–時間圖（最近 12 秒）</h3>
+    <canvas id="histc" aria-label="觀察者聽到的頻率隨時間變化"></canvas>
+  </section>
+
+  <footer>
+    <p>聲源移動改變的是「波長」：前方波前擠在一起、後方拉開。觀察者移動不改變波長，改變的是波峰迎面而來的相對速度。兩者都會讓每秒接收到的波峰數改變，所以音高跟著改變。</p>
+    <p>畫面上的波前間距已依比例放大，方便觀察；聲音頻率則用真實的公式計算。拖曳聲源或觀察者時，會用你拖動的速度計算音高。預設「即時反應」，變化馬上聽得到；選「等聲波傳到才改變」則更接近真實，聲源經過後，音高要等波傳過來才會降下來。</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+const V = 340, CW = 130, WW = 1000; // 聲速 m/s；畫面中聲速（世界單位/秒）；世界寬度
+const K = CW / V;
+const $ = s => document.querySelector(s);
+const cv = $('#stage'), ctx = cv.getContext('2d');
+const hc = $('#histc'), hx = hc.getContext('2d');
+
+const S = {
+  f0: 440, src: {x:150,y:.5,v:150}, obs: {x:760,y:.5,v:0},
+  waves: [], t: 0, nextEmit: 0, running: true, ts: 1, edge: 'bounce', listen: 'obs',
+  flash: 0, heard: null, hist: [], drag: null, preset: 'approach', timbre: 'siren', prop: 'instant'
+};
+function vel(o){ return o === S.drag ? {vx:o.dvx||0, vy:o.dvy||0} : {vx:o.v, vy:0}; }
+let W = 800, H = 360, sc = 0.8, WH = 450, dpr = 1;
+
+const PRESETS = [
+  {id:'approach', name:'聲源靠近', src:[120,.5,150], obs:[780,.5,0], edge:'bounce'},
+  {id:'passby',   name:'救護車駛過身邊', src:[60,.38,150], obs:[560,.74,0], edge:'wrap'},
+  {id:'obsgo',    name:'觀察者靠近', src:[260,.5,0], obs:[920,.5,-150], edge:'bounce'},
+  {id:'head',     name:'兩者相向', src:[120,.5,110], obs:[880,.5,-110], edge:'bounce'},
+  {id:'away',     name:'兩者遠離', src:[430,.5,-110], obs:[570,.5,110], edge:'bounce'},
+  {id:'same',     name:'同向同速', src:[180,.5,100], obs:[480,.5,100], edge:'wrap'},
+  {id:'still',    name:'都靜止', src:[350,.5,0], obs:[650,.5,0], edge:'bounce'},
+];
+
+/* ---------- 讀主題色 ---------- */
+let C = {};
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['panel','ink','muted','line','grid','wave','src','obs','src-soft','obs-soft','up','down','bg'])
+    C[k] = cs.getPropertyValue('--'+k).trim();
+}
+readColors();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+
+/* ---------- 尺寸 ---------- */
+function resize(){
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = cv.parentElement.clientWidth;
+  H = Math.round(W < 560 ? W * 0.78 : Math.min(470, Math.max(300, W * 0.42)));
+  cv.width = W*dpr; cv.height = H*dpr; cv.style.height = H+'px';
+  sc = W / WW; WH = H / sc;
+  const hw = hc.parentElement.clientWidth - 28;
+  hc.width = hw*dpr; hc.height = 150*dpr;
+}
+new ResizeObserver(resize).observe(cv.parentElement);
+resize();
+
+/* ---------- 初始化 / 情境 ---------- */
+const Tv = () => 132 / S.f0;             // 畫面上的發波週期
+const maxR = () => Math.hypot(WW, WH) + 40;
+
+function prefill(){
+  S.waves = []; S.t = 0; S.nextEmit = 0; S.hist = []; S.heard = null;
+  const T = Tv(), R = maxR();
+  for (let k = Math.ceil(R / (CW*T)); k >= 1; k--){
+    S.waves.push({t:-k*T, x:S.src.x - S.src.v*K*k*T, y:S.src.y, vx:S.src.v, vy:0});
+  }
+}
+function applyPreset(p){
+  S.preset = p.id;
+  [S.src.x,S.src.y,S.src.v] = p.src; [S.obs.x,S.obs.y,S.obs.v] = p.obs;
+  S.edge = p.edge; document.querySelector(`input[name=edge][value=${p.edge}]`).checked = true;
+  syncSliders(); prefill(); markPreset();
+}
+const presetBox = $('#presets');
+for (const p of PRESETS){
+  const b = document.createElement('button');
+  b.className='chip'; b.textContent=p.name; b.dataset.id=p.id; b.setAttribute('aria-pressed','false');
+  b.onclick = () => applyPreset(p);
+  presetBox.appendChild(b);
+}
+function markPreset(){ presetBox.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed', b.dataset.id===S.preset)); }
+
+/* ---------- 控制項 ---------- */
+const srcV = $('#srcV'), obsV = $('#obsV'), f0In = $('#f0');
+function dirText(v){ return v>0 ? '向右 →' : v<0 ? '← 向左' : '靜止'; }
+function syncSliders(){
+  srcV.value = S.src.v; obsV.value = S.obs.v; f0In.value = S.f0;
+  $('#srcVo').textContent = Math.abs(S.src.v); $('#srcDir').textContent = dirText(S.src.v);
+  $('#obsVo').textContent = Math.abs(S.obs.v); $('#obsDir').textContent = dirText(S.obs.v);
+  $('#f0o').textContent = S.f0;
+}
+srcV.oninput = () => { S.src.v = +srcV.value; S.preset=null; markPreset(); syncSliders(); };
+obsV.oninput = () => { S.obs.v = +obsV.value; S.preset=null; markPreset(); syncSliders(); };
+f0In.oninput = () => { S.f0 = +f0In.value; syncSliders(); };
+document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { S[b.dataset.set].v = +b.dataset.v; S.preset=null; markPreset(); syncSliders(); });
+document.querySelectorAll('[data-flip]').forEach(b => b.onclick = () => { S[b.dataset.flip].v *= -1; S.preset=null; markPreset(); syncSliders(); });
+document.querySelectorAll('input[name=ts]').forEach(r => r.onchange = () => S.ts = +r.value);
+document.querySelectorAll('input[name=edge]').forEach(r => r.onchange = () => S.edge = r.value);
+document.querySelectorAll('input[name=listen]').forEach(r => r.onchange = () => S.listen = r.value);
+document.querySelectorAll('input[name=prop]').forEach(r => r.onchange = () => S.prop = r.value);
+document.querySelectorAll('input[name=timbre]').forEach(r => r.onchange = () => { S.timbre = r.value; setTimbre(); });
+
+const playBtn = $('#play');
+const ICON_PAUSE = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg><span>暫停</span>';
+const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11a.6.6 0 0 0 .9.5l9-5.5a.6.6 0 0 0 0-1l-9-5.5a.6.6 0 0 0-.9.5z"/></svg><span>播放</span>';
+function setRunning(r){ S.running = r; playBtn.innerHTML = r ? ICON_PAUSE : ICON_PLAY; playBtn.setAttribute('aria-label', r?'暫停':'播放'); }
+playBtn.onclick = () => setRunning(!S.running);
+$('#reset').onclick = () => { const p = PRESETS.find(p=>p.id===S.preset) || PRESETS[0]; applyPreset(p); setRunning(true); };
+document.addEventListener('keydown', e => {
+  if (e.code==='Space' && !/INPUT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); setRunning(!S.running); }
+});
+
+/* ---------- 聲音 ---------- */
+let actx = null, osc = null, gain = null, lp = null, soundOn = false;
+function setTimbre(){
+  if (!osc) return;
+  if (S.timbre === 'siren'){ osc.type = 'sawtooth'; lp.frequency.value = 2200; lp.Q.value = 2; }
+  else { osc.type = 'triangle'; lp.frequency.value = 3500; lp.Q.value = 0.7; }
+}
+const SIREN_HALF = 0.55; // 每個音持續秒數
+function sirenTone(){
+  const t = actx ? actx.currentTime : performance.now()/1000;
+  return Math.floor(t / SIREN_HALF) % 2 === 0 ? 1 : 0.8;
+}
+const soundBtn = $('#sound');
+soundBtn.onclick = () => {
+  try {
+    if (!actx){
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      osc = actx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = S.f0;
+      lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 3500;
+      gain = actx.createGain(); gain.gain.value = 0;
+      osc.connect(lp).connect(gain).connect(actx.destination); osc.start();
+      setTimbre();
+    }
+    soundOn = !soundOn;
+    if (soundOn) actx.resume();
+    soundBtn.classList.toggle('sound-on', soundOn);
+    soundBtn.querySelector('span').textContent = soundOn ? '關閉聲音' : '開啟聲音';
+  } catch(err){ soundBtn.querySelector('span').textContent = '此瀏覽器無法播放聲音'; }
+};
+function updateAudio(){
+  if (!actx) return;
+  const now = actx.currentTime;
+  let f = null, g = 0;
+  if (S.listen === 'src'){ f = S.f0; g = 0.16; }
+  else if (S.heard){
+    f = S.heard.f;
+    g = 0.16; // 與聲源原音同音量，只比較音高
+  }
+  if (!soundOn || !S.running || f == null) g = 0;
+  if (S.timbre === 'siren'){ g *= 0.7; if (f != null) f *= sirenTone(); }
+  if (f != null) osc.frequency.setTargetAtTime(Math.min(4000, Math.max(40, f)), now, S.timbre === 'siren' ? 0.012 : 0.025);
+  gain.gain.setTargetAtTime(g, now, 0.04);
+}
+
+/* ---------- 拖曳 ---------- */
+function toWorld(e){ const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/sc, y:(e.clientY-r.top)/H}; }
+function hit(p){
+  for (const o of [S.obs, S.src]){
+    const dx = (o.x - p.x)*sc, dy = (o.y - p.y)*H;
+    if (Math.hypot(dx,dy) < 40) return o;
+  }
+  return null;
+}
+cv.addEventListener('pointerdown', e => { const o = hit(toWorld(e)); if (o){ S.drag = o; o.v = 0; syncSliders(); o.dvx = 0; o.dvy = 0; o.lastMove = performance.now(); cv.setPointerCapture(e.pointerId); cv.style.cursor='grabbing'; S.preset=null; markPreset(); } });
+cv.addEventListener('pointermove', e => {
+  const p = toWorld(e);
+  if (S.drag){
+    const o = S.drag, now = performance.now(), dt = (now - o.lastMove)/1000;
+    const nx = Math.min(WW-8, Math.max(8, p.x)), ny = Math.min(.92, Math.max(.08, p.y));
+    if (dt > 0.001){
+      // 拖曳速度換算成 m/s
+      let vx = (nx - o.x)/K/(dt*S.ts), vy = (ny - o.y)*WH/K/(dt*S.ts);
+      const m = Math.hypot(vx, vy); if (m > 300){ vx *= 300/m; vy *= 300/m; }
+      const a = Math.min(1, dt/0.08);
+      o.dvx += (vx - o.dvx)*a; o.dvy += (vy - o.dvy)*a;
+    }
+    o.x = nx; o.y = ny; o.lastMove = now;
+  }
+  else cv.style.cursor = hit(p) ? 'grab' : 'default';
+});
+const endDrag = () => { S.drag = null; cv.style.cursor='default'; };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+/* ---------- 物理 ---------- */
+function moveBody(o, dt, isSrc){
+  if (o === S.drag) return;
+  o.x += o.v * K * dt;
+  const m = 14;
+  if (S.edge === 'bounce'){
+    if ((o.x < m && o.v < 0) || (o.x > WW-m && o.v > 0)){ o.v = -o.v; syncSliders(); }
+  } else if (S.edge === 'wrap'){
+    if (o.x < -10) o.x += WW + 20; else if (o.x > WW+10) o.x -= WW + 20;
+  } else {
+    if (o.x < m){ o.x = m; if (o.v<0){ o.v = 0; syncSliders(); } }
+    if (o.x > WW-m){ o.x = WW-m; if (o.v>0){ o.v = 0; syncSliders(); } }
+  }
+}
+function step(dt){
+  const prevT = S.t;
+  S.t += dt;
+  moveBody(S.src, dt, true); moveBody(S.obs, dt, false);
+  const T = Tv();
+  while (S.nextEmit <= S.t){
+    const back = S.t - S.nextEmit, sv = vel(S.src);
+    S.waves.push({t:S.nextEmit, x:S.src.x - sv.vx*K*back, y:S.src.y - sv.vy*K*back/WH, vx:sv.vx, vy:sv.vy});
+    S.nextEmit += T;
+  }
+  const R = maxR();
+  while (S.waves.length && CW*(S.t - S.waves[0].t) > R) S.waves.shift();
+  // 波峰抵達觀察者時閃光
+  const ox = S.obs.x, oy = S.obs.y*WH;
+  for (const w of S.waves){
+    const d = Math.hypot(ox - w.x, oy - w.y*WH);
+    if (CW*(prevT - w.t) < d && CW*(S.t - w.t) >= d) S.flash = 1;
+  }
+}
+function computeHeard(){
+  const ox = S.obs.x, oy = S.obs.y*WH, ov = vel(S.obs);
+  const dNow = Math.hypot(ox - S.src.x, oy - S.src.y*WH) / CW * V; // 音量用
+  let ex, ey, svx, svy;
+  if (S.prop === 'instant'){
+    // 即時：用聲源「現在」的位置與速度
+    const sv = vel(S.src); ex = S.src.x; ey = S.src.y*WH; svx = sv.vx; svy = sv.vy;
+  } else {
+    // 延遲：用「已經傳到觀察者」那道波發出時的狀態
+    let w = null;
+    for (let i = S.waves.length-1; i >= 0; i--){
+      const c = S.waves[i];
+      if (CW*(S.t - c.t) >= Math.hypot(ox - c.x, oy - c.y*WH)){ w = c; break; }
+    }
+    if (!w){ S.heard = null; return; }
+    ex = w.x; ey = w.y*WH; svx = w.vx; svy = w.vy;
+  }
+  const dx = ox - ex, dy = oy - ey, d = Math.hypot(dx, dy);
+  let ux = 1, uy = 0;
+  if (d > 0.5){ ux = dx/d; uy = dy/d; } else if (S.heard){ ux = S.heard.ux; uy = S.heard.uy; }
+  const vsT = svx*ux + svy*uy;              // 聲源朝觀察者的速度分量
+  const voT = -(ov.vx*ux + ov.vy*uy);       // 觀察者朝聲源的速度分量
+  const f = S.f0 * (V + voT) / (V - Math.min(vsT, 0.95*V));
+  S.heard = {f, vsT, voT, ux, uy, d:dNow};
+}
+
+/* ---------- 繪圖 ---------- */
+function arrow(x1,y1,x2,y2,color,w=2.5){
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=w; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const a = Math.atan2(y2-y1,x2-x1), s=8;
+  ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(x2-s*Math.cos(a-0.45),y2-s*Math.sin(a-0.45)); ctx.lineTo(x2-s*Math.cos(a+0.45),y2-s*Math.sin(a+0.45)); ctx.closePath(); ctx.fill();
+}
+function velArrow(x, y, v, color){
+  const m = Math.hypot(v.vx, v.vy); if (m < 3) return;
+  const ux = v.vx/m, uy = v.vy/m;
+  arrow(x+ux*18, y+uy*18, x+ux*18 + v.vx*0.28*sc, y+uy*18 + v.vy*0.28*sc, color);
+}
+function bracket(xa, xb, y, up, label, color){
+  if (xb < xa) [xa,xb] = [xb,xa];
+  if (xb < 4 || xa > W-4 || xb - xa < 6) return;
+  const t = up ? -7 : 7;
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xa, y+t); ctx.lineTo(xb, y+t); ctx.lineTo(xb, y); ctx.stroke();
+  ctx.fillStyle = color; ctx.font = '600 12px "IBM Plex Mono", monospace';
+  ctx.textAlign='center'; ctx.textBaseline = up ? 'bottom' : 'top';
+  const lx = Math.min(W-40, Math.max(40, (xa+xb)/2));
+  ctx.fillText(label, lx, y + t + (up ? -3 : 3));
+}
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = C.panel; ctx.fillRect(0,0,W,H);
+  // 格線：每 100 單位
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x=100; x<WW; x+=100){ ctx.moveTo(x*sc+.5,0); ctx.lineTo(x*sc+.5,H); }
+  for (let y=100; y<WH; y+=100){ ctx.moveTo(0,y*sc+.5); ctx.lineTo(W,y*sc+.5); }
+  ctx.stroke();
+  // 聲源行進軌道
+  const sy = S.src.y*H;
+  ctx.strokeStyle = C.line; ctx.setLineDash([4,6]); ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke(); ctx.setLineDash([]);
+  if (Math.abs(S.obs.y - S.src.y) > .01){
+    const oy = S.obs.y*H; ctx.beginPath(); ctx.setLineDash([4,6]); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // 波前
+  const R = maxR();
+  for (const w of S.waves){
+    const r = CW*(S.t - w.t); if (r <= 0) continue;
+    const a = Math.max(0.08, 0.9 * (1 - r/R));
+    ctx.globalAlpha = a; ctx.strokeStyle = C.wave; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(w.x*sc, w.y*H, r*sc, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // 波長標示（聲源所在水平線）
+  const n = S.waves.length;
+  const wy = S.src.y*WH;
+  const pts = (side) => {
+    const out = [];
+    for (let i = n-1; i >= 0 && out.length < 4; i--){
+      const w = S.waves[i], r = CW*(S.t-w.t), dy = wy - w.y*WH;
+      if (r <= Math.abs(dy)) continue;
+      out.push(w.x + side*Math.sqrt(r*r - dy*dy));
+    }
+    return out;
+  };
+  const lamPhys = (px) => (px / (CW*Tv())) * (V / S.f0);
+  const frontSide = S.src.v >= 0 ? 1 : -1;
+  const pf = pts(frontSide), pb = pts(-frontSide);
+  if (pf.length >= 3){
+    const a = pf[1], b = pf[2];
+    bracket(a*sc, b*sc, sy-6, true, `λ前 ${lamPhys(Math.abs(b-a)).toFixed(2)} m`, C.src);
+  }
+  if (pb.length >= 3){
+    const a = pb[1], b = pb[2];
+    bracket(a*sc, b*sc, sy+6, false, `λ後 ${lamPhys(Math.abs(b-a)).toFixed(2)} m`, C.muted);
+  }
+  // 觀察者
+  const ox = S.obs.x*sc, oy = S.obs.y*H;
+  if (S.flash > 0.02){
+    ctx.strokeStyle = C.obs; ctx.globalAlpha = S.flash; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(ox, oy, 16 + (1-S.flash)*16, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = C['obs-soft']; ctx.strokeStyle = C.obs; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(ox, oy, 14, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // 耳朵小圖示
+  ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox, oy-1, 5.5, Math.PI*0.95, Math.PI*2.3); ctx.stroke();
+  ctx.fillStyle = C.obs; ctx.beginPath(); ctx.arc(ox, oy-1, 1.8, 0, Math.PI*2); ctx.fill();
+  velArrow(ox, oy, vel(S.obs), C.obs);
+  ctx.font = '700 13px "Noto Sans TC", sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle = C.obs;
+  ctx.fillText('觀察者', ox, oy + 20);
+  // 聲源
+  const sx = S.src.x*sc;
+  ctx.fillStyle = C.src; ctx.beginPath(); ctx.arc(sx, sy, 14, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = C.panel;
+  ctx.beginPath(); ctx.moveTo(sx-7,sy-3); ctx.lineTo(sx-3,sy-3); ctx.lineTo(sx+2,sy-7); ctx.lineTo(sx+2,sy+7); ctx.lineTo(sx-3,sy+3); ctx.lineTo(sx-7,sy+3); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = C.panel; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(sx+3, sy, 5, -0.8, 0.8); ctx.stroke();
+  if (S.timbre === 'siren'){ // 警示燈
+    const on = sirenTone() === 1;
+    ctx.fillStyle = on ? '#e5322d' : '#2f6fe0';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(sx-7, sy-23, 14, 6, 3) : ctx.rect(sx-7, sy-23, 14, 6); ctx.fill();
+  }
+  velArrow(sx, sy, vel(S.src), C.src);
+  ctx.fillStyle = C.src; ctx.font = '700 13px "Noto Sans TC", sans-serif'; ctx.textBaseline = 'bottom';
+  ctx.fillText(S.timbre === 'siren' ? '救護車' : '聲源', sx, sy - (S.timbre === 'siren' ? 26 : 20));
+  // 角落讀數
+  ctx.textAlign='right'; ctx.textBaseline='top'; ctx.font = '600 14px "IBM Plex Mono", monospace'; ctx.fillStyle = C.ink;
+  ctx.fillText(S.heard ? `f′ = ${Math.round(S.heard.f)} Hz` : 'f′ = —', W-12, 10);
+  ctx.font = '500 12px "IBM Plex Mono", monospace'; ctx.fillStyle = C.muted;
+  ctx.fillText(`f₀ = ${S.f0} Hz`, W-12, 30);
+  if (!S.running){ ctx.textAlign='left'; ctx.fillStyle=C.muted; ctx.font='700 13px "Noto Sans TC", sans-serif'; ctx.fillText('已暫停', 12, 10); }
+}
+
+function drawHist(){
+  const w = hc.width/dpr, h = 150;
+  hx.setTransform(dpr,0,0,dpr,0,0);
+  hx.clearRect(0,0,w,h);
+  const padL = 48, padR = 8, padT = 10, padB = 22;
+  const span = 12;
+  const now = performance.now()/1000;
+  const vals = S.hist.filter(p=>p.f!=null).map(p=>p.f);
+  let lo = Math.min(S.f0, ...vals), hi = Math.max(S.f0, ...vals);
+  const pad = Math.max(40, (hi-lo)*0.15); lo = Math.max(0, lo - pad); hi = hi + pad;
+  const step = niceStep((hi-lo)/4);
+  lo = Math.floor(lo/step)*step; hi = Math.ceil(hi/step)*step;
+  const X = t => padL + (1 - (now - t)/span) * (w - padL - padR);
+  const Y = f => padT + (1 - (f-lo)/(hi-lo)) * (h - padT - padB);
+  hx.font = '500 11px "IBM Plex Mono", monospace'; hx.fillStyle = C.muted; hx.textAlign='right'; hx.textBaseline='middle';
+  hx.strokeStyle = C.grid; hx.lineWidth = 1;
+  for (let f = lo; f <= hi + 1e-6; f += step){
+    const y = Math.round(Y(f))+.5; hx.beginPath(); hx.moveTo(padL,y); hx.lineTo(w-padR,y); hx.stroke();
+    hx.fillText(Math.round(f), padL-6, y);
+  }
+  hx.textAlign='center'; hx.textBaseline='top';
+  for (let s = 0; s <= span; s += 3){ hx.fillText(s===0?'現在':`−${s} s`, X(now - s), h - padB + 6); }
+  // f0 參考線
+  hx.strokeStyle = C.src; hx.setLineDash([5,5]); hx.lineWidth = 1.5;
+  hx.beginPath(); hx.moveTo(padL, Y(S.f0)); hx.lineTo(w-padR, Y(S.f0)); hx.stroke(); hx.setLineDash([]);
+  hx.fillStyle = C.src; hx.textAlign='left'; hx.textBaseline='bottom'; hx.fillText('f₀', padL+4, Y(S.f0)-2);
+  // f′ 曲線
+  hx.strokeStyle = C.obs; hx.lineWidth = 2.2; hx.lineJoin='round';
+  hx.beginPath(); let pen = false, last = null;
+  for (const p of S.hist){
+    if (p.f == null){ pen = false; continue; }
+    const x = X(p.rt), y = Y(p.f);
+    if (x < padL) continue;
+    pen ? hx.lineTo(x,y) : hx.moveTo(x,y); pen = true; last = [x,y];
+  }
+  hx.stroke();
+  if (last){ hx.fillStyle = C.obs; hx.beginPath(); hx.arc(last[0], last[1], 4, 0, Math.PI*2); hx.fill(); }
+}
+function niceStep(raw){ const p = Math.pow(10, Math.floor(Math.log10(raw))); const m = raw/p; return (m<1.5?1:m<3?2:m<7?5:10)*p; }
+
+/* ---------- 讀數 ---------- */
+const fmtTerm = (base, x, sign) => { // base ± x，x 為帶號
+  const v = Math.round(sign * x);
+  return v >= 0 ? `${base} + ${v}` : `${base} − ${-v}`;
+};
+function updateReadout(){
+  const h = S.heard, f0 = S.f0;
+  $('#fx0').textContent = f0;
+  if (h){
+    $('#fobs').textContent = Math.round(h.f);
+    const pct = (h.f/f0 - 1)*100, tag = $('#ftag');
+    if (Math.abs(pct) < 0.5){ tag.className='tag same'; tag.textContent='音高不變'; }
+    else if (pct > 0){ tag.className='tag up'; tag.textContent=`變高 ↑ ${pct.toFixed(1)}%`; }
+    else { tag.className='tag down'; tag.textContent=`變低 ↓ ${(-pct).toFixed(1)}%`; }
+    $('#fxTop').textContent = fmtTerm(V, h.voT, 1);
+    $('#fxBot').textContent = fmtTerm(V, h.vsT, -1);
+    $('#fxRes').textContent = `${Math.round(h.f)} Hz`;
+    $('#lo').textContent = `${((V - h.vsT)/f0).toFixed(3)} m`;
+    $('#vrel').textContent = `${Math.round(V + h.voT)} m/s`;
+  } else {
+    $('#fobs').textContent = '—'; $('#ftag').className='tag same'; $('#ftag').textContent='聲波尚未抵達';
+    $('#fxTop').textContent = '—'; $('#fxBot').textContent='—'; $('#fxRes').textContent='—';
+    $('#lo').textContent='—'; $('#vrel').textContent='—';
+  }
+  const vs = Math.abs(S.src.v);
+  $('#l0').textContent = `${(V/f0).toFixed(3)} m`;
+  $('#lf').textContent = `${((V-vs)/f0).toFixed(3)} m`;
+  $('#lb').textContent = `${((V+vs)/f0).toFixed(3)} m`;
+}
+
+/* ---------- 主迴圈 ---------- */
+let last = performance.now(), lastUI = 0, lastHist = 0;
+function frame(now){
+  const realDt = Math.min(0.05, (now - last)/1000); last = now;
+  if (S.running){
+    step(realDt * S.ts);
+    S.flash = Math.max(0, S.flash - realDt*4);
+  }
+  if (S.drag && now - (S.drag.lastMove||0) > 60){ S.drag.dvx *= 0.8; S.drag.dvy *= 0.8; } // 手停下來就減速
+  computeHeard();
+  if (S.running && now - lastHist > 50){
+    S.hist.push({rt: now/1000, f: S.heard ? S.heard.f : null}); lastHist = now;
+    while (S.hist.length && now/1000 - S.hist[0].rt > 12.5) S.hist.shift();
+  }
+  updateAudio();
+  draw();
+  if (now - lastUI > 100){ updateReadout(); drawHist(); lastUI = now; }
+  requestAnimationFrame(frame);
+}
+
+applyPreset(PRESETS[0]);
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) setRunning(false);
+computeHeard(); updateReadout();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</html>
