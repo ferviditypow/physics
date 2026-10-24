@@ -41,6 +41,7 @@ h1{font-family:var(--f-display);font-weight:900;font-size:clamp(1.5rem,2.6vw,2.3
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;min-height:var(--tap);padding:0 14px;cursor:pointer;font:inherit;font-size:.95rem;font-weight:500;white-space:nowrap}
 .btn:hover{border-color:var(--muted)}
+.btn.lock[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:6.5em}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 .spacer{flex:1}
@@ -106,6 +107,7 @@ h1{font-family:var(--f-display);font-weight:900;font-size:clamp(1.5rem,2.6vw,2.3
         <button data-v="earth" aria-pressed="false">從地球看月亮</button>
         <button data-v="ground" aria-pressed="false">站在地面看天空</button>
       </span>
+      <button class="btn lock" id="lockBtn" aria-pressed="false" title="固定後，拖曳畫面不會轉動或縮放視角；仍可拖曳月球和地球">🔓 固定視角</button>
     </div>
     <div class="stage" id="stage">
       <canvas id="c" aria-label="日地月 3D 場景，可拖曳轉動"></canvas>
@@ -162,7 +164,7 @@ const P=29.530589, PH=P*24, LAT=23.5;
 const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI, mod=(a,n)=>((a%n)+n)%n, w180=a=>mod(a+180,360)-180;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,f)=>a+(b-a)*f;
 const $=id=>document.getElementById(id);
-const S0={t:0,T0:10,playing:false,speed:1,daily:false,view:'free',real:false,
+const S0={t:0,T0:10,playing:false,speed:1,daily:false,view:'free',real:false,lock:false,
   rings:true,inset:true,horizon:true,ghost:false,q:false,labels:true,dark:true};
 const S={...S0};
 const elong=t=>mod(360*(t-S.T0)/PH,360);
@@ -440,7 +442,7 @@ function render(now){
   Object.values(LB).forEach(el=>{if(!el._used)el.style.display='none';});
   $('ewE').hidden=$('ewW').hidden=!(earthV&&!trans);
   // hud
-  $('hud').innerHTML=`農曆${lunarName(lunar(t).d)}　<span class="mono">${hhmm(clock(t))}</span>`+(ground_?`<div style="font-size:.75em;font-weight:500;opacity:.9">北緯約 23.5°・視線：${['南','西南','西','西北','北','東北','東','東南'][mod(Math.round(look.yaw/45),8)]}方</div>`:'');
+  $('hud').innerHTML=(S.lock?'🔒 ':'')+`農曆${lunarName(lunar(t).d)}　<span class="mono">${hhmm(clock(t))}</span>`+(ground_?`<div style="font-size:.75em;font-weight:500;opacity:.9">北緯約 23.5°・視線：${['南','西南','西','西北','北','東北','東','東南'][mod(Math.round(look.yaw/45),8)]}方</div>`:'');
   readouts();
 }
 function readouts(){
@@ -464,7 +466,7 @@ const HELP={
   earth:['從地球看月亮','鏡頭放在地球上、對準月球，北方朝上，所以左邊是東、右邊是西。播放或換日期，月相會跟著改變。兩指或滾輪可以縮放。'],
   ground:['站在地面看天空','你站在北緯約 23.5°（臺灣）的地面上，一開始面向南方。拖曳畫面轉頭，兩指或滾輪縮放。播放時可以看到月亮和太陽從東方升起、往西方落下；白天的月亮會淡淡地出現在藍天裡。']
 };
-function updateHelp(){const h=HELP[S.view];$('helpT').textContent=h[0];$('helpP').innerHTML=h[1];}
+function updateHelp(){const h=HELP[S.view];$('helpT').textContent=h[0]+(S.lock?'（視角已固定）':'');$('helpP').innerHTML=h[1]+(S.lock?'<br><b>視角已固定：</b>拖曳畫面不會轉動或縮放；仍可以拖曳月球、地球，或用下方按鈕和滑桿。再按一次「視角已固定」就能解除。':'');}
 
 // ================= loop =================
 let raf=0;const req=()=>{if(!raf)raf=requestAnimationFrame(tick);};
@@ -495,7 +497,10 @@ tg('tRings','rings');tg('tInset','inset');tg('tHorizon','horizon');tg('tGhost','
 function syncToggles(){[['tRings','rings'],['tInset','inset'],['tHorizon','horizon'],['tGhost','ghost'],['tQ','q'],['tLabels','labels'],['tDark','dark'],['tReal','real']].forEach(([i,k])=>$(i).checked=S[k]);
   segSet('speedSeg',S.daily?'daily':S.speed);}
 $('fs').addEventListener('click',()=>{const a=$('app');if(document.fullscreenElement)document.exitFullscreen();else (a.requestFullscreen||a.webkitRequestFullscreen).call(a);});
-$('resetAll').addEventListener('click',()=>{setPlay(false);Object.assign(S,S0);S.t=monthStart(0)+7*24+18;syncToggles();applyScale();setView('free');});
+function setLock(v){S.lock=v;controls.enableRotate=controls.enableZoom=controls.enablePan=!v;
+  $('lockBtn').setAttribute('aria-pressed',String(v));$('lockBtn').textContent=v?'🔒 視角已固定':'🔓 固定視角';updateHelp();req();}
+$('lockBtn').addEventListener('click',()=>setLock(!S.lock));
+$('resetAll').addEventListener('click',()=>{setPlay(false);Object.assign(S,S0);S.t=monthStart(0)+7*24+18;syncToggles();applyScale();setLock(false);setView('free');});
 
 // dragging the moon / the earth, and looking around in the ground view
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
@@ -504,7 +509,7 @@ function setNdc(ev){const r=stage.getBoundingClientRect();ndc.set((ev.clientX-r.
 function planeAngle(){const p=new THREE.Vector3();if(!ray.ray.intersectPlane(plane,p))return null;return deg(Math.atan2(-p.z,p.x));}
 stage.addEventListener('pointerdown',ev=>{
   pointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
-  if(S.view==='ground'||S.view==='earth'){ if(trans)return; drag={type:'look',x:ev.clientX,y:ev.clientY};stage.setPointerCapture(ev.pointerId);ev.stopPropagation();return; }
+  if(S.view==='ground'||S.view==='earth'){ if(trans)return; if(S.lock){ev.stopPropagation();return;} drag={type:'look',x:ev.clientX,y:ev.clientY};stage.setPointerCapture(ev.pointerId);ev.stopPropagation();return; }
   if(pointers.size>1){drag=null;return;}
   setNdc(ev);
   const hitM=ray.intersectObject(moon,false)[0], hitE=ray.intersectObject(earth,false)[0];
@@ -531,7 +536,7 @@ stage.addEventListener('pointermove',ev=>{
 const endDrag=ev=>{pointers.delete(ev.pointerId);if(drag&&drag.type!=='look'&&(S.view==='free'||S.view==='top'))controls.enabled=true;if(pointers.size===0)drag=null;};
 stage.addEventListener('pointerup',endDrag,{capture:true});stage.addEventListener('pointercancel',endDrag,{capture:true});
 function zoomBy(f){ if(S.view==='ground'){look.fov=clamp(look.fov*f,15,110);} else if(S.view==='earth'){earthZoom=clamp(earthZoom/f,.25,4);} req(); }
-stage.addEventListener('wheel',ev=>{if(S.view==='ground'||S.view==='earth'){ev.preventDefault();ev.stopPropagation();zoomBy(Math.exp(ev.deltaY*.001));}},{capture:true,passive:false});
+stage.addEventListener('wheel',ev=>{if(S.view==='ground'||S.view==='earth'){ev.preventDefault();ev.stopPropagation();if(!S.lock)zoomBy(Math.exp(ev.deltaY*.001));}},{capture:true,passive:false});
 // hover cursor
 stage.addEventListener('pointermove',ev=>{if(drag||ev.pointerType!=='mouse'||!(S.view==='free'||S.view==='top'))return;setNdc(ev);stage.style.cursor=ray.intersectObjects([moon,earth],false).length?'pointer':'grab';});
 
