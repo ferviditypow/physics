@@ -356,7 +356,7 @@ function stars(ctx,W,H,alpha,maxY){ctx.fillStyle=`rgba(255,255,255,${alpha})`;fo
 let G={};
 function drawTop(){
   const o=CV.top;if(!size(o))return;const{ctx,W,H}=o,t=S.t,e=elong(t),th=theta(t);
-  ctx.fillStyle='#14224a';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.35);
+  ctx.fillStyle='#34497c';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.45);
   const cx=W*.45,cy=H*.5,Ro=Math.min(W*.355,H*.36),Re=Ro*.3,Rm=Math.max(9,Ro*.085);
   G={cx,cy,Ro,Re,Rm};
   const P2=(a,r)=>[cx+r*Math.cos(rad(a)),cy-r*Math.sin(rad(a))];
@@ -365,11 +365,12 @@ function drawTop(){
   ctx.fillStyle='#ffd27a';ctx.font=FONT(12);ctx.textAlign='right';ctx.fillText('太陽光',W-8,H-10);
   // shadows
   if(S.shadow){
-    const gE=ctx.createLinearGradient(cx,0,0,0);gE.addColorStop(0,'rgba(0,0,0,.55)');gE.addColorStop(1,'rgba(0,0,0,.15)');
+    const gE=ctx.createLinearGradient(cx,0,0,0);gE.addColorStop(0,'rgba(4,5,12,.85)');gE.addColorStop(1,'rgba(4,5,12,.6)');
     ctx.fillStyle=gE;ctx.fillRect(0,cy-Re,cx,2*Re);
-    const[mx,my]=P2(e,Ro);const gM=ctx.createLinearGradient(mx,0,mx-Ro*1.15,0);gM.addColorStop(0,'rgba(0,0,0,.6)');gM.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.2;lineP(ctx,0,cy-Re,cx,cy-Re);lineP(ctx,0,cy+Re,cx,cy+Re);ctx.setLineDash([]);
+    const[mx,my]=P2(e,Ro);const gM=ctx.createLinearGradient(mx,0,mx-Ro*1.15,0);gM.addColorStop(0,'rgba(4,5,12,.85)');gM.addColorStop(1,'rgba(4,5,12,.15)');
     ctx.fillStyle=gM;ctx.fillRect(mx-Ro*1.15,my-Rm,Ro*1.15,2*Rm);
-    ctx.fillStyle='rgba(255,255,255,.55)';ctx.font=FONT(11);ctx.textAlign='left';ctx.fillText('地球的影子',6,cy-Re-5);
+    ctx.font=FONT(12,700);ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText('地球的影子',8,cy+Re-8);ctx.font=FONT(11,600);ctx.fillText('月球的影子',G.mx?Math.max(8,mx-Ro*1.1):8,my+Rm+14);
   }
   // visible half of sky
   const n=[Math.cos(rad(th)),-Math.sin(rad(th))], tE=[-Math.sin(rad(th)),-Math.cos(rad(th))];
@@ -513,8 +514,8 @@ const polyP=(ctx,...p)=>{ctx.beginPath();p.forEach(([x,y],i)=>i?ctx.lineTo(x,y):
 function cones(ctx,c,ky,kz,W,alpha){ // shadow of a body (centre c.x,c.y, radius c.R km) cast leftwards to c.end
   const Rp=c.R*ky, su=(RSUN-c.R)/AU*ky/kz, sp=(RSUN+c.R)/AU*ky/kz, len=c.x-c.end, tip=Rp/su, z1=W-c.x;
   ctx.save();ctx.globalAlpha=alpha;
-  ctx.fillStyle='rgba(0,0,0,.34)';polyP(ctx,[c.x,c.y-Rp],[c.x-len,c.y-Rp-sp*len],[c.x-len,c.y+Rp+sp*len],[c.x,c.y+Rp]);
-  ctx.fillStyle='rgba(0,0,0,.78)';
+  ctx.fillStyle='rgba(62,64,74,.82)';polyP(ctx,[c.x,c.y-Rp],[c.x-len,c.y-Rp-sp*len],[c.x-len,c.y+Rp+sp*len],[c.x,c.y+Rp]);
+  ctx.fillStyle='rgba(2,3,8,.92)';
   if(len<=tip) polyP(ctx,[c.x,c.y-Rp],[c.x-len,c.y-Rp+su*len],[c.x-len,c.y+Rp-su*len],[c.x,c.y+Rp]);
   else { polyP(ctx,[c.x,c.y-Rp],[c.x-tip,c.y],[c.x,c.y+Rp]); const d=len-tip; ctx.fillStyle='rgba(150,90,235,.5)'; polyP(ctx,[c.x-tip,c.y],[c.x-len,c.y-su*d],[c.x-len,c.y+su*d]); }
   ctx.lineWidth=1;
@@ -540,7 +541,7 @@ function labelBox(ctx,x,y,t,col){ctx.font=FONT(11.5,700);const w=ctx.measureText
 
 function drawLSide(r){
   const o=CV.lSide;if(!size(o))return;const{ctx,W,H}=o,solar=L.mode==='solar';
-  ctx.fillStyle='#0d1733';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.3);
+  ctx.fillStyle='#34497c';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.4);
   const ky=H/(5.4*REK), Re=REK*ky, Ey=H/2, rmp=RMK*ky;
   const gs=ctx.createLinearGradient(W-70,0,W,0);gs.addColorStop(0,'rgba(255,190,60,0)');gs.addColorStop(1,'rgba(255,205,90,.9)');ctx.fillStyle=gs;ctx.fillRect(W-70,0,70,H);
   ctx.save();ctx.translate(W-14,Ey);ctx.rotate(-Math.PI/2);ctx.font=FONT(12,700);ctx.fillStyle='#4a2f00';ctx.textAlign='center';ctx.fillText('太陽在右方很遠處',0,0);ctx.restore();
@@ -595,12 +596,14 @@ function drawLSide(r){
   ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,255,255,.55)';ctx.textAlign='left';
   ctx.fillText('實線：太陽上緣、下緣射來的光（圍出本影）　虛線：圍出半影',8,H-24);
   ctx.fillText('左右距離已壓縮；上下依實際比例（月球離黃道面 1°，約高出一個地球半徑）',8,H-9);
+  {const items=solar?[['rgba(2,3,8,.95)','本影：完全看不到太陽'],['rgba(70,72,82,1)','半影：看到部分太陽'],['rgba(150,90,235,.8)','本影錐延伸區：看到日環食']]:[['rgba(2,3,8,.95)','本影：完全照不到陽光'],['rgba(70,72,82,1)','半影：照到部分陽光']];
+    let lx=10,ly=12;ctx.font=FONT(12,600);items.forEach(([c,t])=>{ctx.fillStyle=c;ctx.fillRect(lx,ly,16,12);ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=1;ctx.strokeRect(lx+.5,ly+.5,15,11);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(t,lx+22,ly+11);ly+=20;});}
   Object.assign(LG,{side:{mx,my:myd,rmp,Ex,Ey,Re,ky,ox,oy,g0,g1,solar}});
 }
 
 function drawLFace(r){
   const o=CV.lFace;if(!size(o))return;const{ctx,W,H}=o,solar=L.mode==='solar';
-  ctx.fillStyle='#0d1733';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.3);
+  ctx.fillStyle='#34497c';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.4);
   const cx=W/2,cy=H/2;
   if(solar){
     $('lFaceT').innerHTML='② 從太陽看向地球：月影落在哪裡 <small>拖曳月影或觀察者</small>';
@@ -610,9 +613,9 @@ function drawLFace(r){
     for(const la of[-60,-30,0,30,60]){const y=cy-F*Math.sin(rad(la)),hw=F*Math.cos(rad(la));lineP(ctx,cx-hw,y,cx+hw,y);}
     for(const lo of[-60,-30,0,30,60]){ctx.beginPath();ctx.ellipse(cx,cy,Math.abs(F*Math.sin(rad(lo)))||.5,F,0,0,Math.PI*2);ctx.stroke();}
     ctx.save();ctx.beginPath();ctx.arc(cx,cy,F,0,Math.PI*2);ctx.clip();
-    ctx.fillStyle='rgba(0,0,0,.16)';ctx.fillRect(0,sy-rpp,W,2*rpp);
+    ctx.fillStyle='rgba(0,0,0,.2)';ctx.fillRect(0,sy-rpp,W,2*rpp);
     ctx.fillStyle=tot?'rgba(0,0,0,.5)':'rgba(150,90,235,.5)';ctx.fillRect(0,sy-rup,W,2*rup);
-    ctx.fillStyle='rgba(0,0,0,.38)';ctx.beginPath();ctx.arc(sx,sy,rpp,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(40,42,52,.6)';ctx.beginPath();ctx.arc(sx,sy,rpp,0,Math.PI*2);ctx.fill();
     ctx.fillStyle=tot?'#000':'rgba(150,90,235,.95)';ctx.beginPath();ctx.arc(sx,sy,rup,0,Math.PI*2);ctx.fill();
     ctx.restore();
     ctx.strokeStyle='rgba(255,255,255,.75)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(sx,sy,rpp,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
@@ -630,8 +633,8 @@ function drawLFace(r){
     const sc=Math.min(W,H)*.43/(r.Rp+r.rm+.05), mx=cx-L.x*sc, my=cy-L.b*sc;
     ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(255,170,70,.6)';lineP(ctx,0,cy,W,cy);ctx.setLineDash([]);
     ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,190,110,.85)';ctx.textAlign='left';ctx.fillText('黃道',6,cy-6);
-    ctx.fillStyle='rgba(0,0,0,.42)';ctx.beginPath();ctx.arc(cx,cy,r.Rp*sc,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(0,0,0,.6)';ctx.beginPath();ctx.arc(cx,cy,r.Ru*sc,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(62,64,74,.82)';ctx.beginPath();ctx.arc(cx,cy,r.Rp*sc,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(2,3,8,.85)';ctx.beginPath();ctx.arc(cx,cy,r.Ru*sc,0,Math.PI*2);ctx.fill();
     ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.arc(cx,cy,r.Rp*sc,0,Math.PI*2);ctx.stroke();
     ctx.strokeStyle='rgba(255,130,90,.85)';ctx.beginPath();ctx.arc(cx,cy,r.Ru*sc,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
     labelBox(ctx,cx,cy+r.Ru*sc-14,'本影','#ffb09a');labelBox(ctx,cx,cy-r.Rp*sc+14,'半影','#d8e2f0');
@@ -703,7 +706,7 @@ function labRes(r){
 }
 function drawLOrbit(){
   const o=CV.lOrbit;if(!size(o))return;const{ctx,W,H}=o;
-  ctx.fillStyle='#0d1733';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.25);
+  ctx.fillStyle='#34497c';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.35);
   const cx=W*.5,cy=H*.52,ax=W*.4,ay=H*.31,ro=Math.min(W*.085,H*.17);
   const ep=a=>[cx+ax*Math.cos(rad(a)),cy-ay*Math.sin(rad(a))];
   ctx.beginPath();ctx.ellipse(cx,cy,ax,ay,0,0,Math.PI*2);ctx.fillStyle='rgba(255,180,80,.06)';ctx.fill();ctx.strokeStyle='rgba(255,170,70,.55)';ctx.lineWidth=1.2;ctx.stroke();
