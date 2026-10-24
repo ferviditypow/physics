@@ -126,6 +126,11 @@ footer p{margin:0 0 6px}
         <input type="radio" name="timbre" id="t-siren" value="siren" checked><label for="t-siren">救護車</label>
         <input type="radio" name="timbre" id="t-tone" value="tone"><label for="t-tone">純音</label>
       </div>
+      <span class="tlabel">波紋</span>
+      <div class="seg" role="radiogroup" aria-label="波紋顯示">
+        <input type="radio" name="waves" id="w-on" value="on" checked><label for="w-on">顯示</label>
+        <input type="radio" name="waves" id="w-off" value="off"><label for="w-off">隱藏</label>
+      </div>
       <span class="spacer"></span>
       <span class="tlabel">聽</span>
       <div class="seg" role="radiogroup" aria-label="播放哪個聲音">
@@ -272,7 +277,7 @@ const S = {
   circ:{cx:300, cy:.5, R:120, th:0},
   waves: [], t: 0, nextEmit: 0, running: true, ts: 1, edge: 'bounce', listen: 'obs',
   flash: 0, heard: null, heardQ: null, hist: [], drag: null,
-  preset: 'approach', lastPreset: 'approach', timbre: 'siren', prop: 'instant', saved: null
+  showWaves: true, preset: 'approach', lastPreset: 'approach', timbre: 'siren', prop: 'instant', saved: null
 };
 let W = 800, H = 360, sc = 0.8, WH = 450, dpr = 1;
 
@@ -454,6 +459,7 @@ for (const key of ['src','obs']){
   document.querySelectorAll(`input[name=${key}Ad]`).forEach(r => r.onchange = () => { o.amode = r.value; armAccel(o); unmark(); });
   $('#'+key+'Ago').onclick = () => { if (!(o.a > 0)){ o.a = 30; } armAccel(o); unmark(); syncSliders(); setRunning(true); };
 }
+document.querySelectorAll('input[name=waves]').forEach(r => r.onchange = () => S.showWaves = r.value === 'on');
 document.querySelectorAll('input[name=ts]').forEach(r => r.onchange = () => S.ts = +r.value);
 document.querySelectorAll('input[name=edge]').forEach(r => r.onchange = () => S.edge = r.value);
 document.querySelectorAll('input[name=listen]').forEach(r => r.onchange = () => S.listen = r.value);
@@ -724,7 +730,7 @@ function draw(){
   }
   // 波前
   const R = maxR();
-  for (const w of S.waves){
+  if (S.showWaves) for (const w of S.waves){
     const r = CW*(S.t - w.t); if (r <= 0) continue;
     const a = Math.max(0.08, 0.9 * (1 - r/R));
     ctx.globalAlpha = circle ? a*0.7 : a; ctx.strokeStyle = C.wave; ctx.lineWidth = circle ? 1.2 : 1.6;
@@ -733,7 +739,7 @@ function draw(){
   ctx.globalAlpha = 1;
   if (circle){
     drawCircleTrack();
-  } else {
+  } else if (S.showWaves) {
     // 波長標示（聲源所在水平線）
     const n = S.waves.length, wy = S.src.y*WH;
     const pts = (side) => {
