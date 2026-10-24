@@ -250,7 +250,7 @@ footer p{margin:0 0 6px}
   <footer>
     <p>聲源移動改變的是「波長」：前方波前擠在一起、後方拉開。觀察者移動不改變波長，改變的是波峰迎面而來的相對速度。兩者都會讓每秒接收到的波峰數改變，所以音高跟著改變。</p>
     <p>等加速度：開始加速的那一刻，依照兩者的相對位置決定加速度方向，之後方向固定。越過對方後會變成加速遠離。速度到 250 m/s 時停止加速，碰到邊界就停住。加速度數值已誇大，方便在課堂上觀察。</p>
-    <p>圓周運動：聲源沿 A→B→C→D 逆時針運動，P、Q 位於 CA 延長線上，可拖曳改變位置。圓周上的標記是「此刻聽到的聲音是從哪裡發出的」，可以用來比對極大、極小值的發聲位置。</p>
+    <p>圓周運動：聲源沿 A→B→C→D 逆時針運動，P、Q 位於 CA 延長線上，可拖曳改變位置。也可以抓住聲源沿軌道手動移動，放開後停在原位，調整速率滑桿即可繼續繞圈。</p>
     <p>畫面上的波前間距已依比例放大；聲音頻率則用真實的公式計算。預設「即時反應」，變化馬上聽得到；選「等聲波傳到才改變」則更接近真實，聲音要等波傳過來才會改變。</p>
   </footer>
 </div>
@@ -367,7 +367,7 @@ function updateModeUI(){
   $('#legP').textContent = c ? 'P 聽到' : '觀察者聽到 f′';
   $('#fTitle').textContent = c ? 'P 點聽到的頻率 f′' : '觀察者聽到的頻率 f′';
   $('#l-q-lab').hidden = !c; $('#qdt').hidden = !c; $('#qdd').hidden = !c; $('#legQ').hidden = !c;
-  $('#hint').textContent = c ? '聲源沿圓周軌道運動；可拖曳 P、Q 改變位置' : '可直接拖曳聲源或觀察者改變位置（上下拖可偏離同一直線）';
+  $('#hint').textContent = c ? '可沿軌道拖曳聲源（拖動快慢就是速率）；也可拖曳 P、Q 改變位置' : '可直接拖曳聲源或觀察者改變位置（上下拖可偏離同一直線）';
 }
 function applyPreset(p){
   setMode(p.mode || 'linear');
@@ -515,7 +515,7 @@ function updateAudio(){
 /* ---------- 拖曳 ---------- */
 function toWorld(e){ const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/sc, y:(e.clientY-r.top)/H}; }
 function hit(p){
-  const list = S.mode === 'circle' ? [S.obs, S.q] : [S.obs, S.src];
+  const list = S.mode === 'circle' ? [S.obs, S.q, S.src] : [S.obs, S.src];
   for (const o of list){
     const dx = (o.x - p.x)*sc, dy = (o.y - p.y)*H;
     if (Math.hypot(dx,dy) < 40) return o;
@@ -533,7 +533,11 @@ cv.addEventListener('pointermove', e => {
   const p = toWorld(e);
   if (S.drag){
     const o = S.drag, now = performance.now(), dt = (now - o.lastMove)/1000;
-    const nx = Math.min(WW-8, Math.max(8, p.x)), ny = Math.min(.92, Math.max(.08, p.y));
+    let nx = Math.min(WW-8, Math.max(8, p.x)), ny = Math.min(.92, Math.max(.08, p.y));
+    if (S.mode === 'circle' && o === S.src){ // 限制在圓周軌道上
+      S.circ.th = Math.atan2(-(p.y - S.circ.cy)*WH, p.x - S.circ.cx);
+      const cp = circPos(S.circ.th); nx = cp.x; ny = cp.y;
+    }
     if (dt > 0.001){
       // 拖曳速度換算成 m/s
       let vx = (nx - o.x)/K/(dt*S.ts), vy = (ny - o.y)*WH/K/(dt*S.ts);
@@ -583,7 +587,7 @@ function step(dt){
   const T = Tv();
   while (S.nextEmit <= S.t){
     const back = S.t - S.nextEmit;
-    if (S.mode === 'circle'){
+    if (S.mode === 'circle' && S.drag !== S.src){
       const th = S.circ.th - circOmega()*back, p = circPos(th), v = circVel(th);
       S.waves.push({t:S.nextEmit, x:p.x, y:p.y, vx:v.vx, vy:v.vy});
     } else {
@@ -729,8 +733,6 @@ function draw(){
   ctx.globalAlpha = 1;
   if (circle){
     drawCircleTrack();
-    drawEmitMarker(S.heardQ, C.q, '');
-    drawEmitMarker(S.heard, C.obs, 'P 此刻聽到的聲音由此發出');
   } else {
     // 波長標示（聲源所在水平線）
     const n = S.waves.length, wy = S.src.y*WH;
