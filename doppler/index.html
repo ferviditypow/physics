@@ -13,7 +13,7 @@
 :root{
   --bg:#eaeef2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1; --grid:#e6ebf0;
   --wave:#2a3a4b; --src:#d9481c; --src-soft:#fbe4da; --obs:#1c68ad; --obs-soft:#dcebf8;
-  --up:#c2410c; --down:#1d5fa3;
+  --up:#c2410c; --down:#1d5fa3; --q:#7b4fc4;
   --f-display:"Noto Serif TC","Songti TC",serif;
   --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -21,11 +21,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#1d262f;
   --wave:#c6d2de; --src:#ff7b47; --src-soft:#3a2219; --obs:#5ba8ec; --obs-soft:#17293a;
-  --up:#ff9a6b; --down:#7cb9f0; color-scheme:dark }}
+  --up:#ff9a6b; --down:#7cb9f0; --q:#b592f2; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#1d262f;
   --wave:#c6d2de; --src:#ff7b47; --src-soft:#3a2219; --obs:#5ba8ec; --obs-soft:#17293a;
-  --up:#ff9a6b; --down:#7cb9f0; color-scheme:dark }
+  --up:#ff9a6b; --down:#7cb9f0; --q:#b592f2; color-scheme:dark }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
@@ -97,6 +97,14 @@ dt{color:var(--muted)} dd{margin:0;font-family:var(--f-mono);font-variant-numeri
 footer{font-size:13px;color:var(--muted);max-width:75ch}
 footer p{margin:0 0 6px}
 @media (max-width:560px){.big .num{font-size:36px}}
+.astat{font-size:12px;color:var(--muted);margin:0}
+.astat.on{color:var(--ink);font-weight:500}
+.arow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.presets .grp{font-size:12px;color:var(--muted);margin-left:6px}
+.hist h3{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px}
+.leg{font-size:12px;font-weight:500;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+.leg i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.leg i.dash{background:none;border-top:2px dashed var(--src);height:0}
 </style>
 
 <div class="wrap">
@@ -105,7 +113,7 @@ footer p{margin:0 0 6px}
       <div class="eyebrow">聲波 · 互動模擬</div>
       <h1>都卜勒效應實驗台</h1>
     </div>
-    <p>聲源和觀察者都能移動。按「開啟聲音」聽觀察者實際聽到的音高，同時看波前在聲源前方被擠密、後方被拉開。</p>
+    <p>聲源和觀察者都能移動，也能等加速度移動或讓聲源做圓周運動。按「開啟聲音」聽觀察者實際聽到的音高，同時看波前疏密的變化。</p>
   </header>
 
   <section class="panel stage">
@@ -121,7 +129,8 @@ footer p{margin:0 0 6px}
       <span class="spacer"></span>
       <span class="tlabel">聽</span>
       <div class="seg" role="radiogroup" aria-label="播放哪個聲音">
-        <input type="radio" name="listen" id="l-obs" value="obs" checked><label for="l-obs">觀察者聽到</label>
+        <input type="radio" name="listen" id="l-obs" value="obs" checked><label for="l-obs" id="l-obs-lab">觀察者聽到</label>
+        <input type="radio" name="listen" id="l-q" value="q"><label for="l-q" id="l-q-lab" hidden>Q 聽到</label>
         <input type="radio" name="listen" id="l-src" value="src"><label for="l-src">聲源原音</label>
       </div>
       <span class="tlabel">速度</span>
@@ -139,7 +148,7 @@ footer p{margin:0 0 6px}
     </div>
     <div class="canvas-box">
       <canvas id="stage" aria-label="聲源與觀察者的波前動畫"></canvas>
-      <div class="hint">可直接拖曳聲源或觀察者改變位置（上下拖可偏離同一直線）</div>
+      <div class="hint" id="hint">可直接拖曳聲源或觀察者改變位置（上下拖可偏離同一直線）</div>
     </div>
   </section>
 
@@ -149,11 +158,24 @@ footer p{margin:0 0 6px}
     <section class="panel card">
       <h2><span class="dot s"></span>聲源 S</h2>
       <div class="field">
-        <div class="row"><span class="lab">速度 v<sub>s</sub></span><span><span class="val" id="srcVo">0</span> <span class="val" style="font-weight:500">m/s</span><span class="dir" id="srcDir"></span></span></div>
+        <div class="row"><span class="lab" id="srcVlab">速度 v<sub>s</sub></span><span><span class="val" id="srcVo">0</span> <span class="val" style="font-weight:500">m/s</span><span class="dir" id="srcDir"></span></span></div>
         <input type="range" id="srcV" min="-250" max="250" step="5" value="0">
-        <div class="ticks"><span>← 250</span><span>0</span><span>250 →</span></div>
+        <div class="ticks" id="srcTicks"><span>← 250</span><span>0</span><span>250 →</span></div>
       </div>
       <div class="mini"><button class="btn" data-set="src" data-v="0">停止</button><button class="btn" data-flip="src">反向</button></div>
+      <p class="note" id="circInfo" hidden></p>
+      <div class="field" id="srcAcc">
+        <div class="row"><span class="lab">加速度 a</span><span><span class="val" id="srcAo">0</span> <span class="val" style="font-weight:500">m/s²</span></span></div>
+        <input type="range" id="srcA" min="0" max="100" step="5" value="0">
+        <div class="arow">
+          <div class="seg" role="radiogroup" aria-label="聲源加速方向">
+            <input type="radio" name="srcAd" id="sAd-t" value="toward" checked><label for="sAd-t">接近觀察者</label>
+            <input type="radio" name="srcAd" id="sAd-a" value="away"><label for="sAd-a">遠離觀察者</label>
+          </div>
+          <button class="btn" id="srcAgo" style="padding:3px 10px;font-size:13px">開始加速</button>
+        </div>
+        <p class="astat" id="srcAst"></p>
+      </div>
       <div class="field">
         <div class="row"><span class="lab">原本頻率 f<sub>0</sub></span><span><span class="val" id="f0o">440</span> <span class="val" style="font-weight:500">Hz</span></span></div>
         <input type="range" id="f0" min="200" max="800" step="10" value="440">
@@ -163,13 +185,25 @@ footer p{margin:0 0 6px}
     </section>
 
     <section class="panel card">
-      <h2><span class="dot o"></span>觀察者 O</h2>
+      <h2><span class="dot o"></span><span id="obsName">觀察者 O</span></h2>
       <div class="field">
         <div class="row"><span class="lab">速度 v<sub>o</sub></span><span><span class="val" id="obsVo">0</span> <span class="val" style="font-weight:500">m/s</span><span class="dir" id="obsDir"></span></span></div>
         <input type="range" id="obsV" min="-250" max="250" step="5" value="0">
         <div class="ticks"><span>← 250</span><span>0</span><span>250 →</span></div>
       </div>
       <div class="mini"><button class="btn" data-set="obs" data-v="0">停止</button><button class="btn" data-flip="obs">反向</button></div>
+      <div class="field" id="obsAcc">
+        <div class="row"><span class="lab">加速度 a</span><span><span class="val" id="obsAo">0</span> <span class="val" style="font-weight:500">m/s²</span></span></div>
+        <input type="range" id="obsA" min="0" max="100" step="5" value="0">
+        <div class="arow">
+          <div class="seg" role="radiogroup" aria-label="觀察者加速方向">
+            <input type="radio" name="obsAd" id="oAd-t" value="toward" checked><label for="oAd-t">接近聲源</label>
+            <input type="radio" name="obsAd" id="oAd-a" value="away"><label for="oAd-a">遠離聲源</label>
+          </div>
+          <button class="btn" id="obsAgo" style="padding:3px 10px;font-size:13px">開始加速</button>
+        </div>
+        <p class="astat" id="obsAst"></p>
+      </div>
       <p class="note">觀察者每接收到一個波峰，外圈會閃一下。閃得越快，聽到的音越高。</p>
       <div class="field">
         <span class="lab">聽到的音高</span>
@@ -182,11 +216,11 @@ footer p{margin:0 0 6px}
     </section>
 
     <section class="panel card readout" aria-live="off">
-      <h2>觀察者聽到的頻率 f′</h2>
+      <h2 id="fTitle">觀察者聽到的頻率 f′</h2>
       <div class="big"><span class="num" id="fobs">—</span><span class="unit">Hz</span><span class="tag same" id="ftag">—</span></div>
       <div class="formula general">f′ = f<sub>0</sub> ×
         <span class="frac"><span>v + v<sub>o</sub></span><span>v − v<sub>s</sub></span></span>
-        <span style="font-family:var(--f-body);font-size:12px">（v<sub>o</sub>、v<sub>s</sub> 以「朝向對方」為正）</span>
+        <span style="font-family:var(--f-body);font-size:12px">（v<sub>o</sub>、v<sub>s</sub> 取「沿兩者連線、朝向對方」的分量為正）</span>
       </div>
       <div class="formula" id="formula">
         <span>f′ =</span><span id="fx0">440</span><span>×</span>
@@ -194,6 +228,7 @@ footer p{margin:0 0 6px}
         <span>=</span><b id="fxRes">440 Hz</b>
       </div>
       <dl>
+        <dt id="qdt" hidden>Q 點聽到的頻率</dt><dd id="qdd" hidden>—</dd>
         <dt>原本波長 λ<sub>0</sub> = v / f<sub>0</sub></dt><dd id="l0">—</dd>
         <dt>聲源前方波長</dt><dd id="lf">—</dd>
         <dt>聲源後方波長</dt><dd id="lb">—</dd>
@@ -204,47 +239,72 @@ footer p{margin:0 0 6px}
   </div>
 
   <section class="panel hist">
-    <h3>頻率–時間圖（最近 12 秒）</h3>
+    <h3>頻率–時間圖（最近 12 秒）
+      <span class="leg"><i style="background:var(--obs)"></i><span id="legP">觀察者聽到 f′</span></span>
+      <span class="leg" id="legQ" hidden><i style="background:var(--q)"></i>Q 聽到</span>
+      <span class="leg"><i class="dash"></i>原本頻率 f₀</span>
+    </h3>
     <canvas id="histc" aria-label="觀察者聽到的頻率隨時間變化"></canvas>
   </section>
 
   <footer>
     <p>聲源移動改變的是「波長」：前方波前擠在一起、後方拉開。觀察者移動不改變波長，改變的是波峰迎面而來的相對速度。兩者都會讓每秒接收到的波峰數改變，所以音高跟著改變。</p>
-    <p>畫面上的波前間距已依比例放大，方便觀察；聲音頻率則用真實的公式計算。拖曳聲源或觀察者時，會用你拖動的速度計算音高。預設「即時反應」，變化馬上聽得到；選「等聲波傳到才改變」則更接近真實，聲源經過後，音高要等波傳過來才會降下來。</p>
+    <p>等加速度：開始加速的那一刻，依照兩者的相對位置決定加速度方向，之後方向固定。越過對方後會變成加速遠離。速度到 250 m/s 時停止加速，碰到邊界就停住。加速度數值已誇大，方便在課堂上觀察。</p>
+    <p>圓周運動：聲源沿 A→B→C→D 逆時針運動，P、Q 位於 CA 延長線上，可拖曳改變位置。圓周上的標記是「此刻聽到的聲音是從哪裡發出的」，可以用來比對極大、極小值的發聲位置。</p>
+    <p>畫面上的波前間距已依比例放大；聲音頻率則用真實的公式計算。預設「即時反應」，變化馬上聽得到；選「等聲波傳到才改變」則更接近真實，聲音要等波傳過來才會改變。</p>
   </footer>
 </div>
 
 <script>
 (() => {
-const V = 340, CW = 130, WW = 1000; // 聲速 m/s；畫面中聲速（世界單位/秒）；世界寬度
-const K = CW / V;
+const V = 340, WW = 1000, VMAX = 250;
+let CW = 130, K = CW / V;                  // 畫面中聲速（世界單位/秒）；K：m/s → 世界單位/秒
+function setCW(c){ CW = c; K = CW / V; }
 const $ = s => document.querySelector(s);
 const cv = $('#stage'), ctx = cv.getContext('2d');
 const hc = $('#histc'), hx = hc.getContext('2d');
 
 const S = {
-  f0: 440, src: {x:150,y:.5,v:150}, obs: {x:760,y:.5,v:0},
+  mode: 'linear', f0: 440,
+  src: {x:150, y:.5, v:150, a:0, amode:'toward', adir:1, astate:'off'},
+  obs: {x:760, y:.5, v:0,   a:0, amode:'toward', adir:1, astate:'off'},
+  q:   {x:940, y:.5, v:0},
+  circ:{cx:300, cy:.5, R:120, th:0},
   waves: [], t: 0, nextEmit: 0, running: true, ts: 1, edge: 'bounce', listen: 'obs',
-  flash: 0, heard: null, hist: [], drag: null, preset: 'approach', timbre: 'siren', prop: 'instant'
+  flash: 0, heard: null, heardQ: null, hist: [], drag: null,
+  preset: 'approach', lastPreset: 'approach', timbre: 'siren', prop: 'instant', saved: null
 };
-function vel(o){ return o === S.drag ? {vx:o.dvx||0, vy:o.dvy||0} : {vx:o.v, vy:0}; }
 let W = 800, H = 360, sc = 0.8, WH = 450, dpr = 1;
 
+/* ---------- 圓周運動 ---------- */
+const circOmega = () => S.src.v * K / S.circ.R;                 // rad/s，正 = 逆時針
+const circPos = th => ({x: S.circ.cx + S.circ.R*Math.cos(th), y: S.circ.cy - S.circ.R*Math.sin(th)/WH});
+const circVel = th => ({vx: -S.src.v*Math.sin(th), vy: -S.src.v*Math.cos(th)}); // m/s，畫面 y 向下
+
+function vel(o){
+  if (o === S.drag) return {vx:o.dvx||0, vy:o.dvy||0};
+  if (o === S.src && S.mode === 'circle') return circVel(S.circ.th);
+  return {vx:o.v||0, vy:0};
+}
+
 const PRESETS = [
-  {id:'approach', name:'聲源靠近', src:[120,.5,150], obs:[780,.5,0], edge:'bounce'},
-  {id:'passby',   name:'救護車駛過身邊', src:[60,.38,150], obs:[560,.74,0], edge:'wrap'},
-  {id:'obsgo',    name:'觀察者靠近', src:[260,.5,0], obs:[920,.5,-150], edge:'bounce'},
-  {id:'head',     name:'兩者相向', src:[120,.5,110], obs:[880,.5,-110], edge:'bounce'},
-  {id:'away',     name:'兩者遠離', src:[430,.5,-110], obs:[570,.5,110], edge:'bounce'},
-  {id:'same',     name:'同向同速', src:[180,.5,100], obs:[480,.5,100], edge:'wrap'},
-  {id:'still',    name:'都靜止', src:[350,.5,0], obs:[650,.5,0], edge:'bounce'},
+  {grp:'等速', id:'approach', name:'聲源靠近', src:[120,.5,150], obs:[780,.5,0], edge:'bounce'},
+  {grp:'等速', id:'passby',   name:'救護車駛過身邊', src:[60,.38,150], obs:[560,.74,0], edge:'wrap'},
+  {grp:'等速', id:'obsgo',    name:'觀察者靠近', src:[260,.5,0], obs:[920,.5,-150], edge:'bounce'},
+  {grp:'等速', id:'head',     name:'兩者相向', src:[120,.5,110], obs:[880,.5,-110], edge:'bounce'},
+  {grp:'等速', id:'away',     name:'兩者遠離', src:[430,.5,-110], obs:[570,.5,110], edge:'bounce'},
+  {grp:'等速', id:'same',     name:'同向同速', src:[180,.5,100], obs:[480,.5,100], edge:'wrap'},
+  {grp:'等速', id:'still',    name:'都靜止', src:[350,.5,0], obs:[650,.5,0], edge:'bounce'},
+  {grp:'等加速度', id:'accpass', name:'救護車加速駛過', src:[50,.5,0,40,'toward'], obs:[560,.5,0], edge:'stop'},
+  {grp:'等加速度', id:'accaway', name:'救護車加速遠離', src:[430,.5,0,40,'away'], obs:[620,.5,0], edge:'stop'},
+  {grp:'圓周', id:'circle', name:'圓周運動聲源（P、Q 兩點）', mode:'circle', src:[0,0,150], obs:[560,.5,0], q:[940,.5], edge:'bounce'},
 ];
 
 /* ---------- 讀主題色 ---------- */
 let C = {};
 function readColors(){
   const cs = getComputedStyle(document.documentElement);
-  for (const k of ['panel','ink','muted','line','grid','wave','src','obs','src-soft','obs-soft','up','down','bg'])
+  for (const k of ['panel','ink','muted','line','grid','wave','src','obs','src-soft','obs-soft','up','down','bg','q'])
     C[k] = cs.getPropertyValue('--'+k).trim();
 }
 readColors();
@@ -265,45 +325,135 @@ new ResizeObserver(resize).observe(cv.parentElement);
 resize();
 
 /* ---------- 初始化 / 情境 ---------- */
-const Tv = () => 132 / S.f0;             // 畫面上的發波週期
+const Tv = () => (39*440/S.f0) / CW;       // 畫面上的發波週期（靜止時波前間距約 39 單位）
 const maxR = () => Math.hypot(WW, WH) + 40;
 
 function prefill(){
-  S.waves = []; S.t = 0; S.nextEmit = 0; S.hist = []; S.heard = null;
+  S.waves = []; S.t = 0; S.nextEmit = 0; S.hist = []; S.heard = null; S.heardQ = null;
   const T = Tv(), R = maxR();
   for (let k = Math.ceil(R / (CW*T)); k >= 1; k--){
-    S.waves.push({t:-k*T, x:S.src.x - S.src.v*K*k*T, y:S.src.y, vx:S.src.v, vy:0});
+    const te = -k*T;
+    if (S.mode === 'circle'){
+      const th = S.circ.th + circOmega()*te, p = circPos(th), v = circVel(th);
+      S.waves.push({t:te, x:p.x, y:p.y, vx:v.vx, vy:v.vy});
+    } else {
+      S.waves.push({t:te, x:S.src.x - S.src.v*K*k*T, y:S.src.y, vx:S.src.v, vy:0});
+    }
   }
 }
+function setRadio(name, val){
+  const r = document.querySelector(`input[name=${name}][value="${val}"]`);
+  if (r){ r.checked = true; r.dispatchEvent(new Event('change')); }
+}
+function setMode(m){
+  if (m === S.mode) return;
+  if (m === 'circle'){
+    S.saved = {f0:S.f0, timbre:S.timbre, prop:S.prop};
+    setCW(400); S.f0 = 600; setRadio('timbre','tone'); setRadio('prop','delay');
+  } else {
+    setCW(130);
+    if (S.saved){ S.f0 = S.saved.f0; setRadio('timbre', S.saved.timbre); setRadio('prop', S.saved.prop); }
+    if (S.listen === 'q') setRadio('listen','obs');
+  }
+  S.mode = m; updateModeUI();
+}
+function updateModeUI(){
+  const c = S.mode === 'circle';
+  $('#srcAcc').hidden = c; $('#circInfo').hidden = !c;
+  $('#srcVlab').innerHTML = c ? '圓周速率 v<sub>s</sub>' : '速度 v<sub>s</sub>';
+  $('#srcTicks').innerHTML = c ? '<span>順時針 250</span><span>0</span><span>逆時針 250</span>' : '<span>← 250</span><span>0</span><span>250 →</span>';
+  $('#obsName').textContent = c ? '觀察者 P' : '觀察者 O';
+  $('#l-obs-lab').textContent = c ? 'P 聽到' : '觀察者聽到';
+  $('#legP').textContent = c ? 'P 聽到' : '觀察者聽到 f′';
+  $('#fTitle').textContent = c ? 'P 點聽到的頻率 f′' : '觀察者聽到的頻率 f′';
+  $('#l-q-lab').hidden = !c; $('#qdt').hidden = !c; $('#qdd').hidden = !c; $('#legQ').hidden = !c;
+  $('#hint').textContent = c ? '聲源沿圓周軌道運動；可拖曳 P、Q 改變位置' : '可直接拖曳聲源或觀察者改變位置（上下拖可偏離同一直線）';
+}
 function applyPreset(p){
-  S.preset = p.id;
-  [S.src.x,S.src.y,S.src.v] = p.src; [S.obs.x,S.obs.y,S.obs.v] = p.obs;
-  S.edge = p.edge; document.querySelector(`input[name=edge][value=${p.edge}]`).checked = true;
+  setMode(p.mode || 'linear');
+  S.preset = p.id; S.lastPreset = p.id;
+  const [sx,sy,sv,sa=0,sm='toward'] = p.src, [ox,oy,ov,oa=0,om='toward'] = p.obs;
+  Object.assign(S.src, {x:sx, y:sy, v:sv, a:sa, amode:sm});
+  Object.assign(S.obs, {x:ox, y:oy, v:ov, a:oa, amode:om});
+  if (p.q){ S.q.x = p.q[0]; S.q.y = p.q[1]; }
+  if (S.mode === 'circle'){ S.circ.th = 0; const pp = circPos(0); S.src.x = pp.x; S.src.y = pp.y; S.src.a = 0; }
+  setRadio('edge', p.edge);
+  armAccel(S.src); armAccel(S.obs);
   syncSliders(); prefill(); markPreset();
 }
 const presetBox = $('#presets');
+let lastGrp = null;
 for (const p of PRESETS){
+  if (p.grp !== lastGrp){ const g = document.createElement('span'); g.className = 'grp'; g.textContent = p.grp; presetBox.appendChild(g); lastGrp = p.grp; }
   const b = document.createElement('button');
   b.className='chip'; b.textContent=p.name; b.dataset.id=p.id; b.setAttribute('aria-pressed','false');
-  b.onclick = () => applyPreset(p);
+  b.onclick = () => { applyPreset(p); setRunning(true); };
   presetBox.appendChild(b);
 }
 function markPreset(){ presetBox.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed', b.dataset.id===S.preset)); }
+function unmark(){ S.preset = null; markPreset(); }
+
+/* ---------- 等加速度 ---------- */
+// 開始加速的那一刻依相對位置決定方向，之後方向固定
+function armAccel(o){
+  if (!(o.a > 0) || (o === S.src && S.mode === 'circle')){ o.astate = 'off'; return; }
+  const other = o === S.src ? S.obs : S.src;
+  const s = Math.sign(other.x - o.x) || 1;
+  o.adir = o.amode === 'toward' ? s : -s;
+  o.astate = (Math.abs(o.v) >= VMAX && Math.sign(o.v) === o.adir) ? 'cap' : 'on';
+}
+function accelStatus(o, key){
+  const el = $('#'+key+'Ast'), other = key === 'src' ? '觀察者' : '聲源';
+  let t, on = false;
+  if (!(o.a > 0)) t = '加速度為 0：維持等速移動。';
+  else switch (o.astate){
+    case 'on':   t = `加速中：加速度朝${o.adir>0 ? '右 →' : '← 左'}（開始時${o.amode==='toward' ? '朝向' : '背離'}${other}），方向固定。`; on = true; break;
+    case 'cap':  t = `已達速度上限 ${VMAX} m/s，改為等速移動。`; break;
+    case 'wall': t = '碰到邊界，已停止。按「開始加速」從目前位置重新開始。'; break;
+    case 'held': t = '已用手拖曳接管。按「開始加速」從目前位置重新開始。'; break;
+    default:     t = '按「開始加速」開始。';
+  }
+  el.textContent = t; el.classList.toggle('on', on);
+}
 
 /* ---------- 控制項 ---------- */
 const srcV = $('#srcV'), obsV = $('#obsV'), f0In = $('#f0');
-function dirText(v){ return v>0 ? '向右 →' : v<0 ? '← 向左' : '靜止'; }
+const dirText = v => v>0 ? '向右 →' : v<0 ? '← 向左' : '靜止';
+const circDir = v => v>0 ? '逆時針 A→B→C→D' : v<0 ? '順時針 A→D→C→B' : '靜止';
 function syncSliders(){
   srcV.value = S.src.v; obsV.value = S.obs.v; f0In.value = S.f0;
-  $('#srcVo').textContent = Math.abs(S.src.v); $('#srcDir').textContent = dirText(S.src.v);
-  $('#obsVo').textContent = Math.abs(S.obs.v); $('#obsDir').textContent = dirText(S.obs.v);
+  $('#srcVo').textContent = Math.round(Math.abs(S.src.v));
+  $('#srcDir').textContent = S.mode === 'circle' ? circDir(S.src.v) : dirText(S.src.v);
+  $('#obsVo').textContent = Math.round(Math.abs(S.obs.v)); $('#obsDir').textContent = dirText(S.obs.v);
   $('#f0o').textContent = S.f0;
+  for (const key of ['src','obs']){
+    const o = S[key];
+    $('#'+key+'A').value = o.a; $('#'+key+'Ao').textContent = o.a;
+    const r = document.querySelector(`input[name=${key}Ad][value="${o.amode}"]`); if (r) r.checked = true;
+  }
+  if (S.mode === 'circle'){
+    const Rm = S.circ.R * V / CW, v = Math.abs(S.src.v);
+    $('#circInfo').textContent = `軌道半徑約 ${Math.round(Rm)} m，周長約 ${Math.round(2*Math.PI*Rm)} m` +
+      (v ? `，週期 ${(2*Math.PI*Rm/v).toFixed(1)} s。` : '。') +
+      '考題數值（周長 4 m、每秒一圈，速率 4 m/s）只會讓頻率變化約 ±1.2%，這裡把速率放大以便觀察；極大、極小值發聲位置的規律不變。';
+  }
 }
-srcV.oninput = () => { S.src.v = +srcV.value; S.preset=null; markPreset(); syncSliders(); };
-obsV.oninput = () => { S.obs.v = +obsV.value; S.preset=null; markPreset(); syncSliders(); };
+function onVel(o, val){ o.v = val; if (o.a > 0) armAccel(o); unmark(); syncSliders(); }
+srcV.oninput = () => onVel(S.src, +srcV.value);
+obsV.oninput = () => onVel(S.obs, +obsV.value);
 f0In.oninput = () => { S.f0 = +f0In.value; syncSliders(); };
-document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { S[b.dataset.set].v = +b.dataset.v; S.preset=null; markPreset(); syncSliders(); });
-document.querySelectorAll('[data-flip]').forEach(b => b.onclick = () => { S[b.dataset.flip].v *= -1; S.preset=null; markPreset(); syncSliders(); });
+document.querySelectorAll('[data-set]').forEach(b => b.onclick = () => onVel(S[b.dataset.set], +b.dataset.v));
+document.querySelectorAll('[data-flip]').forEach(b => b.onclick = () => onVel(S[b.dataset.flip], -S[b.dataset.flip].v));
+for (const key of ['src','obs']){
+  const o = S[key], sl = $('#'+key+'A');
+  sl.oninput = () => {
+    const was = o.a; o.a = +sl.value;
+    if (!(o.a > 0) || !(was > 0) || o.astate === 'off' || o.astate === 'wall') armAccel(o);
+    unmark(); syncSliders();
+  };
+  document.querySelectorAll(`input[name=${key}Ad]`).forEach(r => r.onchange = () => { o.amode = r.value; armAccel(o); unmark(); });
+  $('#'+key+'Ago').onclick = () => { if (!(o.a > 0)){ o.a = 30; } armAccel(o); unmark(); syncSliders(); setRunning(true); };
+}
 document.querySelectorAll('input[name=ts]').forEach(r => r.onchange = () => S.ts = +r.value);
 document.querySelectorAll('input[name=edge]').forEach(r => r.onchange = () => S.edge = r.value);
 document.querySelectorAll('input[name=listen]').forEach(r => r.onchange = () => S.listen = r.value);
@@ -315,7 +465,7 @@ const ICON_PAUSE = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="
 const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11a.6.6 0 0 0 .9.5l9-5.5a.6.6 0 0 0 0-1l-9-5.5a.6.6 0 0 0-.9.5z"/></svg><span>播放</span>';
 function setRunning(r){ S.running = r; playBtn.innerHTML = r ? ICON_PAUSE : ICON_PLAY; playBtn.setAttribute('aria-label', r?'暫停':'播放'); }
 playBtn.onclick = () => setRunning(!S.running);
-$('#reset').onclick = () => { const p = PRESETS.find(p=>p.id===S.preset) || PRESETS[0]; applyPreset(p); setRunning(true); };
+$('#reset').onclick = () => { const p = PRESETS.find(p=>p.id===S.lastPreset) || PRESETS[0]; applyPreset(p); setRunning(true); };
 document.addEventListener('keydown', e => {
   if (e.code==='Space' && !/INPUT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); setRunning(!S.running); }
 });
@@ -352,12 +502,10 @@ soundBtn.onclick = () => {
 function updateAudio(){
   if (!actx) return;
   const now = actx.currentTime;
-  let f = null, g = 0;
-  if (S.listen === 'src'){ f = S.f0; g = 0.16; }
-  else if (S.heard){
-    f = S.heard.f;
-    g = 0.16; // 與聲源原音同音量，只比較音高
-  }
+  let f = null, g = 0.16;                   // 三種聽法音量相同，只比較音高
+  if (S.listen === 'src') f = S.f0;
+  else if (S.listen === 'q') f = S.heardQ ? S.heardQ.f : null;
+  else f = S.heard ? S.heard.f : null;
   if (!soundOn || !S.running || f == null) g = 0;
   if (S.timbre === 'siren'){ g *= 0.7; if (f != null) f *= sirenTone(); }
   if (f != null) osc.frequency.setTargetAtTime(Math.min(4000, Math.max(40, f)), now, S.timbre === 'siren' ? 0.012 : 0.025);
@@ -367,13 +515,20 @@ function updateAudio(){
 /* ---------- 拖曳 ---------- */
 function toWorld(e){ const r = cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/sc, y:(e.clientY-r.top)/H}; }
 function hit(p){
-  for (const o of [S.obs, S.src]){
+  const list = S.mode === 'circle' ? [S.obs, S.q] : [S.obs, S.src];
+  for (const o of list){
     const dx = (o.x - p.x)*sc, dy = (o.y - p.y)*H;
     if (Math.hypot(dx,dy) < 40) return o;
   }
   return null;
 }
-cv.addEventListener('pointerdown', e => { const o = hit(toWorld(e)); if (o){ S.drag = o; o.v = 0; syncSliders(); o.dvx = 0; o.dvy = 0; o.lastMove = performance.now(); cv.setPointerCapture(e.pointerId); cv.style.cursor='grabbing'; S.preset=null; markPreset(); } });
+cv.addEventListener('pointerdown', e => {
+  const o = hit(toWorld(e)); if (!o) return;
+  S.drag = o; o.v = 0;
+  if ('astate' in o) o.astate = o.a > 0 ? 'held' : 'off';
+  o.dvx = 0; o.dvy = 0; o.lastMove = performance.now();
+  cv.setPointerCapture(e.pointerId); cv.style.cursor='grabbing'; unmark(); syncSliders();
+});
 cv.addEventListener('pointermove', e => {
   const p = toWorld(e);
   if (S.drag){
@@ -394,10 +549,24 @@ const endDrag = () => { S.drag = null; cv.style.cursor='default'; };
 cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
 
 /* ---------- 物理 ---------- */
-function moveBody(o, dt, isSrc){
+function moveBody(o, dt){
   if (o === S.drag) return;
-  o.x += o.v * K * dt;
+  if (o === S.src && S.mode === 'circle'){
+    S.circ.th += circOmega()*dt; const p = circPos(S.circ.th); o.x = p.x; o.y = p.y; return;
+  }
+  const accel = o.a > 0 && (o.astate === 'on' || o.astate === 'cap');
+  if (o.astate === 'on'){
+    const v0 = o.v; o.v += o.adir * o.a * dt;
+    if (Math.abs(o.v) >= VMAX && Math.sign(o.v) === o.adir){ o.v = o.adir*VMAX; o.astate = 'cap'; }
+    o.x += (v0 + o.v)/2 * K * dt;
+  } else o.x += o.v * K * dt;
   const m = 14;
+  if (accel){
+    if ((o.x < m && o.v < 0) || (o.x > WW-m && o.v > 0)){
+      o.x = Math.min(WW-m, Math.max(m, o.x)); o.v = 0; o.astate = 'wall'; syncSliders();
+    }
+    return;
+  }
   if (S.edge === 'bounce'){
     if ((o.x < m && o.v < 0) || (o.x > WW-m && o.v > 0)){ o.v = -o.v; syncSliders(); }
   } else if (S.edge === 'wrap'){
@@ -410,11 +579,17 @@ function moveBody(o, dt, isSrc){
 function step(dt){
   const prevT = S.t;
   S.t += dt;
-  moveBody(S.src, dt, true); moveBody(S.obs, dt, false);
+  moveBody(S.src, dt); moveBody(S.obs, dt);
   const T = Tv();
   while (S.nextEmit <= S.t){
-    const back = S.t - S.nextEmit, sv = vel(S.src);
-    S.waves.push({t:S.nextEmit, x:S.src.x - sv.vx*K*back, y:S.src.y - sv.vy*K*back/WH, vx:sv.vx, vy:sv.vy});
+    const back = S.t - S.nextEmit;
+    if (S.mode === 'circle'){
+      const th = S.circ.th - circOmega()*back, p = circPos(th), v = circVel(th);
+      S.waves.push({t:S.nextEmit, x:p.x, y:p.y, vx:v.vx, vy:v.vy});
+    } else {
+      const sv = vel(S.src);
+      S.waves.push({t:S.nextEmit, x:S.src.x - sv.vx*K*back, y:S.src.y - sv.vy*K*back/WH, vx:sv.vx, vy:sv.vy});
+    }
     S.nextEmit += T;
   }
   const R = maxR();
@@ -426,9 +601,8 @@ function step(dt){
     if (CW*(prevT - w.t) < d && CW*(S.t - w.t) >= d) S.flash = 1;
   }
 }
-function computeHeard(){
-  const ox = S.obs.x, oy = S.obs.y*WH, ov = vel(S.obs);
-  const dNow = Math.hypot(ox - S.src.x, oy - S.src.y*WH) / CW * V; // 音量用
+function heardAt(o, prev){
+  const ox = o.x, oy = o.y*WH, ov = vel(o);
   let ex, ey, svx, svy;
   if (S.prop === 'instant'){
     // 即時：用聲源「現在」的位置與速度
@@ -440,16 +614,20 @@ function computeHeard(){
       const c = S.waves[i];
       if (CW*(S.t - c.t) >= Math.hypot(ox - c.x, oy - c.y*WH)){ w = c; break; }
     }
-    if (!w){ S.heard = null; return; }
+    if (!w) return null;
     ex = w.x; ey = w.y*WH; svx = w.vx; svy = w.vy;
   }
   const dx = ox - ex, dy = oy - ey, d = Math.hypot(dx, dy);
   let ux = 1, uy = 0;
-  if (d > 0.5){ ux = dx/d; uy = dy/d; } else if (S.heard){ ux = S.heard.ux; uy = S.heard.uy; }
+  if (d > 0.5){ ux = dx/d; uy = dy/d; } else if (prev){ ux = prev.ux; uy = prev.uy; }
   const vsT = svx*ux + svy*uy;              // 聲源朝觀察者的速度分量
   const voT = -(ov.vx*ux + ov.vy*uy);       // 觀察者朝聲源的速度分量
   const f = S.f0 * (V + voT) / (V - Math.min(vsT, 0.95*V));
-  S.heard = {f, vsT, voT, ux, uy, d:dNow};
+  return {f, vsT, voT, ux, uy, ex, ey};
+}
+function computeHeard(){
+  S.heard = heardAt(S.obs, S.heard);
+  S.heardQ = S.mode === 'circle' ? heardAt(S.q, S.heardQ) : null;
 }
 
 /* ---------- 繪圖 ---------- */
@@ -464,6 +642,14 @@ function velArrow(x, y, v, color){
   const ux = v.vx/m, uy = v.vy/m;
   arrow(x+ux*18, y+uy*18, x+ux*18 + v.vx*0.28*sc, y+uy*18 + v.vy*0.28*sc, color);
 }
+function accArrow(x, y, dir, color){
+  ctx.globalAlpha = 0.85;
+  arrow(x - dir*14, y, x + dir*16, y, color, 1.8);
+  ctx.font = 'italic 600 12px "IBM Plex Mono", monospace'; ctx.fillStyle = color;
+  ctx.textAlign = dir > 0 ? 'left' : 'right'; ctx.textBaseline = 'middle';
+  ctx.fillText('a', x + dir*22, y);
+  ctx.globalAlpha = 1;
+}
 function bracket(xa, xb, y, up, label, color){
   if (xb < xa) [xa,xb] = [xb,xa];
   if (xb < 4 || xa > W-4 || xb - xa < 6) return;
@@ -475,86 +661,125 @@ function bracket(xa, xb, y, up, label, color){
   const lx = Math.min(W-40, Math.max(40, (xa+xb)/2));
   ctx.fillText(label, lx, y + t + (up ? -3 : 3));
 }
+function drawListener(x, y, color, soft, label, flash){
+  if (flash > 0.02){
+    ctx.strokeStyle = color; ctx.globalAlpha = flash; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, 16 + (1-flash)*16, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = soft; ctx.strokeStyle = color; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y-1, 5.5, Math.PI*0.95, Math.PI*2.3); ctx.stroke();
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y-1, 1.8, 0, Math.PI*2); ctx.fill();
+  ctx.font = '700 13px "Noto Sans TC", sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle = color;
+  ctx.fillText(label, x, y + 20);
+}
+function drawCircleTrack(){
+  const cx = S.circ.cx*sc, cy = S.circ.cy*H, r = S.circ.R*sc;
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1.4; ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(Math.max(S.q.x, S.obs.x)*sc + 20, cy);
+  ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke(); ctx.setLineDash([]);
+  const pts = [['A', cx+r, cy, 8, 16], ['B', cx, cy-r, 0, -18], ['C', cx-r, cy, -16, 0], ['D', cx, cy+r, 0, 18]];
+  ctx.font = '700 15px "Noto Serif TC", serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for (const [n, x, y, dx, dy] of pts){
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillText(n, x + dx, y + dy);
+  }
+}
+function drawEmitMarker(h, color, label){
+  if (!h || S.prop !== 'delay') return;
+  const x = h.ex*sc, y = h.ey*sc;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.stroke();
+  if (label){
+    const cx = S.circ.cx*sc, cy = S.circ.cy*H;
+    let dx = x - cx, dy = y - cy; const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
+    ctx.font = '600 12px "Noto Sans TC", sans-serif'; ctx.fillStyle = color;
+    ctx.textAlign = dx > 0.3 ? 'left' : dx < -0.3 ? 'right' : 'center';
+    ctx.textBaseline = dy > 0.3 ? 'top' : dy < -0.3 ? 'bottom' : 'middle';
+    ctx.fillText(label, x + dx*14, y + dy*14);
+  }
+}
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.fillStyle = C.panel; ctx.fillRect(0,0,W,H);
+  const circle = S.mode === 'circle';
   // 格線：每 100 單位
   ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
   ctx.beginPath();
   for (let x=100; x<WW; x+=100){ ctx.moveTo(x*sc+.5,0); ctx.lineTo(x*sc+.5,H); }
   for (let y=100; y<WH; y+=100){ ctx.moveTo(0,y*sc+.5); ctx.lineTo(W,y*sc+.5); }
   ctx.stroke();
-  // 聲源行進軌道
   const sy = S.src.y*H;
-  ctx.strokeStyle = C.line; ctx.setLineDash([4,6]); ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke(); ctx.setLineDash([]);
-  if (Math.abs(S.obs.y - S.src.y) > .01){
-    const oy = S.obs.y*H; ctx.beginPath(); ctx.setLineDash([4,6]); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke(); ctx.setLineDash([]);
+  if (!circle){
+    // 聲源行進軌道
+    ctx.strokeStyle = C.line; ctx.setLineDash([4,6]); ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke(); ctx.setLineDash([]);
+    if (Math.abs(S.obs.y - S.src.y) > .01){
+      const oy = S.obs.y*H; ctx.beginPath(); ctx.setLineDash([4,6]); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke(); ctx.setLineDash([]);
+    }
   }
   // 波前
   const R = maxR();
   for (const w of S.waves){
     const r = CW*(S.t - w.t); if (r <= 0) continue;
     const a = Math.max(0.08, 0.9 * (1 - r/R));
-    ctx.globalAlpha = a; ctx.strokeStyle = C.wave; ctx.lineWidth = 1.6;
+    ctx.globalAlpha = circle ? a*0.7 : a; ctx.strokeStyle = C.wave; ctx.lineWidth = circle ? 1.2 : 1.6;
     ctx.beginPath(); ctx.arc(w.x*sc, w.y*H, r*sc, 0, Math.PI*2); ctx.stroke();
   }
   ctx.globalAlpha = 1;
-  // 波長標示（聲源所在水平線）
-  const n = S.waves.length;
-  const wy = S.src.y*WH;
-  const pts = (side) => {
-    const out = [];
-    for (let i = n-1; i >= 0 && out.length < 4; i--){
-      const w = S.waves[i], r = CW*(S.t-w.t), dy = wy - w.y*WH;
-      if (r <= Math.abs(dy)) continue;
-      out.push(w.x + side*Math.sqrt(r*r - dy*dy));
-    }
-    return out;
-  };
-  const lamPhys = (px) => (px / (CW*Tv())) * (V / S.f0);
-  const frontSide = S.src.v >= 0 ? 1 : -1;
-  const pf = pts(frontSide), pb = pts(-frontSide);
-  if (pf.length >= 3){
-    const a = pf[1], b = pf[2];
-    bracket(a*sc, b*sc, sy-6, true, `λ前 ${lamPhys(Math.abs(b-a)).toFixed(2)} m`, C.src);
+  if (circle){
+    drawCircleTrack();
+    drawEmitMarker(S.heardQ, C.q, '');
+    drawEmitMarker(S.heard, C.obs, 'P 此刻聽到的聲音由此發出');
+  } else {
+    // 波長標示（聲源所在水平線）
+    const n = S.waves.length, wy = S.src.y*WH;
+    const pts = (side) => {
+      const out = [];
+      for (let i = n-1; i >= 0 && out.length < 4; i--){
+        const w = S.waves[i], r = CW*(S.t-w.t), dy = wy - w.y*WH;
+        if (r <= Math.abs(dy)) continue;
+        out.push(w.x + side*Math.sqrt(r*r - dy*dy));
+      }
+      return out;
+    };
+    const lamPhys = (px) => (px / (CW*Tv())) * (V / S.f0);
+    const frontSide = S.src.v >= 0 ? 1 : -1;
+    const pf = pts(frontSide), pb = pts(-frontSide);
+    if (pf.length >= 3) bracket(pf[1]*sc, pf[2]*sc, sy-6, true, `λ前 ${lamPhys(Math.abs(pf[2]-pf[1])).toFixed(2)} m`, C.src);
+    if (pb.length >= 3) bracket(pb[1]*sc, pb[2]*sc, sy+6, false, `λ後 ${lamPhys(Math.abs(pb[2]-pb[1])).toFixed(2)} m`, C.muted);
   }
-  if (pb.length >= 3){
-    const a = pb[1], b = pb[2];
-    bracket(a*sc, b*sc, sy+6, false, `λ後 ${lamPhys(Math.abs(b-a)).toFixed(2)} m`, C.muted);
-  }
-  // 觀察者
+  // 觀察者（與 Q）
   const ox = S.obs.x*sc, oy = S.obs.y*H;
-  if (S.flash > 0.02){
-    ctx.strokeStyle = C.obs; ctx.globalAlpha = S.flash; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(ox, oy, 16 + (1-S.flash)*16, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
-  }
-  ctx.fillStyle = C['obs-soft']; ctx.strokeStyle = C.obs; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(ox, oy, 14, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-  // 耳朵小圖示
-  ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox, oy-1, 5.5, Math.PI*0.95, Math.PI*2.3); ctx.stroke();
-  ctx.fillStyle = C.obs; ctx.beginPath(); ctx.arc(ox, oy-1, 1.8, 0, Math.PI*2); ctx.fill();
+  if (circle) drawListener(S.q.x*sc, S.q.y*H, C.q, C.panel, 'Q', 0);
+  drawListener(ox, oy, C.obs, C['obs-soft'], circle ? 'P' : '觀察者', S.flash);
   velArrow(ox, oy, vel(S.obs), C.obs);
-  ctx.font = '700 13px "Noto Sans TC", sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle = C.obs;
-  ctx.fillText('觀察者', ox, oy + 20);
+  if (S.obs.astate === 'on') accArrow(ox, oy + 46, S.obs.adir, C.obs);
   // 聲源
   const sx = S.src.x*sc;
   ctx.fillStyle = C.src; ctx.beginPath(); ctx.arc(sx, sy, 14, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = C.panel;
   ctx.beginPath(); ctx.moveTo(sx-7,sy-3); ctx.lineTo(sx-3,sy-3); ctx.lineTo(sx+2,sy-7); ctx.lineTo(sx+2,sy+7); ctx.lineTo(sx-3,sy+3); ctx.lineTo(sx-7,sy+3); ctx.closePath(); ctx.fill();
   ctx.strokeStyle = C.panel; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(sx+3, sy, 5, -0.8, 0.8); ctx.stroke();
-  if (S.timbre === 'siren'){ // 警示燈
-    const on = sirenTone() === 1;
-    ctx.fillStyle = on ? '#e5322d' : '#2f6fe0';
+  const siren = S.timbre === 'siren';
+  if (siren){ // 警示燈
+    ctx.fillStyle = sirenTone() === 1 ? '#e5322d' : '#2f6fe0';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(sx-7, sy-23, 14, 6, 3) : ctx.rect(sx-7, sy-23, 14, 6); ctx.fill();
   }
   velArrow(sx, sy, vel(S.src), C.src);
-  ctx.fillStyle = C.src; ctx.font = '700 13px "Noto Sans TC", sans-serif'; ctx.textBaseline = 'bottom';
-  ctx.fillText(S.timbre === 'siren' ? '救護車' : '聲源', sx, sy - (S.timbre === 'siren' ? 26 : 20));
+  if (!circle && S.src.astate === 'on') accArrow(sx, sy + 28, S.src.adir, C.src);
+  if (!circle){
+    ctx.fillStyle = C.src; ctx.font = '700 13px "Noto Sans TC", sans-serif'; ctx.textAlign='center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(siren ? '救護車' : '聲源', sx, sy - (siren ? 26 : 20));
+  }
   // 角落讀數
   ctx.textAlign='right'; ctx.textBaseline='top'; ctx.font = '600 14px "IBM Plex Mono", monospace'; ctx.fillStyle = C.ink;
-  ctx.fillText(S.heard ? `f′ = ${Math.round(S.heard.f)} Hz` : 'f′ = —', W-12, 10);
+  ctx.fillText((circle ? 'P: ' : '') + (S.heard ? `f′ = ${Math.round(S.heard.f)} Hz` : 'f′ = —'), W-12, 10);
+  let yy = 30;
+  if (circle){ ctx.fillStyle = C.q; ctx.fillText('Q: ' + (S.heardQ ? `f′ = ${Math.round(S.heardQ.f)} Hz` : 'f′ = —'), W-12, yy); yy += 20; }
   ctx.font = '500 12px "IBM Plex Mono", monospace'; ctx.fillStyle = C.muted;
-  ctx.fillText(`f₀ = ${S.f0} Hz`, W-12, 30);
+  ctx.fillText(`f₀ = ${S.f0} Hz`, W-12, yy); yy += 18;
+  ctx.fillText(`t = ${Math.max(0, S.t).toFixed(2)} s`, W-12, yy);
   if (!S.running){ ctx.textAlign='left'; ctx.fillStyle=C.muted; ctx.font='700 13px "Noto Sans TC", sans-serif'; ctx.fillText('已暫停', 12, 10); }
 }
 
@@ -562,10 +787,10 @@ function drawHist(){
   const w = hc.width/dpr, h = 150;
   hx.setTransform(dpr,0,0,dpr,0,0);
   hx.clearRect(0,0,w,h);
-  const padL = 48, padR = 8, padT = 10, padB = 22;
-  const span = 12;
-  const now = performance.now()/1000;
-  const vals = S.hist.filter(p=>p.f!=null).map(p=>p.f);
+  const padL = 48, padR = 12, padT = 10, padB = 22, span = 12;
+  const now = S.t, circle = S.mode === 'circle';
+  const vals = [];
+  for (const p of S.hist){ if (p.f != null) vals.push(p.f); if (circle && p.fq != null) vals.push(p.fq); }
   let lo = Math.min(S.f0, ...vals), hi = Math.max(S.f0, ...vals);
   const pad = Math.max(40, (hi-lo)*0.15); lo = Math.max(0, lo - pad); hi = hi + pad;
   const step = niceStep((hi-lo)/4);
@@ -578,23 +803,32 @@ function drawHist(){
     const y = Math.round(Y(f))+.5; hx.beginPath(); hx.moveTo(padL,y); hx.lineTo(w-padR,y); hx.stroke();
     hx.fillText(Math.round(f), padL-6, y);
   }
+  // 時間刻度：畫面時間 t（秒）
   hx.textAlign='center'; hx.textBaseline='top';
-  for (let s = 0; s <= span; s += 3){ hx.fillText(s===0?'現在':`−${s} s`, X(now - s), h - padB + 6); }
+  const tstep = w < 500 ? 2 : 1;
+  for (let s = Math.ceil(Math.max(0, now - span)/tstep)*tstep; s <= now; s += tstep){
+    const x = X(s);
+    hx.strokeStyle = C.grid; hx.beginPath(); hx.moveTo(x+.5, padT); hx.lineTo(x+.5, h-padB); hx.stroke();
+    hx.fillText(`${s}`, x, h - padB + 6);
+  }
+  hx.textAlign='right'; hx.fillText('t (s)', w - padR, h - padB + 6);
   // f0 參考線
   hx.strokeStyle = C.src; hx.setLineDash([5,5]); hx.lineWidth = 1.5;
   hx.beginPath(); hx.moveTo(padL, Y(S.f0)); hx.lineTo(w-padR, Y(S.f0)); hx.stroke(); hx.setLineDash([]);
-  hx.fillStyle = C.src; hx.textAlign='left'; hx.textBaseline='bottom'; hx.fillText('f₀', padL+4, Y(S.f0)-2);
-  // f′ 曲線
-  hx.strokeStyle = C.obs; hx.lineWidth = 2.2; hx.lineJoin='round';
-  hx.beginPath(); let pen = false, last = null;
-  for (const p of S.hist){
-    if (p.f == null){ pen = false; continue; }
-    const x = X(p.rt), y = Y(p.f);
-    if (x < padL) continue;
-    pen ? hx.lineTo(x,y) : hx.moveTo(x,y); pen = true; last = [x,y];
-  }
-  hx.stroke();
-  if (last){ hx.fillStyle = C.obs; hx.beginPath(); hx.arc(last[0], last[1], 4, 0, Math.PI*2); hx.fill(); }
+  const line = (key, color) => {
+    hx.strokeStyle = color; hx.lineWidth = 2.2; hx.lineJoin='round';
+    hx.beginPath(); let pen = false, last = null;
+    for (const p of S.hist){
+      if (p[key] == null){ pen = false; continue; }
+      const x = X(p.st), y = Y(p[key]);
+      if (x < padL) continue;
+      pen ? hx.lineTo(x,y) : hx.moveTo(x,y); pen = true; last = [x,y];
+    }
+    hx.stroke();
+    if (last){ hx.fillStyle = color; hx.beginPath(); hx.arc(last[0], last[1], 4, 0, Math.PI*2); hx.fill(); }
+  };
+  if (circle) line('fq', C.q);
+  line('f', C.obs);
 }
 function niceStep(raw){ const p = Math.pow(10, Math.floor(Math.log10(raw))); const m = raw/p; return (m<1.5?1:m<3?2:m<7?5:10)*p; }
 
@@ -622,10 +856,13 @@ function updateReadout(){
     $('#fxTop').textContent = '—'; $('#fxBot').textContent='—'; $('#fxRes').textContent='—';
     $('#lo').textContent='—'; $('#vrel').textContent='—';
   }
+  $('#qdd').textContent = S.heardQ ? `${Math.round(S.heardQ.f)} Hz` : '—';
   const vs = Math.abs(S.src.v);
   $('#l0').textContent = `${(V/f0).toFixed(3)} m`;
   $('#lf').textContent = `${((V-vs)/f0).toFixed(3)} m`;
   $('#lb').textContent = `${((V+vs)/f0).toFixed(3)} m`;
+  accelStatus(S.src, 'src'); accelStatus(S.obs, 'obs');
+  if (S.src.astate === 'on' || S.obs.astate === 'on') syncSliders();
 }
 
 /* ---------- 主迴圈 ---------- */
@@ -639,8 +876,8 @@ function frame(now){
   if (S.drag && now - (S.drag.lastMove||0) > 60){ S.drag.dvx *= 0.8; S.drag.dvy *= 0.8; } // 手停下來就減速
   computeHeard();
   if (S.running && now - lastHist > 50){
-    S.hist.push({rt: now/1000, f: S.heard ? S.heard.f : null}); lastHist = now;
-    while (S.hist.length && now/1000 - S.hist[0].rt > 12.5) S.hist.shift();
+    S.hist.push({st: S.t, f: S.heard ? S.heard.f : null, fq: S.heardQ ? S.heardQ.f : null}); lastHist = now;
+    while (S.hist.length && S.t - S.hist[0].st > 12.5) S.hist.shift();
   }
   updateAudio();
   draw();
@@ -648,6 +885,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 
+updateModeUI();
 applyPreset(PRESETS[0]);
 if (matchMedia('(prefers-reduced-motion: reduce)').matches) setRunning(false);
 computeHeard(); updateReadout();
