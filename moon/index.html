@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>日地月相對運動</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+:root{
+  --bg:#eaeef2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1; --grid:#e6ebf0;
+  --accent:#c2410c; --accent-soft:#fbe7dc; --blue:#1c68ad; --green:#1f8a5b;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#1d262f;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --green:#4cc28e; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#1d262f;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --green:#4cc28e; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:500}
+.eyebrow a{color:inherit}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,4vw,38px);line-height:1.15;margin:2px 0 0}
+header p{margin:0;color:var(--muted);max-width:52ch;font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 12px}
+.toolbar + .toolbar{border-top:1px solid var(--line)}
+button{font:inherit;font-size:14px;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:5px 11px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:84px;justify-content:center}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-left:1px solid var(--line);background:transparent;padding:5px 10px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.tlabel{font-size:12px;color:var(--muted)}
+.grp{display:inline-flex;align-items:center;gap:6px}
+.slider{display:flex;align-items:center;gap:10px;flex:1 1 260px;min-width:220px}
+.slider input{flex:1;accent-color:var(--accent)}
+.slider output{font-family:var(--f-mono);font-weight:600;min-width:5.2em;text-align:right;font-size:15px}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.tog{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:3px 11px 3px 8px;cursor:pointer;font-size:13.5px;user-select:none}
+.tog input{accent-color:var(--accent);margin:0}
+.tog:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:880px){.main{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ptitle{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:9px 14px 0;font-weight:700;font-size:14.5px}
+.ptitle small{font-weight:400;color:var(--muted);font-size:12px}
+canvas{display:block;width:100%;touch-action:none}
+.cbox{padding:8px 10px 10px}
+.cbox canvas{border-radius:7px}
+#top{cursor:grab}
+.hint{font-size:12px;color:var(--muted);padding:0 14px 10px}
+.readout{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 16px;padding:10px 14px 14px;align-items:start}
+@media (max-width:420px){.readout{grid-template-columns:110px minmax(0,1fr)}}
+.big{font-family:var(--f-display);font-weight:900;font-size:26px;line-height:1.2}
+.big .clk{font-family:var(--f-mono);font-weight:600;font-size:22px;margin-left:8px}
+.rows{display:flex;flex-direction:column;gap:3px;font-size:14px}
+.rows b{font-weight:700}
+.kv{display:flex;gap:8px}
+.kv span:first-child{color:var(--muted);min-width:4.6em;flex:none}
+.mono{font-family:var(--f-mono)}
+.story{border-left:4px solid var(--accent);padding:10px 14px 12px;position:relative}
+.story h3{margin:0 30px 4px 0;font-size:15.5px}
+.story p{margin:0;font-size:14.5px}
+.story .x{position:absolute;right:8px;top:6px;border:0;background:transparent;font-size:20px;cursor:pointer;color:var(--muted);line-height:1}
+.tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:8px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabpane{padding:12px 14px 16px}
+.qgrp{margin-bottom:12px}
+.qgrp h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.06em}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 13px;cursor:pointer;font-size:13.5px;text-align:left}
+.chip:hover{border-color:var(--accent)}
+.chip .pg{color:var(--muted);font-size:12px;margin-left:4px}
+.egrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:760px){.egrid{grid-template-columns:minmax(0,1fr)}}
+.sub{font-size:13px;font-weight:700;margin:0 0 4px}
+.sub small{font-weight:400;color:var(--muted)}
+.econtrols{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:12px}
+.result{font-size:14.5px;margin-top:8px;display:flex;flex-direction:column;gap:2px}
+.result .tag{display:inline-block;font-weight:700;padding:1px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+#Bwrap{display:inline-flex;align-items:center;gap:6px}
+#Bwrap input{width:140px;accent-color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../">物理互動模擬</a> · 自然（五）7-3</div>
+      <h1>日地月的相對運動</h1>
+    </div>
+    <p>拖曳月球換日期、拖曳地球換時刻。左邊是從北極上空往下看，右邊是觀察者面向南方看到的天空。日月食、潮汐和講義題目在下方分頁。</p>
+  </header>
+
+  <section class="panel" aria-label="時間控制">
+    <div class="toolbar">
+      <button class="btn primary" id="play">▶ 播放</button>
+      <span class="grp"><span class="tlabel">播放方式</span>
+        <span class="seg" id="modeSeg"><button data-v="cont" aria-pressed="true">連續</button><button data-v="daily" aria-pressed="false">逐日（固定時刻）</button></span></span>
+      <span class="grp" id="speedGrp"><span class="tlabel">速度</span>
+        <span class="seg" id="speedSeg"><button data-v="0.0833">5 分/秒</button><button data-v="1" aria-pressed="true">1 時/秒</button><button data-v="6">6 時/秒</button><button data-v="24">1 天/秒</button></span></span>
+      <span class="grp">
+        <button class="btn" data-step="-24">−1 天</button><button class="btn" data-step="-1">−1 時</button><button class="btn" data-step="1">+1 時</button><button class="btn" data-step="24">+1 天</button>
+      </span>
+    </div>
+    <div class="toolbar">
+      <label class="slider"><span class="tlabel">農曆日期</span><input type="range" id="dateR" min="1" max="30" step="1"><output id="dateO"></output></label>
+      <label class="slider"><span class="tlabel">當地時刻</span><input type="range" id="timeR" min="0" max="1435" step="5"><output id="timeO"></output></label>
+    </div>
+    <div class="toolbar toggles">
+      <span class="tlabel">顯示</span>
+      <label class="tog"><input type="checkbox" id="tGhost" checked>八個位置</label>
+      <label class="tog"><input type="checkbox" id="tFace">月球定點 Q</label>
+      <label class="tog"><input type="checkbox" id="tShadow">影子</label>
+      <label class="tog"><input type="checkbox" id="tTide">潮汐隆起</label>
+      <label class="tog"><input type="checkbox" id="tB">第二位觀察者 B</label>
+      <span id="Bwrap" hidden><span class="tlabel">B 在東經差</span><input type="range" id="lonB" min="-180" max="180" step="15"><output id="lonBO" class="mono"></output></span>
+    </div>
+  </section>
+
+  <section class="panel story" id="story" hidden>
+    <button class="x" id="storyX" aria-label="關閉說明">×</button>
+    <h3 id="storyT"></h3>
+    <p id="storyP"></p>
+  </section>
+
+  <div class="main">
+    <div class="col">
+      <section class="panel">
+        <div class="ptitle">俯視圖：從北極上空往下看 <small>未按實際比例</small></div>
+        <div class="cbox"><canvas id="top" aria-label="從北極上空俯視的日地月相對位置圖，可拖曳月球與地球"></canvas></div>
+        <div class="hint">拖曳月球：換農曆日期（時刻不變）。拖曳地球附近：轉動地球、改變時刻。亮區是觀察者看得到的半邊天空。</div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="panel">
+        <div class="ptitle">觀察者看到的天空 <small>面向南方：左東、右西</small></div>
+        <div class="cbox"><canvas id="sky" aria-label="觀察者面向南方看到的天空"></canvas></div>
+      </section>
+      <section class="panel">
+        <div class="readout">
+          <div><canvas id="phase" aria-label="從地球看到的月相"></canvas></div>
+          <div class="rows">
+            <div class="big"><span id="rDate"></span><span class="clk" id="rClock"></span></div>
+            <div><b id="rPhase"></b>　<span id="rLit" class="tlabel"></span></div>
+            <div class="kv"><span>月亮</span><span id="rWhere"></span></div>
+            <div class="kv"><span>今日月亮</span><span id="rRise" class="mono"></span></div>
+            <div class="kv"><span>太陽</span><span id="rSun"></span></div>
+            <div class="kv" id="rBrow" hidden><span>觀察者 B</span><span id="rB"></span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="q" aria-selected="true">講義題目情境</button>
+      <button role="tab" data-tab="ecl" aria-selected="false">日食與月食</button>
+      <button role="tab" data-tab="tide" aria-selected="false">潮汐</button>
+    </div>
+    <div class="tabpane" id="pane-q" role="tabpanel"></div>
+
+    <div class="tabpane" id="pane-ecl" role="tabpanel" hidden>
+      <div class="econtrols">
+        <label class="slider" style="flex:1 1 300px"><span class="tlabel">交點線與日地連線夾角</span><input type="range" id="nodeR" min="-90" max="90" step="1"><output id="nodeO"></output></label>
+        <span class="grp"><span class="tlabel">月地距離</span>
+          <span class="seg" id="distSeg"><button data-v="peri">近地點</button><button data-v="mean" aria-pressed="true">平均</button><button data-v="apo">遠地點</button></span></span>
+        <label class="slider" style="flex:1 1 280px"><span class="tlabel">觀察者在月影中</span><input type="range" id="offR" min="-1" max="1" step="0.05"><output id="offO"></output></label>
+        <label class="tog"><input type="checkbox" id="tExag" checked>傾角放大 3 倍</label>
+      </div>
+      <div class="egrid">
+        <div>
+          <p class="sub">地球繞太陽：月球軌道面與黃道面夾約 5° <small>交點線指向太陽時才可能有日月食</small></p>
+          <canvas id="orbit" aria-label="地球繞太陽公轉與月球軌道交點線示意"></canvas>
+        </div>
+        <div>
+          <p class="sub">側視圖：月球在黃道面上方或下方？ <small>太陽在右</small></p>
+          <canvas id="side" aria-label="側視圖，顯示月球相對於黃道面的高低與影子"></canvas>
+        </div>
+      </div>
+      <div class="egrid" style="margin-top:12px">
+        <div>
+          <p class="sub" id="zoomTitle">觀察者用望遠鏡看</p>
+          <canvas id="zoom" aria-label="觀察者看到的日食或月食放大圖"></canvas>
+        </div>
+        <div>
+          <div class="result" id="eclResult"></div>
+          <p class="note">放大圖的太陽、月球和地影大小按實際角度比例畫出，虛線是前後 3 小時月球的路徑。月球每小時相對太陽往東移動約半度（約一個月球直徑），所以日食從西側（右邊）開始缺，月食從東側（左邊）開始暗。</p>
+          <p class="note">試試看：用「5 分/秒」播放，看完整的食相過程；把觀察者拉到半影區，全食會變成偏食；換成遠地點，月球看起來比太陽小，就變成日環食。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabpane" id="pane-tide" role="tabpanel" hidden>
+      <p class="sub">觀察者所在海邊的水位（從今天 00:00 起 48 小時） <small>簡化模型：滿潮時月亮約在中天或正對面</small></p>
+      <canvas id="tide" aria-label="48 小時海水水位變化圖"></canvas>
+      <div class="result" id="tideResult"></div>
+      <p class="note">打開「潮汐隆起」可以在俯視圖看到海水被月球和太陽拉成兩個隆起。地球自轉時觀察者每天經過兩個隆起，所以一天約兩次滿潮、兩次乾潮；月球同時往東移，所以每天晚約 50 分鐘。實際海岸的滿潮時刻還受地形影響，會比月亮中天晚一些。</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const P=29.530589, PH=P*24, INC=5.145, NODE_RATE=1.0386, RS=0.2666;
+const DIST={peri:{rm:.2795,pm:1.0247,apex:1.08},mean:{rm:.259,pm:.951,apex:0.99},apo:{rm:.2457,pm:.9002,apex:0.9}};
+const S={t:0,T0:10,node0:60,dist:'mean',off:0,ghost:true,face:false,shadow:false,tide:false,B:false,lonB:-90,
+  playing:false,speed:1,daily:false,exag:true,tab:'q'};
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const mod=(a,n)=>((a%n)+n)%n;
+const w180=a=>mod(a+180,360)-180;
+const $=id=>document.getElementById(id);
+
+// ---------- astronomy model ----------
+const elong=t=>mod(360*(t-S.T0)/PH,360);          // moon angle from sun direction, counterclockwise (east)
+const clock=t=>mod(t,24);
+const theta=t=>(clock(t)-12)*15;                   // observer angle in top view (noon faces the sun)
+const monthStart=k=>Math.floor((S.T0+k*PH)/24)*24;
+function monthOf(t){let k=Math.floor((t-S.T0)/PH); while(monthStart(k+1)<=t)k++; while(monthStart(k)>t)k--; return k;}
+function lunar(t){const k=monthOf(t);return{k,d:Math.floor((t-monthStart(k))/24)+1};}
+const nodeRel=t=>S.node0-NODE_RATE*((t-S.T0)/24);
+const beta=t=>INC*Math.sin(rad(elong(t)-nodeRel(t)));
+const Hm=t=>w180(theta(t)-elong(t));
+const Hs=t=>w180(theta(t));
+const tideH=t=>Math.cos(2*rad(Hm(t)))+0.46*Math.cos(2*rad(Hs(t)));
+const dayStart=t=>t-clock(t);
+
+const NUM='〇一二三四五六七八九';
+function lunarName(d){ if(d<=10) return '初'+(d===10?'十':NUM[d]); if(d<20) return '十'+NUM[d-10]; if(d===20) return '二十'; if(d<30) return '二十'+NUM[d-20]; return '三十'; }
+function hhmm(h){h=mod(h,24);let m=Math.round(h*60);if(m===1440)m=0;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+
+function phaseName(e){
+  if(e<7||e>353) return '新月（朔）'; if(e<83) return '眉月'; if(e<97) return '上弦月'; if(e<173) return '盈凸月';
+  if(e<187) return '滿月（望）'; if(e<263) return '虧凸月'; if(e<277) return '下弦月'; return '殘月';
+}
+function describe(H){
+  const alt=90-Math.abs(H);
+  if(alt<-0.3) return H<0?'在地平線下（還沒從東方升起）':'在地平線下（已從西方落下）';
+  if(alt<8) return H<0?'剛從東方地平線升起':'接近西方地平線，快要落下';
+  if(alt>80) return '接近中天（正南方高空）';
+  return (H<0?'在東方天空':'在西方天空')+`，高度約 ${Math.round(alt)}°`;
+}
+function events(t0,len,f){ // crossing times of hour angle f(t) through -90, 0, 90
+  const out={rise:[],transit:[],set:[]};let prev=f(t0);
+  for(let s=t0+1/30;s<=t0+len+1e-9;s+=1/30){const c=f(s);
+    if(c-prev>0&&c-prev<20){ if(prev<-90&&c>=-90)out.rise.push(s); if(prev<0&&c>=0)out.transit.push(s); if(prev<90&&c>=90)out.set.push(s);} prev=c;}
+  return out;
+}
+function overlap(r1,r2,d){
+  if(d>=r1+r2) return 0; if(d<=Math.abs(r1-r2)) return Math.PI*Math.min(r1,r2)**2;
+  const a=r1*r1*Math.acos((d*d+r1*r1-r2*r2)/(2*d*r1)), b=r2*r2*Math.acos((d*d+r2*r2-r1*r1)/(2*d*r2));
+  const c=.5*Math.sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2)); return a+b-c;
+}
+function eclipse(t){
+  const D=DIST[S.dist], e=elong(t), b=beta(t);
+  const dl=w180(e), bApp=b-S.off*D.pm, ss=Math.hypot(dl,bApp);
+  let sType='none'; const rm=D.rm;
+  if(ss<RS+rm){ sType = ss<=Math.abs(rm-RS) ? (rm>RS?'total':'annular') : 'partial'; }
+  const obsc=overlap(RS,rm,ss)/(Math.PI*RS*RS);
+  const dl2=w180(e-180), sl=Math.hypot(dl2,b);
+  const Ru=1.02*(D.pm+0.0024-RS), Rp=1.02*(D.pm+0.0024+RS);
+  let lType='none';
+  if(sl<Ru-rm) lType='total'; else if(sl<Ru+rm) lType='partial'; else if(sl<Rp+rm) lType='penumbral';
+  const umb=overlap(rm,Ru,sl)/(Math.PI*rm*rm);
+  return {D,e,b,dl,bApp,ss,sType,obsc,dl2,sl,Ru,Rp,lType,umb,rm};
+}
+
+// ---------- canvases ----------
+const dpr=()=>Math.min(window.devicePixelRatio||1,2.5);
+function mk(id,ratio,maxH,minH){const c=$(id);return{c,ctx:c.getContext('2d'),W:0,H:0,ratio,maxH,minH:minH||0};}
+const CV={top:mk('top',.9,640,300),sky:mk('sky',.6,420,200),phase:mk('phase',1,170),orbit:mk('orbit',.62,330,190),side:mk('side',.62,330,190),zoom:mk('zoom',.7,360,200),tide:mk('tide',.32,260,180)};
+function size(o){const w=o.c.clientWidth;if(!w)return false;const h=Math.max(o.minH,Math.min(o.maxH,Math.round(w*o.ratio)));
+  const r=dpr();if(o.W!==w||o.H!==h||o.r!==r){o.c.style.height=h+'px';o.c.width=Math.round(w*r);o.c.height=Math.round(h*r);o.W=w;o.H=h;o.r=r;}
+  o.ctx.setTransform(r,0,0,r,0,0);return true;}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const FONT=(s,w)=>`${w||500} ${s}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+
+function hexLerp(a,b,f){f=Math.max(0,Math.min(1,f));const pa=[1,3,5].map(i=>parseInt(a.substr(i,2),16)),pb=[1,3,5].map(i=>parseInt(b.substr(i,2),16));
+  return '#'+pa.map((v,i)=>Math.round(v+(pb[i]-v)*f).toString(16).padStart(2,'0')).join('');}
+
+// draw a moon phase: e = elongation (0 new, 180 full), bright limb toward screen angle a
+function drawPhase(ctx,x,y,r,e,a,opt={}){
+  ctx.save();ctx.translate(x,y);ctx.rotate(a);
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle=opt.dark||'#2b303b';ctx.fill();
+  const k=Math.cos(rad(e)), lit=opt.lit||'#f4efd9';
+  const rx=Math.max(Math.abs(k)*r,.01);
+  ctx.beginPath();ctx.arc(0,0,r,-Math.PI/2,Math.PI/2);
+  if(k>0) ctx.ellipse(0,0,rx,r,0,Math.PI/2,-Math.PI/2,true); else ctx.ellipse(0,0,rx,r,0,Math.PI/2,Math.PI*1.5,false);
+  ctx.closePath();ctx.fillStyle=lit;ctx.fill();
+  if(opt.stroke){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle=opt.stroke;ctx.lineWidth=1;ctx.stroke();}
+  ctx.restore();
+}
+// moon disk shaded by earth's shadow, per pixel. sc = px per degree; (sx,sy) = shadow centre on screen
+function drawEclMoon(ctx,mx,my,rpx,sc,sx,sy,E){
+  const r=dpr(), N=Math.ceil(2*rpx*r)+2, off=document.createElement('canvas');off.width=off.height=N;
+  const oc=off.getContext('2d'), img=oc.createImageData(N,N), d=img.data, half=N/2;
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+    const dx=(i+.5-half)/r, dy=(j+.5-half)/r, rr=Math.hypot(dx,dy); if(rr>rpx+.6) continue;
+    const X=(mx+dx-sx)/sc, Y=(my+dy-sy)/sc, dd=Math.hypot(X,Y);
+    let col;
+    const limb=0.82+0.18*Math.sqrt(Math.max(0,1-(rr/rpx)**2));
+    if(dd<E.Ru){const f=0.45+0.55*dd/E.Ru;col=[160*f,62*f,30*f];}
+    else if(dd<E.Rp){const f=0.42+0.58*(dd-E.Ru)/(E.Rp-E.Ru);col=[244*f,238*f,214*f];}
+    else col=[244,238,214];
+    const p=(j*N+i)*4, aa=Math.max(0,Math.min(1,rpx+.6-rr));
+    d[p]=col[0]*limb;d[p+1]=col[1]*limb;d[p+2]=col[2]*limb;d[p+3]=255*aa;
+  }
+  oc.putImageData(img,0,0);ctx.drawImage(off,mx-N/(2*r),my-N/(2*r),N/r,N/r);
+}
+function arrow(ctx,x1,y1,x2,y2,col,w){const a=Math.atan2(y2-y1,x2-x1);ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w||2;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-Math.cos(a)*6,y2-Math.sin(a)*6);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-Math.cos(a-.45)*10,y2-Math.sin(a-.45)*10);ctx.lineTo(x2-Math.cos(a+.45)*10,y2-Math.sin(a+.45)*10);ctx.closePath();ctx.fill();}
+const STARS=Array.from({length:90},(_,i)=>{const s=Math.sin(i*12.9898)*43758.5453;const u=s-Math.floor(s);const s2=Math.sin(i*78.233)*12345.678;const v=s2-Math.floor(s2);return[u,v,(i%7===0)?1.4:0.8];});
+function stars(ctx,W,H,alpha,maxY){ctx.fillStyle=`rgba(255,255,255,${alpha})`;for(const[u,v,s]of STARS){const y=v*(maxY||H);ctx.fillRect(u*W,y,s,s);}}
+
+// ---------- top view ----------
+let G={};
+function drawTop(){
+  const o=CV.top;if(!size(o))return;const{ctx,W,H}=o,t=S.t,e=elong(t),th=theta(t);
+  ctx.fillStyle='#14224a';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.35);
+  const cx=W*.45,cy=H*.5,Ro=Math.min(W*.355,H*.36),Re=Ro*.3,Rm=Math.max(9,Ro*.085);
+  G={cx,cy,Ro,Re,Rm};
+  const P2=(a,r)=>[cx+r*Math.cos(rad(a)),cy-r*Math.sin(rad(a))];
+  // sunlight
+  for(let i=0;i<5;i++){const y=H*(.14+.18*i);arrow(ctx,W-8,y,W-46,y,'#ffb43c',3);}
+  ctx.fillStyle='#ffd27a';ctx.font=FONT(12);ctx.textAlign='right';ctx.fillText('太陽光',W-8,H-10);
+  // shadows
+  if(S.shadow){
+    const gE=ctx.createLinearGradient(cx,0,0,0);gE.addColorStop(0,'rgba(0,0,0,.55)');gE.addColorStop(1,'rgba(0,0,0,.15)');
+    ctx.fillStyle=gE;ctx.fillRect(0,cy-Re,cx,2*Re);
+    const[mx,my]=P2(e,Ro);const gM=ctx.createLinearGradient(mx,0,mx-Ro*1.15,0);gM.addColorStop(0,'rgba(0,0,0,.6)');gM.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gM;ctx.fillRect(mx-Ro*1.15,my-Rm,Ro*1.15,2*Rm);
+    ctx.fillStyle='rgba(255,255,255,.55)';ctx.font=FONT(11);ctx.textAlign='left';ctx.fillText('地球的影子',6,cy-Re-5);
+  }
+  // visible half of sky
+  const n=[Math.cos(rad(th)),-Math.sin(rad(th))], tE=[-Math.sin(rad(th)),-Math.cos(rad(th))];
+  const ox=cx+Re*n[0],oy=cy+Re*n[1],L=W*3;
+  ctx.fillStyle='rgba(255,236,170,.075)';ctx.beginPath();
+  ctx.moveTo(ox+tE[0]*L,oy+tE[1]*L);ctx.lineTo(ox+tE[0]*L+n[0]*L,oy+tE[1]*L+n[1]*L);ctx.lineTo(ox-tE[0]*L+n[0]*L,oy-tE[1]*L+n[1]*L);ctx.lineTo(ox-tE[0]*L,oy-tE[1]*L);ctx.closePath();ctx.fill();
+  // tide bulge
+  if(S.tide){ctx.beginPath();for(let a=0;a<=360;a+=3){const r=Re*(1.2+.17*(Math.cos(2*rad(a-e))+.46*Math.cos(2*rad(a)))/1.46);const[x,y]=P2(a,r);a?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+    ctx.closePath();ctx.fillStyle='rgba(90,170,255,.45)';ctx.fill();ctx.strokeStyle='rgba(150,205,255,.8)';ctx.lineWidth=1;ctx.stroke();}
+  // orbit
+  ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(cx,cy,Ro,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  {const a1=rad(e+22),a2=rad(e+34);ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,Ro+Rm+6,-a1,-a2,true);ctx.stroke();
+    const[x,y]=P2(e+34,Ro+Rm+6);const ta=-rad(e+34)-Math.PI/2;ctx.fillStyle='rgba(255,255,255,.8)';ctx.beginPath();ctx.moveTo(x+Math.cos(ta)*7,y+Math.sin(ta)*7);ctx.lineTo(x+Math.cos(ta+2.4)*7,y+Math.sin(ta+2.4)*7);ctx.lineTo(x+Math.cos(ta-2.4)*7,y+Math.sin(ta-2.4)*7);ctx.fill();}
+  // ghost moons
+  if(S.ghost){
+    const lab={0:['甲','朔（初一）'],90:['乙','上弦（初八）'],180:['丙','望（十五）'],270:['丁','下弦（二十三）']};
+    for(let a=0;a<360;a+=45){const[x,y]=P2(a,Ro);ctx.globalAlpha=.45;drawPhase(ctx,x,y,Rm*.78,90,0,{dark:'#3a4152'});ctx.globalAlpha=1;
+      if(lab[a]){let[lx,ly]=P2(a,Ro+Rm+20);if(a%180===0){[lx,ly]=P2(a,Ro);ly-=Rm+22;}ctx.textAlign='center';ctx.font=FONT(12,700);ctx.fillStyle='#ffd27a';ctx.fillText(lab[a][0],lx,ly-2);
+        ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText(lab[a][1],lx,ly+12);}}
+  }
+  // earth
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,Re,0,Math.PI*2);ctx.clip();
+  ctx.fillStyle='#2f72c9';ctx.fillRect(cx-Re,cy-Re,2*Re,2*Re);
+  ctx.fillStyle='#5aa35a';for(const[a0,r0,s0]of[[20,.55,.32],[140,.5,.28],[250,.6,.25],[320,.35,.18]]){const[x,y]=P2(th+a0,Re*r0);ctx.beginPath();ctx.ellipse(x,y,Re*s0,Re*s0*.7,-rad(th+a0),0,Math.PI*2);ctx.fill();}
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;for(let k=0;k<12;k++){const[x,y]=P2(th+k*30,Re);ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke();}
+  ctx.fillStyle='rgba(4,8,22,.62)';ctx.fillRect(cx-Re,cy-Re,Re,2*Re);
+  ctx.restore();
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.arc(cx,cy,Re,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#ff6b8a';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(cx,cy,Re*.42,rad(200),rad(330));ctx.stroke();
+  {const a=rad(200);const x=cx+Re*.42*Math.cos(a),y=cy+Re*.42*Math.sin(a);ctx.fillStyle='#ff6b8a';ctx.beginPath();ctx.moveTo(x-4,y-6);ctx.lineTo(x+5,y-3);ctx.lineTo(x-2,y+5);ctx.fill();}
+  ctx.fillStyle='#ff6b8a';ctx.beginPath();ctx.arc(cx,cy,3,0,Math.PI*2);ctx.fill();
+  ctx.font=FONT(11,700);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('北極',cx,cy+15);
+  // time labels
+  ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,255,255,.62)';
+  [[0,'12:00'],[90,'18:00'],[180,'24:00'],[270,'06:00']].forEach(([a,s])=>{if(Math.abs(w180(a-th))<28||(S.B&&Math.abs(w180(a-th-S.lonB))<28))return;const[x,y]=P2(a,Re+(a%180===0?22:12));ctx.fillText(s,x,y+4);});
+  // horizon + observer
+  const hl=Ro*1.05;ctx.setLineDash([6,4]);ctx.strokeStyle='rgba(255,220,120,.85)';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(ox-tE[0]*hl,oy-tE[1]*hl);ctx.lineTo(ox+tE[0]*hl,oy+tE[1]*hl);ctx.stroke();ctx.setLineDash([]);
+  ctx.font=FONT(12,700);ctx.fillStyle='#ffd27a';ctx.fillText('東',ox+tE[0]*(hl+10),oy+tE[1]*(hl+10)+4);ctx.fillText('西',ox-tE[0]*(hl+10),oy-tE[1]*(hl+10)+4);
+  person(ctx,ox,oy,n,'#ffd166');
+  ctx.fillStyle='#ffd166';ctx.font=FONT(11.5,700);ctx.fillText(hhmm(clock(t)),ox+n[0]*32,oy+n[1]*32+4);
+  if(S.B){const tb=th+S.lonB,nb=[Math.cos(rad(tb)),-Math.sin(rad(tb))];const bx=cx+Re*nb[0],by=cy+Re*nb[1];person(ctx,bx,by,nb,'#7ee0b8');
+    ctx.fillStyle='#7ee0b8';ctx.font=FONT(11.5,700);ctx.fillText('B '+hhmm(clock(t)+S.lonB/15),bx+nb[0]*32,by+nb[1]*32+4);}
+  // moon
+  const[mx,my]=P2(e,Ro);G.mx=mx;G.my=my;
+  drawPhase(ctx,mx,my,Rm,90,0,{dark:'#3c4250',stroke:'rgba(255,255,255,.6)'});
+  if(S.face){const[qx,qy]=[mx+Rm*.62*Math.cos(rad(e+180)),my-Rm*.62*Math.sin(rad(e+180))];ctx.fillStyle='#ff4d4d';ctx.beginPath();ctx.arc(qx,qy,Math.max(2.5,Rm*.2),0,Math.PI*2);ctx.fill();
+    ctx.font=FONT(11,700);ctx.fillStyle='#ff8080';const[lx,ly]=[mx+(Rm+10)*Math.cos(rad(e+130)),my-(Rm+10)*Math.sin(rad(e+130))];ctx.fillText('Q',lx,ly+4);}
+  ctx.font=FONT(12,700);ctx.fillStyle='#fff';ctx.textAlign='center';
+  const[lx,ly]=P2(e,Ro-Rm-14);ctx.fillText('月球',lx,ly+4);
+}
+function person(ctx,x,y,n,col){ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+n[0]*12,y+n[1]*12);ctx.stroke();ctx.beginPath();ctx.arc(x+n[0]*16,y+n[1]*16,4,0,Math.PI*2);ctx.fill();}
+
+// ---------- sky view ----------
+function skyCols(alt){
+  const K=[[-18,'#050a1a','#0d1834'],[-6,'#14204a','#563f6c'],[0,'#34508e','#ee9c6c'],[10,'#3d7fd6','#a9d3f5']];
+  if(alt<=K[0][0])return[K[0][1],K[0][2]]; if(alt>=K[3][0])return[K[3][1],K[3][2]];
+  for(let i=0;i<3;i++)if(alt<=K[i+1][0]){const f=(alt-K[i][0])/(K[i+1][0]-K[i][0]);return[hexLerp(K[i][1],K[i+1][1],f),hexLerp(K[i][2],K[i+1][2],f)];}
+}
+function drawSky(E){
+  const o=CV.sky;if(!size(o))return;const{ctx,W,H}=o,t=S.t,e=elong(t),hs=Hs(t),hm=Hm(t);
+  const altS=90-Math.abs(hs);let[c1,c2]=skyCols(altS);
+  const sunUp=altS>-0.3, dim=(sunUp&&E.obsc>0)?Math.pow(E.obsc,5):0;
+  if(dim){c1=hexLerp(c1,'#08102a',dim);c2=hexLerp(c2,'#1a2240',dim);}
+  const hy=H*.8,cx=W/2,Rx=W*.43,Ry=H*.66;
+  const g=ctx.createLinearGradient(0,0,0,hy);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const night=Math.max(0,Math.min(1,(-altS-2)/12))+dim*.7; if(night>0)stars(ctx,W,H,.7*Math.min(1,night),hy);
+  const pos=h=>[cx+Rx*Math.sin(rad(h)),hy-Ry*Math.cos(rad(h))];
+  ctx.setLineDash([3,6]);ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.beginPath();for(let h=-90;h<=90;h+=3){const[x,y]=pos(h);h===-90?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);
+  ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.6)';ctx.textAlign='center';{const[x,y]=pos(0);ctx.textAlign='left';ctx.fillText('中天',x+rMoonL(W)+8,y+4);ctx.textAlign='center';}
+  const rSun=Math.max(13,W*.03),rMoon=Math.max(12,W*.028);
+  // sun
+  const[sx,sy]=pos(hs);
+  if(altS>-12){const gl=ctx.createRadialGradient(sx,sy,rSun*.6,sx,sy,rSun*3.2);gl.addColorStop(0,`rgba(255,220,120,${.55*(1-dim)})`);gl.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(sx,sy,rSun*3.2,0,Math.PI*2);ctx.fill();
+    if(E.sType==='total'&&sunUp){ctx.fillStyle='rgba(220,235,255,.5)';ctx.beginPath();ctx.arc(sx,sy,rSun*1.7,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='#ffd34d';ctx.beginPath();ctx.arc(sx,sy,rSun,0,Math.PI*2);ctx.fill();}
+  // moon
+  const[mx,my]=pos(hm);
+  if(E.obsc>0){ // moon in front of the sun, true angular scale relative to the sun
+    const sc=rSun/RS;ctx.fillStyle='#14161c';ctx.beginPath();ctx.arc(sx-E.dl*sc,sy-E.bApp*sc,E.rm*sc,0,Math.PI*2);ctx.fill();
+  } else if(E.lType!=='none'){
+    const sc=rMoon/E.rm;drawEclMoon(ctx,mx,my,rMoon,sc,mx+E.dl2*sc,my+E.b*sc,E);
+  } else {
+    const dir=e<180?1:-1, a=Math.atan2(dir*Ry*Math.sin(rad(hm)),dir*Rx*Math.cos(rad(hm)));
+    const dark=sunUp&&altS>4?'rgba(150,170,200,.18)':'rgba(30,34,48,.75)';
+    drawPhase(ctx,mx,my,rMoon,e,a,{dark,lit:sunUp&&altS>4?'#f3f1ea':'#f6efcf',stroke:'rgba(255,255,255,.15)'});
+  }
+  // ground
+  const gnd=ctx.createLinearGradient(0,hy,0,H);const gc=hexLerp('#3f6b3a','#0f1c12',Math.min(1,night));gnd.addColorStop(0,gc);gnd.addColorStop(1,hexLerp(gc,'#000000',.4));
+  ctx.fillStyle=gnd;ctx.fillRect(0,hy,W,H-hy);
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.moveTo(0,hy);ctx.lineTo(W,hy);ctx.stroke();
+  ctx.font=FONT(15,700);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText('東',10,hy+22);ctx.textAlign='right';ctx.fillText('西',W-10,hy+22);ctx.textAlign='center';ctx.fillText('南',cx,hy+22);
+  // observer from behind
+  ctx.fillStyle='#ffd166';const py=H-6;ctx.beginPath();ctx.arc(cx,py-30,7,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(cx-10,py);ctx.lineTo(cx-8,py-20);ctx.quadraticCurveTo(cx,py-25,cx+8,py-20);ctx.lineTo(cx+10,py);ctx.closePath();ctx.fill();
+  ctx.font=FONT(12,600);ctx.textAlign='left';ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillText(hhmm(clock(t)),10,20);
+  if(altS<-0.3&&Math.abs(hm)>90){ctx.fillStyle='rgba(255,255,255,.6)';ctx.font=FONT(12);ctx.fillText('月亮和太陽都在地平線下',10,38);}
+}
+function drawPhaseCard(){
+  const o=CV.phase;if(!size(o))return;const{ctx,W,H}=o,e=elong(S.t);
+  ctx.fillStyle='#0f1834';ctx.fillRect(0,0,W,H);const r=Math.min(W,H)*.34;
+  drawPhase(ctx,W/2,H/2-4,r,e,e<180?0:Math.PI,{dark:'#262c3a'});
+  ctx.font=FONT(12,700);ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign='left';ctx.fillText('東',8,H-8);ctx.textAlign='right';ctx.fillText('西',W-8,H-8);
+  ctx.textAlign='center';ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillText('地球上看到',W/2,14);
+}
+
+// ---------- eclipse panels ----------
+function drawOrbit(){
+  const o=CV.orbit;if(!size(o))return;const{ctx,W,H}=o,t=S.t,e=elong(t);
+  ctx.fillStyle='#101b3a';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.25);
+  const cx=W/2,cy=H/2+4,ax=W*.38,ay=H*.3,ro=Math.min(W*.075,H*.12),iv=rad(S.exag?15.4:INC);
+  const L=mod(250+0.9856*(t/24),360), Om=mod(nodeRel(t)+L+180,360);
+  ctx.beginPath();ctx.ellipse(cx,cy,ax*1.16,ay*1.25,0,0,Math.PI*2);ctx.fillStyle='rgba(255,180,80,.07)';ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx,cy,ax,ay,0,0,Math.PI*2);ctx.strokeStyle='rgba(255,170,70,.6)';ctx.lineWidth=1.3;ctx.stroke();
+  ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,190,110,.75)';ctx.textAlign='left';ctx.fillText('黃道面（地球公轉軌道面）',8,16);
+  const gl=ctx.createRadialGradient(cx,cy,4,cx,cy,30);gl.addColorStop(0,'#fff3b0');gl.addColorStop(.4,'#ffc23d');gl.addColorStop(1,'rgba(255,170,40,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);ctx.fill();
+  const ep=a=>[cx+ax*Math.cos(rad(a)),cy-ay*Math.sin(rad(a))];
+  function sys(Lk,cur,alpha){
+    const[ex,ey]=ep(Lk);ctx.globalAlpha=alpha;
+    const pts=[];for(let a=0;a<=360;a+=6){const z=ro*Math.sin(iv)*Math.sin(rad(a-Om));pts.push([ex+ro*Math.cos(rad(a)),ey-ro*Math.sin(rad(a))*.36-z*1.6,z]);}
+    for(let i=1;i<pts.length;i++){ctx.beginPath();ctx.moveTo(pts[i-1][0],pts[i-1][1]);ctx.lineTo(pts[i][0],pts[i][1]);const up=pts[i][2]>=0;ctx.setLineDash(up?[]:[2,3]);ctx.strokeStyle=up?'rgba(255,255,255,.9)':'rgba(255,255,255,.45)';ctx.lineWidth=1.2;ctx.stroke();}
+    ctx.setLineDash([]);
+    const nx=Math.cos(rad(Om))*ro*1.35,ny=-Math.sin(rad(Om))*ro*1.35*.36;ctx.strokeStyle='#ffcf5a';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(ex-nx,ey-ny);ctx.lineTo(ex+nx,ey+ny);ctx.stroke();
+    ctx.fillStyle='#3b82e0';ctx.beginPath();ctx.arc(ex,ey,cur?6:4.5,0,Math.PI*2);ctx.fill();
+    if(cur){const a=e+L+180,z=ro*Math.sin(iv)*Math.sin(rad(a-Om));const mx=ex+ro*Math.cos(rad(a)),my=ey-ro*Math.sin(rad(a))*.36-z*1.6;ctx.fillStyle='#f4efd9';ctx.beginPath();ctx.arc(mx,my,3.6,0,Math.PI*2);ctx.fill();}
+    ctx.globalAlpha=1;return[ex,ey];
+  }
+  for(let k=0;k<4;k++){const Lk=Om+k*90;const[ex,ey]=sys(Lk,false,.35);ctx.font=FONT(10.5,k%2?400:700);ctx.textAlign='center';ctx.fillStyle=k%2?'rgba(255,255,255,.45)':'#ffcf5a';
+    ctx.fillText(k%2?'不會發生':'可能發生日月食',ex,ey+(Math.sin(rad(Lk))>0?-ro*.75:ro*.75+10));}
+  const[ex,ey]=sys(L,true,1);ctx.font=FONT(11,700);ctx.fillStyle='#9cc4ff';ctx.textAlign='center';ctx.fillText('現在的地球',ex,ey+ (Math.sin(rad(L))>0? ro*.7+12 : -ro*.7-4));
+  ctx.textAlign='right';ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,207,90,.85)';ctx.fillText('黃線：交點線　白線：月球軌道（實線在黃道面上方）',W-8,H-8);
+}
+function drawSide(E){
+  const o=CV.side;if(!size(o))return;const{ctx,W,H}=o,t=S.t,e=elong(t),Om=nodeRel(t);
+  ctx.fillStyle='#101b3a';ctx.fillRect(0,0,W,H);
+  const x0=W*.36,y0=H*.5,Re=Math.min(H*.09,W*.05),Ro=W*.27,Rm=Re*.35,iv=rad(S.exag?15.4:INC);
+  // sun
+  const gs=ctx.createRadialGradient(W+H*.25,y0,H*.1,W+H*.25,y0,H*.6);gs.addColorStop(0,'#fff1a8');gs.addColorStop(.5,'#ffbf3a');gs.addColorStop(1,'rgba(255,170,40,0)');ctx.fillStyle=gs;ctx.fillRect(W*.7,0,W*.3,H);
+  ctx.fillStyle='#ffc93d';ctx.beginPath();ctx.arc(W+H*.25,y0,H*.36,0,Math.PI*2);ctx.fill();
+  ctx.font=FONT(12,700);ctx.fillStyle='#5a3a00';ctx.textAlign='center';ctx.fillText('太陽',W-H*.06,y0+4);
+  // ecliptic line
+  ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,170,70,.55)';ctx.beginPath();ctx.moveTo(0,y0);ctx.lineTo(W*.8,y0);ctx.stroke();ctx.setLineDash([]);
+  ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,190,110,.8)';ctx.textAlign='left';ctx.fillText('黃道面',6,y0-6);
+  // earth shadow
+  const apE=x0-Re*7;ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.moveTo(x0,y0-Re);ctx.lineTo(0,y0-Re-x0*.32);ctx.lineTo(0,y0+Re+x0*.32);ctx.lineTo(x0,y0+Re);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.55)';ctx.beginPath();ctx.moveTo(x0,y0-Re);ctx.lineTo(Math.max(apE,2),y0);ctx.lineTo(x0,y0+Re);ctx.closePath();ctx.fill();
+  ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillText('本影',x0-Re*3.4,y0+4);ctx.fillText('半影',8,y0-Re-x0*.25+12);
+  // orbit
+  const mp=a=>[x0+Ro*Math.cos(rad(a)),y0-Ro*Math.sin(iv)*Math.sin(rad(a-Om))];
+  for(let a=0;a<360;a+=4){const[x1,y1]=mp(a),[x2,y2]=mp(a+4);const far=Math.sin(rad(a+2))>0;ctx.setLineDash(far?[2,3]:[]);ctx.strokeStyle=far?'rgba(255,255,255,.35)':'rgba(255,255,255,.8)';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+  ctx.setLineDash([]);
+  [Om,Om+180].forEach(a=>{const[x,y]=mp(a);ctx.strokeStyle='#ffcf5a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-4,y-4);ctx.lineTo(x+4,y+4);ctx.moveTo(x+4,y-4);ctx.lineTo(x-4,y+4);ctx.stroke();});
+  ctx.lineWidth=1;
+  // earth
+  ctx.fillStyle='#2f72c9';ctx.beginPath();ctx.arc(x0,y0,Re,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(4,8,22,.6)';ctx.beginPath();ctx.arc(x0,y0,Re,Math.PI/2,Math.PI*1.5);ctx.fill();
+  ctx.font=FONT(11,700);ctx.fillStyle='#9cc4ff';ctx.textAlign='center';ctx.fillText('地球',x0,y0+Re+14);
+  // moon + its shadow
+  const[mx,my]=mp(e);
+  if(Math.cos(rad(e))>.25){const ap=mx-Ro*E.D.apex*Math.cos(rad(e));
+    ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.moveTo(mx,my-Rm);ctx.lineTo(x0-Re*.2,my-Rm-Re*1.1);ctx.lineTo(x0-Re*.2,my+Rm+Re*1.1);ctx.lineTo(mx,my+Rm);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.7)';ctx.beginPath();ctx.moveTo(mx,my-Rm);ctx.lineTo(ap,my);ctx.lineTo(mx,my+Rm);ctx.closePath();ctx.fill();}
+  ctx.fillStyle='#3c4250';ctx.beginPath();ctx.arc(mx,my,Rm,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f4efd9';ctx.beginPath();ctx.arc(mx,my,Rm,-Math.PI/2,Math.PI/2);ctx.fill();
+  ctx.font=FONT(11,700);ctx.fillStyle='#fff';ctx.fillText('月球',mx,my-Rm-6);
+  ctx.textAlign='left';ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,207,90,.85)';ctx.fillText('× 交點（月球穿過黃道面的位置）',6,H-8);
+}
+function drawZoom(E){
+  const o=CV.zoom;if(!size(o))return;const{ctx,W,H}=o,t=S.t;
+  const solar=Math.abs(E.dl)<90, cx=W/2, cy=H/2, sc=Math.min(W,H)/4.6;
+  $('zoomTitle').innerHTML=solar?'觀察者用（加了濾鏡的）望遠鏡看太陽 <small style="font-weight:400;color:var(--muted)">左東右西</small>':'觀察者看月亮與地球的影子 <small style="font-weight:400;color:var(--muted)">左東右西</small>';
+  const sunUp=Math.abs(Hs(t))<90, moonUp=Math.abs(Hm(t))<90;
+  if(solar){
+    const dim=Math.pow(E.obsc,5);ctx.fillStyle=sunUp?hexLerp('#4d86cf','#060a18',dim):'#0b1022';ctx.fillRect(0,0,W,H);
+    if(E.sType==='total'){const g=ctx.createRadialGradient(cx,cy,RS*sc,cx,cy,RS*sc*2.6);g.addColorStop(0,'rgba(225,240,255,.85)');g.addColorStop(1,'rgba(225,240,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,RS*sc*2.6,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='#ffcf3f';ctx.beginPath();ctx.arc(cx,cy,RS*sc,0,Math.PI*2);ctx.fill();
+    path(ctx,t,cx,cy,sc,s=>{const q=eclipse(s);return[q.dl,q.bApp];});
+    ctx.fillStyle='#15171d';ctx.beginPath();ctx.arc(cx-E.dl*sc,cy-E.bApp*sc,E.rm*sc,0,Math.PI*2);ctx.fill();
+    if(!sunUp){ctx.fillStyle='rgba(255,255,255,.85)';ctx.font=FONT(12.5,600);ctx.textAlign='center';ctx.fillText('此時太陽在地平線下，這位觀察者看不到',cx,H-14);}
+  } else {
+    ctx.fillStyle='#070c1c';ctx.fillRect(0,0,W,H);stars(ctx,W,H,.4);
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.arc(cx,cy,E.Rp*sc,0,Math.PI*2);ctx.fill();
+    ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(cx,cy,E.Rp*sc,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='rgba(255,140,100,.55)';ctx.beginPath();ctx.arc(cx,cy,E.Ru*sc,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    ctx.font=FONT(11);ctx.fillStyle='rgba(255,160,120,.8)';ctx.textAlign='center';ctx.fillText('本影',cx,cy-E.Ru*sc+14);ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText('半影',cx,cy-E.Rp*sc+14);
+    path(ctx,t,cx,cy,sc,s=>{const q=eclipse(s);return[q.dl2,q.b];});
+    drawEclMoon(ctx,cx-E.dl2*sc,cy-E.b*sc,E.rm*sc,sc,cx,cy,E);
+    if(!moonUp){ctx.fillStyle='rgba(255,255,255,.85)';ctx.font=FONT(12.5,600);ctx.textAlign='center';ctx.fillText('此時月亮在地平線下，這位觀察者看不到',cx,H-14);}
+  }
+  ctx.font=FONT(13,700);ctx.fillStyle='rgba(255,255,255,.85)';ctx.textAlign='left';ctx.fillText('東',8,cy+5);ctx.textAlign='right';ctx.fillText('西',W-8,cy+5);
+}
+function path(ctx,t,cx,cy,sc,f){
+  ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=1;ctx.beginPath();
+  for(let s=-3;s<=3.001;s+=.1){const[a,b]=f(t+s);const x=cx-a*sc,y=cy-b*sc;s<=-3?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);
+  ctx.font=FONT(10);ctx.fillStyle='rgba(255,255,255,.7)';ctx.textAlign='center';
+  const base=Math.ceil((t-3)*2)/2;for(let s=base;s<=t+3;s+=.5){const[a,b]=f(s);const x=cx-a*sc,y=cy-b*sc;if(x<20||x>W2(ctx)-20)continue;ctx.fillRect(x-1,y-1,2,2);
+    if(Math.abs(mod(s,1))<1e-6)ctx.fillText(hhmm(clock(s)),x,y-7);}
+}
+const rMoonL=W=>Math.max(12,W*.028);
+const W2=ctx=>ctx.canvas.width/dpr();
+
+// ---------- tides ----------
+function drawTide(){
+  const o=CV.tide;if(!size(o))return;const{ctx,W,H}=o,t=S.t,t0=dayStart(t);
+  const ink=css('--ink'),muted=css('--muted'),line=css('--line'),blue=css('--blue'),acc=css('--accent');
+  ctx.clearRect(0,0,W,H);
+  const L=38,R=10,T=14,B=26,pw=W-L-R,ph=H-T-B, X=h=>L+pw*h/48, Y=v=>T+ph*(1-(v+1.6)/3.2);
+  ctx.strokeStyle=line;ctx.lineWidth=1;ctx.font=FONT(11);ctx.fillStyle=muted;ctx.textAlign='center';
+  for(let h=0;h<=48;h+=3){ctx.beginPath();ctx.moveTo(X(h),T);ctx.lineTo(X(h),T+ph);ctx.globalAlpha=h%24===0?1:.45;ctx.stroke();ctx.globalAlpha=1;ctx.fillText(String(h%24).padStart(2,'0'),X(h),H-8);}
+  ctx.textAlign='right';for(const v of[-1.5,-1,-.5,0,.5,1,1.5]){ctx.beginPath();ctx.moveTo(L,Y(v));ctx.lineTo(L+pw,Y(v));ctx.globalAlpha=v===0?.9:.35;ctx.stroke();ctx.globalAlpha=1;if(v%1===0)ctx.fillText(v+' m',L-4,Y(v)+4);}
+  ctx.textAlign='left';ctx.fillText('今天',X(0)+4,T+12);ctx.fillText('明天',X(24)+4,T+12);
+  const vals=[];for(let i=0;i<=48*30;i++){vals.push(tideH(t0+i/30));}
+  ctx.strokeStyle=blue;ctx.lineWidth=2.2;ctx.beginPath();vals.forEach((v,i)=>{const x=X(i/30),y=Y(v);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  const highs=[],lows=[];for(let i=1;i<vals.length-1;i++){if(vals[i]>vals[i-1]&&vals[i]>=vals[i+1])highs.push(i);if(vals[i]<vals[i-1]&&vals[i]<=vals[i+1])lows.push(i);}
+  ctx.font=FONT(10.5,600);ctx.textAlign='center';
+  highs.forEach(i=>{ctx.fillStyle=ink;ctx.fillText(hhmm(i/30),X(i/30),Y(vals[i])-7);});
+  lows.forEach(i=>{ctx.fillStyle=muted;ctx.fillText(hhmm(i/30),X(i/30),Y(vals[i])+15);});
+  const now=clock(t);ctx.strokeStyle=acc;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X(now),T);ctx.lineTo(X(now),T+ph);ctx.stroke();
+  ctx.fillStyle=acc;ctx.beginPath();ctx.arc(X(now),Y(tideH(t)),4.5,0,Math.PI*2);ctx.fill();
+  // summary
+  const today=vals.slice(0,24*30+1),hi=Math.max(...today),lo=Math.min(...today),e=elong(t);
+  const A=Math.sqrt(1+.46*.46+2*.46*Math.cos(2*rad(e)));const kind=A>1.3?'大潮':A<.75?'小潮':'中潮';
+  const rising=tideH(t+.05)>tideH(t);
+  const hs=highs.filter(i=>i<=24*30).map(i=>hhmm(i/30)).join('、'),ls=lows.filter(i=>i<=24*30).map(i=>hhmm(i/30)).join('、');
+  $('tideResult').innerHTML=`<div><span class="tag">${kind}</span>今天潮差約 <b>${(hi-lo).toFixed(1)} 公尺</b>（${phaseName(e)}，日、地、月${kind==='大潮'?'約排成一直線，引力合力較大':kind==='小潮'?'約排成直角，引力合力較小':'介於直線與直角之間'}）</div>
+   <div>今天滿潮：<span class="mono">${hs||'—'}</span>　乾潮：<span class="mono">${ls||'—'}</span></div>
+   <div>現在 <span class="mono">${hhmm(now)}</span>：${rising?'漲潮中（海水面逐漸上升）':'退潮中（海水面逐漸下降）'}</div>`;
+}
+
+// ---------- readouts ----------
+function readouts(E){
+  const t=S.t,e=elong(t),ld=lunar(t);
+  $('rDate').textContent='農曆'+lunarName(ld.d);$('rClock').textContent=hhmm(clock(t));
+  $('rPhase').textContent=phaseName(e);
+  const lit=Math.round((1-Math.cos(rad(e)))/2*100);
+  $('rLit').textContent=(lit<1?'看不到亮面':lit>99?'整面都亮':(e<180?'亮面在西側（右）':'亮面在東側（左）'))+`・亮面 ${lit}%`;
+  let w=describe(Hm(t)); if(E.lType!=='none'&&Math.abs(Hm(t))<90) w+={total:'・月全食（古銅色）',partial:'・月偏食',penumbral:'・半影月食（略暗）'}[E.lType];
+  $('rWhere').textContent=w;
+  const ds=dayStart(t),ev=events(ds,30,Hm), f=a=>{const x=a.filter(v=>v<ds+24);return x.length?x.map(hhmm).join('、'):(a.length?'次日 '+hhmm(a[0]):'—');};
+  $('rRise').textContent=`東升 ${f(ev.rise)}　中天 ${f(ev.transit)}　西落 ${f(ev.set)}`;
+  let s=describe(Hs(t)).replace('還沒從東方升起','夜晚').replace('已從西方落下','夜晚');
+  if(E.sType!=='none'&&Math.abs(Hs(t))<90) s+={total:'・日全食！',annular:'・日環食！',partial:`・日偏食（遮住 ${Math.round(E.obsc*100)}%）`}[E.sType];
+  $('rSun').textContent=s+'（東升 06:00、西落 18:00）';
+  $('rBrow').hidden=!S.B;
+  if(S.B){const hb=w180(Hm(t)+S.lonB);$('rB').textContent=`當地 ${hhmm(clock(t)+S.lonB/15)}，月亮${describe(hb)}，看到的月相一樣是${phaseName(e)}`;}
+  // sliders
+  if(document.activeElement!==$('dateR')){$('dateR').value=ld.d;}
+  $('dateO').textContent=lunarName(ld.d);
+  if(document.activeElement!==$('timeR')){$('timeR').value=Math.round(clock(t)*12)*5%1440;}
+  $('timeO').textContent=hhmm(clock(t));
+  if(document.activeElement!==$('nodeR')){const om=w180(nodeRel(t)), v=mod(om+90,180)-90; $('nodeR').value=Math.round(v);}
+  {const om=w180(nodeRel(t)), v=Math.abs(mod(om+90,180)-90);$('nodeO').textContent=Math.round(v)+'°';}
+  $('offO').textContent=Math.abs(S.off)<.03?'本影中心':(S.off>0?'偏北 ':'偏南 ')+Math.abs(S.off).toFixed(2);
+  $('lonBO').textContent=(S.lonB>0?'+':'')+S.lonB+'°';
+  if(S.tab==='ecl') eclResult(E);
+}
+function eclResult(E){
+  const t=S.t, solar=Math.abs(E.dl)<90, sunUp=Math.abs(Hs(t))<90, moonUp=Math.abs(Hm(t))<90;
+  const bTxt=`月球在黃道面${E.b>=0?'上方（北）':'下方（南）'} ${Math.abs(E.b).toFixed(2)}°`;
+  let h='';
+  if(solar){
+    const name={total:'日全食',annular:'日環食',partial:'日偏食',none:'沒有日食'}[E.sType];
+    h+=`<div><span class="tag">${name}</span>${E.sType==='none'?'':`太陽被遮住 ${Math.round(E.obsc*100)}%`}${!sunUp?'（但太陽在地平線下，看不到）':''}</div>`;
+    h+=`<div>${bTxt}；月球與太陽中心相距 ${E.ss.toFixed(2)}°（兩者半徑和 ${(RS+E.rm).toFixed(2)}°）</div>`;
+    h+=`<div>太陽視半徑 ${RS.toFixed(3)}°，月球視半徑 ${E.rm.toFixed(3)}°：${E.rm>RS?'月球看起來比太陽大，可以完全遮住（近地點）':'月球看起來比太陽小，遮不完，會留下一圈光環（遠地點）'}</div>`;
+    if(E.sType==='none'&&Math.abs(E.dl)<15) h+=`<div>現在接近朔，但月球從太陽的${E.bApp>0?'北':'南'}邊錯過去了：月球軌道和黃道面有 5° 夾角，朔時不一定發生日食。</div>`;
+    if(Math.abs(E.dl)>=15) h+='<div>現在不是朔（初一前後），月球不在太陽和地球之間，不可能發生日食。</div>';
+  } else {
+    const name={total:'月全食',partial:'月偏食',penumbral:'半影月食',none:'沒有月食'}[E.lType];
+    h+=`<div><span class="tag">${name}</span>${E.lType==='total'?'月球完全進入地球本影，被大氣折射的紅光照成古銅色':E.lType==='partial'?`月球有一部分（約 ${Math.round(E.umb*100)}%）進入本影`:E.lType==='penumbral'?'月球只進入半影，只是稍微變暗，不容易察覺':''}${E.lType!=='none'&&!moonUp?'（但月亮在地平線下，這位觀察者看不到）':''}</div>`;
+    h+=`<div>${bTxt}；月球與地影中心相距 ${E.sl.toFixed(2)}°（本影半徑 ${E.Ru.toFixed(2)}°）</div>`;
+    if(E.lType==='none'&&Math.abs(E.dl2)<15) h+=`<div>現在接近望，但月球從地影的${E.b>0?'北':'南'}邊經過，所以望時不一定發生月食。</div>`;
+    if(Math.abs(E.dl2)>=15) h+='<div>現在不是望（十五前後），地球不在太陽和月球之間，不可能發生月食。</div>';
+    if(E.lType!=='none') h+='<div>月食時，夜晚看得到月亮的地方都看得到同樣的食相。</div>';
+  }
+  $('eclResult').innerHTML=h;
+}
+
+// ---------- render ----------
+function render(){
+  const E=eclipse(S.t);
+  drawTop();drawSky(E);drawPhaseCard();readouts(E);
+  if(S.tab==='ecl'){drawOrbit();drawSide(E);drawZoom(E);}
+  if(S.tab==='tide')drawTide();
+}
+let raf=0;const req=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;render();});};
+
+// ---------- controls ----------
+const setT=t=>{S.t=t;req();};
+function setDateKeepClock(d){const k=lunar(S.t).k;S.t=monthStart(k)+(d-1)*24+clock(S.t);req();}
+$('dateR').addEventListener('input',e=>setDateKeepClock(+e.target.value));
+$('timeR').addEventListener('input',e=>{S.t=dayStart(S.t)+(+e.target.value)/60;req();});
+document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>setT(S.t+ +b.dataset.step)));
+function segSet(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));}
+document.querySelectorAll('#speedSeg button').forEach(b=>b.addEventListener('click',()=>{S.speed=+b.dataset.v;segSet('speedSeg',b.dataset.v);}));
+document.querySelectorAll('#modeSeg button').forEach(b=>b.addEventListener('click',()=>{S.daily=b.dataset.v==='daily';segSet('modeSeg',b.dataset.v);$('speedGrp').style.opacity=S.daily?.4:1;}));
+document.querySelectorAll('#distSeg button').forEach(b=>b.addEventListener('click',()=>{S.dist=b.dataset.v;segSet('distSeg',b.dataset.v);req();}));
+$('nodeR').addEventListener('input',e=>{const v=+e.target.value;S.node0=v+NODE_RATE*((S.t-S.T0)/24);req();});
+$('offR').addEventListener('input',e=>{S.off=+e.target.value;req();});
+const tog=(id,k,after)=>$(id).addEventListener('change',e=>{S[k]=e.target.checked;after&&after();req();});
+tog('tGhost','ghost');tog('tFace','face');tog('tShadow','shadow');tog('tTide','tide');tog('tExag','exag');
+tog('tB','B',()=>{$('Bwrap').hidden=!S.B;});
+$('lonB').addEventListener('input',e=>{S.lonB=+e.target.value;req();});
+function syncControls(){
+  $('tGhost').checked=S.ghost;$('tFace').checked=S.face;$('tShadow').checked=S.shadow;$('tTide').checked=S.tide;$('tB').checked=S.B;$('tExag').checked=S.exag;
+  $('Bwrap').hidden=!S.B;$('lonB').value=S.lonB;$('offR').value=S.off;segSet('distSeg',S.dist);segSet('modeSeg',S.daily?'daily':'cont');segSet('speedSeg',S.speed);
+  $('speedGrp').style.opacity=S.daily?.4:1;
+}
+// play
+let last=0,acc=0;
+function loop(ts){ if(!S.playing){last=0;return;} const dt=last?Math.min(.1,(ts-last)/1000):0;last=ts;
+  if(S.daily){acc+=dt;if(acc>=.8){acc=0;S.t+=24;}} else S.t+=dt*S.speed;
+  render();requestAnimationFrame(loop);}
+function setPlay(p){S.playing=p;$('play').textContent=p?'❚❚ 暫停':'▶ 播放';if(p){acc=0;requestAnimationFrame(loop);}}
+$('play').addEventListener('click',()=>setPlay(!S.playing));
+// tabs
+function setTab(tab){S.tab=tab;document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+  ['q','ecl','tide'].forEach(k=>$('pane-'+k).hidden=k!==tab);req();}
+document.querySelectorAll('[role=tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+// dragging on top view
+let drag=null;
+const top=$('top');
+top.addEventListener('pointerdown',ev=>{const r=top.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;
+  if(Math.hypot(x-G.mx,y-G.my)<G.Rm+14) drag='moon'; else if(Math.hypot(x-G.cx,y-G.cy)<G.Ro*.75) drag='earth'; else return;
+  top.setPointerCapture(ev.pointerId);top.style.cursor='grabbing';setPlay(false);move(ev);});
+top.addEventListener('pointermove',ev=>{if(drag)move(ev);});
+const end=()=>{drag=null;top.style.cursor='grab';};top.addEventListener('pointerup',end);top.addEventListener('pointercancel',end);
+function move(ev){const r=top.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;const a=deg(Math.atan2(G.cy-y,x-G.cx));
+  if(drag==='earth'){S.t=dayStart(S.t)+mod(12+a/15,24);req();}
+  else{const k=lunar(S.t).k,c=clock(S.t);let best=S.t,bd=1e9;for(let d=1;d<=30;d++){const tt=monthStart(k)+(d-1)*24+c;const df=Math.abs(w180(elong(tt)-a));if(df<bd){bd=df;best=tt;}}S.t=best;req();}}
+
+// ---------- presets from the handout ----------
+const Q=[
+ {g:'月相與月亮出沒時刻',items:[
+  {n:'上弦月幾點東升？',pg:'p.239 表',s:{d:8,h:12},tx:'農曆初八，月球在乙位置，日、地、月成直角。觀察者轉到 12:00 時，月亮剛從東方升起；往後拖時刻，18:00 到中天、24:00 西落。換到初一、十五、二十三，對照講義的月亮出沒時刻表。'},
+  {n:'小芬看到亮面在東的半圓月高掛',pg:'p.244 第3題',s:{d:23,h:6},tx:'亮面在東側（左邊）的半圓月是下弦月，約農曆二十三。下弦月 24:00 東升、06:00 在中天，所以清晨高掛天上；之後亮面會漸漸減少。'},
+  {n:'小夫下午6點在西方地平面看到月亮',pg:'p.245 第9題',s:{d:2,h:18},tx:'傍晚 6 點太陽剛落在西方，月亮也在西方地平面附近，表示月球和太陽方向很接近，位置靠近朔（俯視圖的甲附近）。月相是亮面朝西、很細的眉月。'},
+  {n:'力宏：同一時刻、不同日子的月相',pg:'p.248 第9–10題',s:{d:2,h:18,daily:true,play:true},tx:'固定在下午 6 點，每 0.8 秒前進一天。月亮從西方的細眉月，一天天往東移、變胖：上弦月在中天，十五的滿月從東方升起。所以題圖是傍晚、朔到望之間。'},
+  {n:'月亮每天晚約50分鐘升起',pg:'p.247 第27題',s:{d:5,h:12,daily:true,play:true},tx:'看讀數「今日月亮」的東升時刻：每過一天大約晚 50 分鐘。因為地球自轉一圈的同時，月球也往東（逆時針）公轉了約 12°，地球要多轉約 50 分鐘才能再對到月球。'},
+  {n:'孝全：農曆16日凌晨4:30的月亮',pg:'p.249 第4題',s:{d:16,h:4.5},tx:'農曆十六接近滿月，18:00 東升、24:00 中天、06:00 西落。凌晨 4:30 快要落下，所以在西方地平線附近。'},
+  {n:'小哲：滿月剛從東方升起',pg:'p.250 第5題',s:{d:15,h:18},tx:'滿月剛從東方升起時，太陽正從西方落下，當地時間約傍晚 6 點。題目中東方在小哲右手邊，他面向北方，所以飛機往北飛。'},
+  {n:'月球永遠以同一面朝向地球',pg:'p.247 素養1–4',s:{d:8,h:18,face:true,speed:24,play:true},tx:'紅點 Q 是月球上的一個定點。月球公轉一圈的同時也自轉一圈，Q 點始終朝向地球，所以我們永遠看不到月球背面。月球在 A 處時，Q 點位置可以直接在俯視圖上看到。'},
+  {n:'阿振與阿榮：經度相差90°',pg:'p.252 第13–14題',s:{d:15,h:17.7,B:true,lonB:-90},tx:'主觀察者是阿振，B 是西邊 90° 的阿榮。同一時間全世界看到的月相都一樣（滿月）。阿振看到月亮剛升起時，阿榮的當地時間早了 6 小時，月亮還在東方地平面下，要再過約 6 小時才升起。'},
+ ]},
+ {g:'日食與月食',items:[
+  {n:'朔一定會發生日食嗎？',pg:'p.245 第11題',s:{T0:9,d:1,h:9,node:60,tab:'ecl'},tx:'這是朔，但交點線沒有指向太陽，月球從太陽上方（北邊）錯過，沒有日食。調整「交點線與日地連線夾角」到接近 0°，才會發生日食。'},
+  {n:'日偏食（右側西邊先缺）',pg:'p.241 圖七',s:{T0:9,d:1,h:8.3,node:-4,tab:'ecl',speed:0.0833,play:true},tx:'月球差一點點對齊，只遮住部分太陽。以每秒 5 分鐘播放：月球從右邊（西側）切入、從左邊離開，所以日偏食是西側先缺。'},
+  {n:'日全食（月球在近地點）',pg:'p.241 表、p.245 第12題',s:{T0:9,d:1,h:9,node:0,dist:'peri',tab:'ecl',speed:0.0833},tx:'月球在近地點時看起來比太陽大，觀察者在本影區就會看到日全食：天空變暗、看到日冕。全食只維持幾分鐘，可以按「−1 時」再用「5 分/秒」播放看完整過程。把「觀察者在月影中」往外拉，進入半影區就只看到日偏食。'},
+  {n:'日環食（月球在遠地點）',pg:'p.241 表',s:{T0:9,d:1,h:9,node:0,dist:'apo',tab:'ecl'},tx:'月球在遠地點時看起來比太陽小，即使完全對齊也遮不住整個太陽，留下一圈光環，就是日環食。側視圖中月影的本影尖端沒有碰到地球。'},
+  {n:'月全食：古銅色的月亮',pg:'p.242',s:{T0:5.633,d:15,h:22,node:0,tab:'ecl',speed:0.0833,play:true},tx:'望時地球在太陽和月球之間，月球進入地球本影。看月亮的東側（左邊）先暗下去，全食時呈古銅色（被地球大氣折射的紅光照亮），之後也是左邊先恢復亮光。'},
+  {n:'月偏食',pg:'p.242 表',s:{T0:5.633,d:16,h:0,node:8,tab:'ecl'},tx:'月球只有一部分進入地球本影，看到月亮缺了一塊。這時夜晚看得到月亮的地方都看得到月偏食。'},
+ ]},
+ {g:'潮汐',items:[
+  {n:'大潮：朔、望',pg:'p.243',s:{d:1,h:12,tide:true,tab:'tide'},tx:'朔或望時日、地、月約排成一直線，月球和太陽的潮汐隆起疊在一起，潮差最大，稱為大潮。切到十五也一樣是大潮。'},
+  {n:'小潮：上弦、下弦',pg:'p.243',s:{d:8,h:12,tide:true,tab:'tide'},tx:'上弦或下弦時日、地、月約成直角，太陽的隆起抵消了一部分月球的隆起，潮差最小，稱為小潮。'},
+  {n:'一天兩次滿潮、每天晚約50分鐘',pg:'p.243、p.246',s:{d:3,h:0,tide:true,tab:'tide',speed:6,play:true},tx:'觀察者隨地球自轉，每天經過兩個海水隆起，所以一天約有兩次滿潮和兩次乾潮，兩次滿潮相隔約 12 小時 25 分鐘。對照圖上明天的滿潮時刻，大約比今天晚 50 分鐘。'},
+ ]}
+];
+function applyPreset(it){
+  const s=it.s;setPlay(false);
+  Object.assign(S,{T0:10,dist:'mean',off:0,face:false,shadow:false,tide:false,B:false,daily:false,speed:1,ghost:true});
+  if(s.T0!==undefined)S.T0=s.T0; if(s.dist)S.dist=s.dist; ['face','tide','B','daily','shadow'].forEach(k=>{if(s[k]!==undefined)S[k]=s[k];});
+  if(s.lonB!==undefined)S.lonB=s.lonB; if(s.speed)S.speed=s.speed;
+  S.t=monthStart(0)+(s.d-1)*24+s.h;
+  S.node0=(s.node!==undefined?s.node:60)+NODE_RATE*((S.t-S.T0)/24);
+  if(s.tab==='ecl'){S.shadow=true;}
+  syncControls();setTab(s.tab||S.tab);
+  $('story').hidden=false;$('storyT').textContent=it.n+'（'+it.pg+'）';$('storyP').textContent=it.tx;
+  render();if(s.play)setPlay(true);
+  $('story').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+{const pane=$('pane-q');Q.forEach(gr=>{const d=document.createElement('div');d.className='qgrp';d.innerHTML=`<h4>${gr.g}</h4>`;const c=document.createElement('div');c.className='chips';
+  gr.items.forEach(it=>{const b=document.createElement('button');b.className='chip';b.innerHTML=`${it.n}<span class="pg">${it.pg}</span>`;b.addEventListener('click',()=>applyPreset(it));c.appendChild(b);});
+  d.appendChild(c);pane.appendChild(d);});
+  const p=document.createElement('p');p.className='note';p.textContent='點一個情境，上方會出現說明，畫面跳到題目描述的日期與時刻；之後可以繼續拖曳、播放自己探索。模型簡化為春秋分、低緯度：太陽 06:00 升、18:00 落，月亮每天往東移約 12°。';pane.appendChild(p);}
+$('storyX').addEventListener('click',()=>{$('story').hidden=true;});
+
+// start: 初八 18:00
+S.t=monthStart(0)+7*24+18;
+$('lonB').value=S.lonB;syncControls();
+new ResizeObserver(req).observe(document.querySelector('.wrap'));
+window.addEventListener('resize',req);
+render();
+})();
+</script>
+</body>
+</html>
