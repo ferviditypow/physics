@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>宇宙與太陽系</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+:root{
+  --bg:#eaeef2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1; --grid:#e3e8ee;
+  --accent:#c2410c; --accent-soft:#fbe7dc; --blue:#1c68ad; --rock:#b4572a; --rock-soft:#f8e3d6; --gas:#2f6fbf; --gas-soft:#dfeafa;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --tap:40px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#222c37;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --rock:#ff9a66; --rock-soft:#3a2418; --gas:#7fb3ff; --gas-soft:#1a2740; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#222c37;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --rock:#ff9a66; --rock-soft:#3a2418; --gas:#7fb3ff; --gas-soft:#1a2740; color-scheme:dark }
+@media (min-width:1700px){html{font-size:17px}:root{--tap:48px}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px}
+.eyebrow{font-size:.8rem;letter-spacing:.12em;color:var(--muted);font-weight:500}
+.eyebrow a{color:inherit}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:2px 0 0}
+header p{margin:0;color:var(--muted);max-width:56ch;font-size:.92rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.modes{display:flex;flex-wrap:wrap;gap:6px}
+.modes button{border:1px solid var(--line);background:var(--panel);border-radius:10px;min-height:calc(var(--tap) + 6px);padding:4px 16px;cursor:pointer;font:inherit;font-weight:700;color:var(--muted);text-align:left}
+.modes button small{display:block;font-weight:400;font-size:.76rem}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:9px 12px}
+.toolbar + .toolbar{border-top:1px solid var(--line)}
+button,select,input{font:inherit;font-size:.92rem;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;min-height:var(--tap);padding:0 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:86px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-left:1px solid var(--line);background:transparent;min-height:calc(var(--tap) - 2px);padding:0 11px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.tlabel{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.grp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tog{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;min-height:34px;padding:2px 12px 2px 9px;cursor:pointer;font-size:.86rem;user-select:none}
+.tog input{accent-color:var(--accent);margin:0;width:16px;height:16px}
+.tog:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+select,input[type=number]{border:1px solid var(--line);border-radius:8px;min-height:36px;background:var(--panel);padding:0 8px}
+input[type=number]{width:9em}
+.two{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+.ptitle{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 10px;padding:9px 12px 0;font-weight:700;font-size:.95rem}
+.ptitle small{font-weight:400;color:var(--muted);font-size:.78rem}
+.cbox{padding:8px 10px 6px}
+canvas{display:block;width:100%;touch-action:none;border-radius:7px}
+.hint{font-size:.8rem;color:var(--muted);padding:0 12px 10px}
+.card{padding:12px 14px}
+.card h3{margin:0 0 2px;font-family:var(--f-display);font-weight:900;font-size:1.5rem}
+.badge{display:inline-block;font-size:.78rem;font-weight:700;padding:1px 10px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.badge.rock{background:var(--rock-soft);color:var(--rock)}.badge.gas{background:var(--gas-soft);color:var(--gas)}.badge.other{background:var(--accent-soft);color:var(--accent)}
+.kv{display:grid;grid-template-columns:7em minmax(0,1fr);gap:4px 10px;font-size:.92rem;margin-top:6px}
+.kv>span:nth-child(odd){color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.big{font-family:var(--f-mono);font-weight:600;font-size:1.3rem}
+.story{border-left:4px solid var(--accent);padding:10px 14px 12px;position:relative}
+.story h3{margin:0 30px 4px 0;font-size:1rem}
+.story p{margin:0;font-size:.95rem}
+.story .x{position:absolute;right:8px;top:6px;border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;min-width:var(--tap);min-height:var(--tap)}
+.qgrp{margin-bottom:12px}
+.qgrp h4{margin:0 0 6px;font-size:.82rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
+.qchips{display:flex;flex-wrap:wrap;gap:7px}
+.qchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:36px;padding:3px 13px;cursor:pointer;font-size:.88rem;text-align:left}
+.qchip:hover{border-color:var(--accent)}
+.qchip .pg{color:var(--muted);font-size:.76rem;margin-left:4px}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.tablewrap{overflow-x:auto;padding:0 12px 12px}
+table.pt{border-collapse:collapse;font-size:.88rem;min-width:900px;width:100%}
+table.pt th,table.pt td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
+table.pt th{font-weight:700;font-size:.8rem;color:var(--muted);white-space:nowrap}
+table.pt th button{border:0;background:transparent;cursor:pointer;color:inherit;font:inherit;font-weight:700;padding:4px 2px}
+table.pt th button[aria-pressed="true"]{color:var(--accent)}
+table.pt tr.sel td{background:var(--accent-soft)}
+table.pt tr{cursor:pointer}
+td.num{font-family:var(--f-mono);white-space:nowrap}
+.bar{display:block;height:5px;border-radius:3px;margin-top:3px;background:currentColor;opacity:.55}
+tr.rock td:first-child{border-left:4px solid var(--rock)}tr.gas td:first-child{border-left:4px solid var(--gas)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:34px;padding:2px 12px;cursor:pointer;font-size:.86rem}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.ladder{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:8px 12px 0}
+.ladder span.lv{border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:.86rem;color:var(--muted)}
+.ladder span.lv.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.ladder .gt{color:var(--muted)}
+.res{border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.93rem}
+.res .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:4px 0}
+.res .row:last-child{border-bottom:0}
+.res .row b{font-family:var(--f-mono);font-weight:600}
+.crit{display:flex;flex-direction:column;gap:6px}
+.crit label{display:flex;align-items:center;gap:10px;min-height:var(--tap);border:1px solid var(--line);border-radius:8px;padding:4px 12px;cursor:pointer}
+.crit input{width:20px;height:20px;accent-color:var(--accent)}
+.verdict{font-family:var(--f-display);font-weight:900;font-size:1.7rem;margin:6px 0 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../">自然科模擬動畫</a> · 自然（五）7-1</div>
+      <h1>宇宙與太陽系</h1>
+    </div>
+    <p>四個實驗台：太陽系行星、宇宙的尺度、光年與距離、天體分類。講義題目在最下方，點了會自動切到對應的畫面。</p>
+  </header>
+
+  <div class="modes" id="modes" role="group" aria-label="實驗台">
+    <button data-m="sol" aria-pressed="true">太陽系<small>八大行星、小天體、彗星</small></button>
+    <button data-m="scale" aria-pressed="false">宇宙的尺度<small>從地球到可觀測宇宙</small></button>
+    <button data-m="ly" aria-pressed="false">光年與距離<small>光要走多久、星座的遠近</small></button>
+    <button data-m="cls" aria-pressed="false">天體分類<small>行星、矮行星、流星與隕石</small></button>
+  </div>
+
+  <section class="panel story" id="story" hidden>
+    <button class="x" id="storyX" aria-label="關閉說明">×</button>
+    <h3 id="storyT"></h3>
+    <p id="storyP"></p>
+  </section>
+
+  <!-- ============ 太陽系 ============ -->
+  <div id="m-sol">
+    <div class="two">
+      <section class="panel">
+        <div class="toolbar">
+          <button class="btn primary" id="solPlay">▶ 播放</button>
+          <span class="seg" id="solSpeed"><button data-v="0.0833" aria-pressed="false">1 月/秒</button><button data-v="1" aria-pressed="true">1 年/秒</button><button data-v="10" aria-pressed="false">10 年/秒</button></span>
+          <span class="seg" id="solScale"><button data-v="sch" aria-pressed="true">示意距離</button><button data-v="inner" aria-pressed="false">真實比例：內行星</button><button data-v="all" aria-pressed="false">真實比例：全部</button></span>
+        </div>
+        <div class="toolbar">
+          <label class="tog"><input type="checkbox" id="tBelt" checked>小行星帶</label>
+          <label class="tog"><input type="checkbox" id="tPluto" checked>矮行星（冥王星）</label>
+          <label class="tog"><input type="checkbox" id="tComet" checked>彗星</label>
+          <label class="tog"><input type="checkbox" id="tNames" checked>名稱</label>
+          <span class="tlabel" id="solYear"></span>
+        </div>
+        <div class="cbox"><canvas id="sol" aria-label="太陽系俯視圖，點行星看資料"></canvas></div>
+        <div class="hint">從北極上空看，八大行星幾乎在同一平面上，逆時針繞太陽公轉；越遠的行星轉得越慢。點行星或太陽看資料。</div>
+      </section>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <section class="panel card" id="info"></section>
+        <section class="panel card">
+          <div style="font-weight:700">兩個天體之間的距離</div>
+          <div class="toolbar" style="padding:6px 0">
+            <select id="dA"></select><span class="tlabel">到</span><select id="dB"></select>
+          </div>
+          <div class="res" id="dRes"></div>
+        </section>
+      </div>
+    </div>
+    <section class="panel" style="margin-top:12px">
+      <div class="ptitle"><span>八大行星比較表 <small>點欄位標題排序；點一列在上圖選取</small></span>
+        <span class="grp"><span class="tlabel">用這項性質分成兩類</span><select id="splitSel"></select></span></div>
+      <div class="tablewrap"><table class="pt" id="ptab"></table></div>
+      <div class="hint" id="splitHint"></div>
+    </section>
+  </div>
+
+  <!-- ============ 宇宙的尺度 ============ -->
+  <div id="m-scale" hidden>
+    <section class="panel">
+      <div class="toolbar">
+        <button class="btn" id="scPrev">◀ 縮小一級</button>
+        <span class="seg" id="scSeg"></span>
+        <button class="btn" id="scNext">放大一級 ▶</button>
+      </div>
+      <div class="ladder" id="ladder"></div>
+      <div class="two" style="padding:8px 10px 10px">
+        <canvas id="scale" aria-label="宇宙尺度示意圖"></canvas>
+        <div class="res" id="scRes"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 光年與距離 ============ -->
+  <div id="m-ly" hidden>
+    <div class="two">
+      <section class="panel card">
+        <div style="font-weight:700">光要走多久？</div>
+        <div class="toolbar" style="padding:6px 0">
+          <select id="lyTarget"></select>
+        </div>
+        <div class="toolbar" style="padding:0 0 6px">
+          <span class="tlabel">或自己輸入</span><input type="number" id="lyNum" min="0" step="any"><select id="lyUnit"><option value="ly">光年</option><option value="au">天文單位（AU）</option><option value="km">公里</option><option value="s">光走的秒數</option></select>
+          <label class="tog"><input type="checkbox" id="lyRadar">雷達來回（總時間）</label>
+        </div>
+        <div class="res" id="lyRes"></div>
+        <p class="note">1 光年＝光在真空中走 1 年的距離 ≈ 9.46 × 10¹² 公里（約 10¹³ 公里），是<b>距離</b>單位，不是時間單位。1 天文單位（AU）＝地球到太陽的平均距離 ≈ 1.5 × 10⁸ 公里，光約走 500 秒。光速 ≈ 3 × 10⁵ 公里/秒。</p>
+      </section>
+      <section class="panel">
+        <div class="ptitle"><span>星座裡的星星離我們一樣遠嗎？ <small>拖曳畫面轉到側面看</small></span>
+          <span class="seg" id="conSeg"><button data-v="dipper" aria-pressed="true">北斗七星</button><button data-v="peg" aria-pressed="false">飛馬座四邊形</button></span></div>
+        <div class="toolbar" style="padding-bottom:0">
+          <label style="display:flex;align-items:center;gap:8px;flex:1 1 260px"><span class="tlabel">觀看角度</span><input type="range" id="conAng" min="0" max="90" step="1" style="flex:1;accent-color:var(--accent)"><output id="conAngO" class="mono"></output></label>
+          <label class="tog"><input type="checkbox" id="conMove">太空船飛到金星軌道附近再看</label>
+        </div>
+        <div class="cbox"><canvas id="con" aria-label="星座的立體分布"></canvas></div>
+        <div class="hint" id="conHint"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ 天體分類 ============ -->
+  <div id="m-cls" hidden>
+    <div class="two">
+      <section class="panel card">
+        <div style="font-weight:700">天體分類器 <small style="font-weight:400;color:var(--muted)">勾選條件，或點下面的例子</small></div>
+        <div class="chips" id="clsEx" style="margin:8px 0"></div>
+        <div class="crit">
+          <label><input type="checkbox" id="c0">本身會發光、發熱（像太陽）</label>
+          <label><input type="checkbox" id="c4">繞著行星公轉</label>
+          <label><input type="checkbox" id="c1">繞著恆星（太陽）公轉</label>
+          <label><input type="checkbox" id="c2">質量夠大，本身收縮成圓球狀</label>
+          <label><input type="checkbox" id="c3">能清除軌道上的其他小天體</label>
+        </div>
+        <div class="verdict" id="clsV"></div>
+        <div id="clsT" style="font-size:.93rem"></div>
+        <p class="note">2006 年國際天文聯合會（IAU）定義行星：①繞恆星運轉 ②接近球形 ③能清除軌道上的其他小天體。只滿足 ①② 是矮行星；只滿足 ① 是太陽系小天體（小行星、彗星）。</p>
+      </section>
+      <section class="panel">
+        <div class="ptitle"><span>流星與隕石：有沒有大氣差很多</span>
+          <span class="seg" id="metSeg"><button data-v="earth" aria-pressed="true">地球</button><button data-v="moon" aria-pressed="false">月球</button><button data-v="mercury" aria-pressed="false">水星</button><button data-v="venus" aria-pressed="false">金星</button><button data-v="mars" aria-pressed="false">火星</button></span></div>
+        <div class="toolbar" style="padding-bottom:0"><button class="btn" id="metGo">☄ 丟一批太空碎片</button><span class="tlabel" id="metInfo"></span></div>
+        <div class="cbox"><canvas id="met" aria-label="太空碎片掉進行星的情形"></canvas></div>
+        <div class="hint" id="metHint"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="ptitle"><span>講義題目情境</span></div>
+    <div style="padding:8px 14px 14px" id="qpane"></div>
+  </section>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), mod=(a,n)=>((a%n)+n)%n, lerp=(a,b,f)=>a+(b-a)*f;
+const dpr=()=>Math.min(window.devicePixelRatio||1,2);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const FONT=(s,w)=>`${w||500} ${s}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+function mk(id,ratio,maxH,minH){return{c:$(id),ctx:$(id).getContext('2d'),W:0,H:0,ratio,maxH,minH:minH||0};}
+function size(o){const w=o.c.clientWidth;if(!w)return false;const h=Math.max(o.minH,Math.min(o.maxH,Math.round(w*o.ratio)));const r=dpr();
+  if(o.W!==w||o.H!==h||o.r!==r){o.c.style.height=h+'px';o.c.width=Math.round(w*r);o.c.height=Math.round(h*r);o.W=w;o.H=h;o.r=r;}o.ctx.setTransform(r,0,0,r,0,0);return true;}
+const STARS=Array.from({length:160},(_,i)=>{const h=k=>{const s=Math.sin(i*12.9898+k*78.233)*43758.5453;return s-Math.floor(s);};return[h(1),h(2),h(3)];});
+function starfield(ctx,W,H,a){ctx.fillStyle=`rgba(255,255,255,${a})`;for(const[u,v,z]of STARS)ctx.fillRect(u*W,v*H,z>.9?1.6:1,z>.9?1.6:1);}
+function tag(ctx,x,y,t,col,bg,sz,al){ctx.font=FONT(sz||12,700);const w=ctx.measureText(t).width+10;const x0=al==='left'?x:al==='right'?x-w:x-w/2;ctx.fillStyle=bg||'rgba(8,14,30,.72)';ctx.fillRect(x0,y-10,w,20);ctx.fillStyle=col||'#fff';ctx.textAlign='left';ctx.fillText(t,x0+5,y+4.5);}
+const fmtN=(v,d=2)=>{if(v===0)return '0';const a=Math.abs(v);if(a>=1e4||a<1e-2){const e=Math.floor(Math.log10(a));const m=v/Math.pow(10,e);return `${(Math.round(m*100)/100)} × 10${sup(e)}`;}return (Math.round(v*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('zh-TW');};
+const sup=e=>String(e).split('').map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(c)]||(c==='-'?'⁻':c)).join('');
+const C=299792.458, AUkm=1.496e8, LYkm=9.4607e12, YEAR=365.25*86400;
+function dur(sec){if(sec<60)return `${fmtN(sec,1)} 秒`;if(sec<3600)return `${Math.floor(sec/60)} 分 ${Math.round(sec%60)} 秒`;if(sec<86400)return `${fmtN(sec/3600,1)} 小時`;if(sec<YEAR*2)return `${fmtN(sec/86400,1)} 天`;return `${fmtN(sec/YEAR,1)} 年`;}
+
+// ================= data =================
+const PL=[
+ {k:'mercury',n:'水星',en:'Mercury',t:'rock',a:.39,m:.06,D:5.43,r:.383,moons:0,ms:'0',col:'#b9b1a8',comp:'岩石、金屬',temp:'白天約 430°C，夜晚約 −180°C',atm:'幾乎沒有大氣',note:'離太陽最近、體積最小的行星。幾乎沒有大氣，所以日夜溫差大、表面布滿隕石坑，也看不到流星。'},
+ {k:'venus',n:'金星',en:'Venus',t:'rock',a:.72,m:.82,D:5.24,r:.949,moons:0,ms:'0',col:'#e8c37a',comp:'岩石、金屬',temp:'平均約 470°C（行星中最熱）',atm:'約 96% 二氧化碳，約 92 大氣壓',note:'體積略小於地球。大氣中二氧化碳很多，溫室效應強烈，所以比離太陽更近的水星還熱。'},
+ {k:'earth',n:'地球',en:'Earth',t:'rock',a:1,m:1,D:5.51,r:1,moons:1,ms:'1（月球）',col:'#3f8be0',comp:'岩石、金屬',temp:'平均約 15°C',atm:'約 78% 氮、21% 氧，1 大氣壓',note:'目前唯一發現水的三態並存、有生命的行星。由太陽往外第三顆，是類地行星中密度最大的。'},
+ {k:'mars',n:'火星',en:'Mars',t:'rock',a:1.52,m:.11,D:3.93,r:.532,moons:2,ms:'2',col:'#d4643a',comp:'岩石、金屬',temp:'白天約 20°C，夜晚約 −153°C',atm:'約 95% 二氧化碳，約 0.01 大氣壓',note:'體積約地球的一半。大氣稀薄，溫度變化大。火星和木星軌道之間是小行星帶。'},
+ {k:'jupiter',n:'木星',en:'Jupiter',t:'gas',a:5.2,m:317.83,D:1.33,r:11.21,moons:95,ms:'很多（最大的 4 顆是伽利略衛星）',col:'#d9b38c',comp:'氣體（氫、氦）',temp:'雲頂約 −110°C',atm:'主要為氫、氦',note:'太陽系中質量、體積最大的行星。著名的大紅斑是一個超大風暴。'},
+ {k:'saturn',n:'土星',en:'Saturn',t:'gas',a:9.57,m:95.16,D:.69,r:9.45,moons:140,ms:'很多',col:'#e6cf8f',comp:'氣體（氫、氦）',temp:'雲頂約 −140°C',atm:'主要為氫、氦',note:'太陽系中第二大的行星，唯一平均密度小於 1 g/cm³（比水小）的行星，外圍的土星環是主要特徵。'},
+ {k:'uranus',n:'天王星',en:'Uranus',t:'gas',a:19.17,m:14.54,D:1.28,r:4.01,moons:28,ms:'多',col:'#9bdbe3',comp:'各種冰（水冰、甲烷），外層氫、氦',temp:'雲頂約 −195°C',atm:'主要為氫、氦',note:'主要由各種冰（固態水、甲烷）組成，大氣成分為氫氣與氦氣。'},
+ {k:'neptune',n:'海王星',en:'Neptune',t:'gas',a:30.18,m:17.15,D:1.64,r:3.88,moons:16,ms:'多',col:'#4f78e6',comp:'各種冰（水冰、甲烷），外層氫、氦',temp:'雲頂約 −200°C',atm:'主要為氫、氦',note:'離太陽最遠的行星，約 30 天文單位，光要走約 4 小時。'},
+];
+PL.forEach(p=>{p.vol=p.r**3;p.P=Math.pow(p.a,1.5);p.solar=1/(p.a*p.a);});
+const SUN={k:'sun',n:'太陽',t:'star'};
+const PLUTO={k:'pluto',n:'冥王星',t:'dwarf',a:39.5,P:248,col:'#c9b9a6'};
+const BODIES=[{k:'sun',n:'太陽',a:0},...PL.map(p=>({k:p.k,n:p.n,a:p.a})),{k:'pluto',n:'冥王星（矮行星）',a:39.5}];
+
+// ================= state =================
+const S0={mode:'sol',t:0,play:false,speed:1,scale:'sch',belt:true,pluto:true,comet:true,names:true,sel:'earth',dA:'earth',dB:'venus',sortK:'a',sortDir:1,split:'t',
+  lvl:2,lyT:'sun',lyN:'',lyU:'ly',radar:false,con:'dipper',conAng:0,conMove:false,met:'earth'};
+const S={...S0};
+
+// ================= 太陽系 =================
+const solO=mk('sol',.8,680,320);
+const PH0={mercury:40,venus:150,earth:250,mars:300,jupiter:20,saturn:110,uranus:200,neptune:330,pluto:60};
+const angOf=(k,P,t)=>rad(PH0[k]+360*t/P);
+const COMET={a:9,e:.91,w:rad(215),P:27};
+function cometPos(t){const M=2*Math.PI*mod(t/COMET.P+.97,1);let E=M;for(let i=0;i<30;i++)E=E-(E-COMET.e*Math.sin(E)-M)/(1-COMET.e*Math.cos(E));
+  const x=COMET.a*(Math.cos(E)-COMET.e),y=COMET.a*Math.sqrt(1-COMET.e*COMET.e)*Math.sin(E);const c=Math.cos(COMET.w),s=Math.sin(COMET.w);return[x*c-y*s,x*s+y*c];}
+const SG={};
+function rScale(a){const o=solO,R=Math.min(o.W,o.H)*.47;
+  if(S.scale==='sch')return a<=0?0:R*(.07+.93*Math.sqrt(a/40));
+  if(S.scale==='inner')return R*a/1.7;
+  return R*a/(S.pluto?41:31);}
+function posAU(k,t){if(k==='sun')return[0,0];if(k==='pluto'){const th=angOf('pluto',PLUTO.P,t);return[PLUTO.a*Math.cos(th),PLUTO.a*Math.sin(th)];}const p=PL.find(q=>q.k===k);const th=angOf(k,p.P,t);return[p.a*Math.cos(th),p.a*Math.sin(th)];}
+function toScr(xy){const r=Math.hypot(xy[0],xy[1]);if(r===0)return[SG.cx,SG.cy];const rr=rScale(r);return[SG.cx+rr*xy[0]/r,SG.cy-rr*xy[1]/r];}
+function drawSol(){
+  const o=solO;if(!size(o))return;const{ctx,W,H}=o;Object.assign(SG,{cx:W/2,cy:H/2});
+  ctx.fillStyle='#0b1430';ctx.fillRect(0,0,W,H);starfield(ctx,W,H,.35);
+  const t=S.t,cx=W/2,cy=H/2;SG.hit=[];
+  // orbits
+  for(const p of PL){const r=rScale(p.a);ctx.strokeStyle=p.k===S.sel?'rgba(255,200,120,.8)':'rgba(255,255,255,.22)';ctx.lineWidth=p.k===S.sel?1.6:1;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();}
+  if(S.pluto){ctx.setLineDash([3,5]);ctx.strokeStyle='rgba(200,185,166,.4)';ctx.beginPath();ctx.arc(cx,cy,rScale(PLUTO.a),0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+  // belt
+  if(S.belt){ctx.fillStyle='rgba(200,190,170,.7)';for(let i=0;i<420;i++){const h=k=>{const s=Math.sin(i*31.7+k*7.3)*43758.5;return s-Math.floor(s);};const a=2.2+h(1)*1.1,th=h(2)*Math.PI*2+t*2*Math.PI/Math.pow(a,1.5);const r=rScale(a);ctx.fillRect(cx+r*Math.cos(th),cy-r*Math.sin(th),1.2,1.2);}
+    if(S.names){const r=rScale(2.75);tag(ctx,cx+r*Math.cos(rad(-38)),cy-r*Math.sin(rad(-38)),'小行星帶','#e0d6c2','rgba(8,14,30,.6)',11);}}
+  // distance line
+  const A=toScr(posAU(S.dA,t)),B=toScr(posAU(S.dB,t));ctx.strokeStyle='rgba(120,230,170,.85)';ctx.setLineDash([6,4]);ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke();ctx.setLineDash([]);
+  // sun
+  const rs=S.scale==='all'?6:S.scale==='inner'?12:9;const gl=ctx.createRadialGradient(cx,cy,rs*.3,cx,cy,rs*3.2);gl.addColorStop(0,'rgba(255,230,140,1)');gl.addColorStop(.3,'rgba(255,190,60,.55)');gl.addColorStop(1,'rgba(255,170,40,0)');
+  ctx.fillStyle=gl;ctx.beginPath();ctx.arc(cx,cy,rs*3.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(cx,cy,rs,0,Math.PI*2);ctx.fill();SG.hit.push({k:'sun',x:cx,y:cy,r:rs+8});
+  // comet
+  if(S.comet){const pts=[];for(let i=0;i<=200;i++){const tt=i/200*COMET.P;pts.push(toScr(cometPos(tt)));}ctx.strokeStyle='rgba(150,220,255,.28)';ctx.setLineDash([2,4]);ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke();ctx.setLineDash([]);
+    const xy=cometPos(t),r=Math.hypot(...xy),[sx,sy]=toScr(xy);const xy2=cometPos(t+.02),[vx,vy]=toScr(xy2);
+    if(r<3){const L=Math.min(110,38*Math.pow(1.6/r,1.3));const dx=sx-cx,dy=sy-cy,l=Math.hypot(dx,dy)||1;const tx=sx+dx/l*L,ty=sy+dy/l*L;
+      const gt=ctx.createLinearGradient(sx,sy,tx,ty);gt.addColorStop(0,'rgba(200,240,255,.9)');gt.addColorStop(1,'rgba(200,240,255,0)');ctx.strokeStyle=gt;ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(tx,ty);ctx.stroke();ctx.lineCap='butt';
+      if(S.names)tag(ctx,tx,ty+(ty>sy?14:-14),'彗尾背向太陽','#c8f0ff','rgba(8,14,30,.75)',11);}
+    ctx.fillStyle='#e8fbff';ctx.beginPath();ctx.arc(sx,sy,3.5,0,Math.PI*2);ctx.fill();
+    {const dx=vx-sx,dy=vy-sy,l=Math.hypot(dx,dy)||1;ctx.strokeStyle='#9fe8ff';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+dx/l*16,sy+dy/l*16);ctx.stroke();}
+    SG.hit.push({k:'comet',x:sx,y:sy,r:12});
+    if(S.names)tag(ctx,sx,sy-14,`彗星（離太陽 ${fmtN(r,1)} AU）`,'#c8f0ff','rgba(8,14,30,.6)',10.5);SG.cometR=r;}
+  // planets
+  for(const p of PL){const[x,y]=toScr(posAU(p.k,t));const pr=S.scale==='all'?Math.max(2.5,2+1.6*Math.sqrt(p.r)):3.5+2.6*Math.sqrt(p.r);
+    if(p.k==='saturn'){ctx.strokeStyle='rgba(230,210,150,.9)';ctx.lineWidth=1.6;ctx.beginPath();ctx.ellipse(x,y,pr*1.9,pr*.6,-.3,0,Math.PI*2);ctx.stroke();}
+    ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(x,y,pr,0,Math.PI*2);ctx.fill();
+    if(p.k===S.sel){ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,pr+5,0,Math.PI*2);ctx.stroke();}
+    if(S.names&&(S.scale!=='all'||p.a>3||p.k===S.sel))tag(ctx,x,y+pr+12,p.n,p.k===S.sel?'#ffd27a':'#fff','rgba(8,14,30,.55)',11);
+    SG.hit.push({k:p.k,x,y,r:pr+10});}
+  if(S.pluto){const[x,y]=toScr(posAU('pluto',t));ctx.fillStyle=PLUTO.col;ctx.beginPath();ctx.arc(x,y,2.6,0,Math.PI*2);ctx.fill();if(S.names)tag(ctx,x,y+12,'冥王星（矮行星）','#e6dccf','rgba(8,14,30,.55)',10.5);SG.hit.push({k:'pluto',x,y,r:12});}
+  // scale note
+  ctx.font=FONT(11.5);ctx.fillStyle='rgba(255,255,255,.75)';ctx.textAlign='left';
+  ctx.fillText(S.scale==='sch'?'示意圖：距離已壓縮、行星放大，不是實際比例':S.scale==='inner'?'真實距離比例（只看到火星）；行星大小已放大':'真實距離比例：內行星擠在太陽旁邊',10,H-10);
+  ctx.textAlign='right';ctx.fillText('↺ 逆時針公轉',W-10,20);
+  $('solYear').textContent=`經過 ${fmtN(S.t,1)} 年`;
+}
+function infoCard(){
+  const el=$('info');const k=S.sel;
+  if(k==='sun'){el.innerHTML=`<h3>太陽<span class="badge other">恆星</span></h3><div class="kv"><span>身分</span><span>太陽系中唯一的恆星，自己會發光發熱；也是離地球最近的恆星</span><span>形成</span><span>約 46 億年前，由星雲（氣體、塵埃）受萬有引力聚集形成</span><span>到地球</span><span>1 天文單位 ≈ 1.5 億公里，光約走 500 秒（8 分多鐘）</span><span>所在位置</span><span>銀河系中，離銀河系中心約 2/3 半徑處</span></div>`;return;}
+  if(k==='pluto'){el.innerHTML=`<h3>冥王星<span class="badge other">矮行星</span></h3><div class="kv"><span>距離</span><span>約 39.5 天文單位</span><span>為什麼不是行星</span><span>繞太陽運轉、也是球形，但質量太小，無法以自身重力清除軌道上的其他小天體。2006 年由行星改列為矮行星。</span></div>`;return;}
+  if(k==='comet'){el.innerHTML=`<h3>彗星<span class="badge other">太陽系小天體</span></h3><div class="kv"><span>組成</span><span>冰雪和塵埃（俗稱「髒雪球」）</span><span>彗尾</span><span>接近太陽（約 1.5 AU 以內）時受太陽照射和太陽風吹拂，放出氣體和塵埃，形成長長的尾巴，<b>永遠背向太陽</b>，不一定和運動方向相反</span><span>怎麼看到</span><span>靠反射太陽光，不必掉進地球大氣才看得到</span><span>軌道</span><span>多數是很扁的橢圓，有些週期性地繞日公轉（例如哈雷彗星約 76 年）</span><span>現在</span><span>離太陽 ${fmtN(SG.cometR||0,2)} AU</span></div>`;return;}
+  const p=PL.find(q=>q.k===k);
+  el.innerHTML=`<h3>${p.n} <small style="font-family:var(--f-mono);font-size:.9rem;color:var(--muted)">${p.en}</small><span class="badge ${p.t}">${p.t==='rock'?'類地行星':'類木行星'}</span></h3>
+   <div class="kv"><span>與太陽距離</span><span class="mono">${p.a} AU（光約 ${dur(p.a*499)}）</span><span>質量</span><span class="mono">地球的 ${p.m} 倍</span><span>體積</span><span class="mono">地球的約 ${fmtN(p.vol,p.vol<10?2:0)} 倍</span><span>平均密度</span><span class="mono">${p.D} g/cm³</span><span>衛星</span><span>${p.ms}</span><span>主要組成</span><span>${p.comp}</span><span>表面溫度</span><span>${p.temp}</span><span>大氣</span><span>${p.atm}</span><span>受到的陽光</span><span>單位面積約為地球的 ${fmtN(p.solar,p.solar<1?3:1)} 倍（距離越遠越少）</span></div>
+   <p class="note">${p.note}</p>`;
+}
+function distRes(){
+  const a=BODIES.find(b=>b.k===S.dA),b=BODIES.find(x=>x.k===S.dB);
+  const pa=posAU(S.dA,S.t),pb=posAU(S.dB,S.t),d=Math.hypot(pa[0]-pb[0],pa[1]-pb[1]);
+  const mn=Math.abs(a.a-b.a),mx=a.a+b.a;
+  $('dRes').innerHTML=`<div class="row"><span>現在距離</span><b>${fmtN(d,2)} AU（光 ${dur(d*499)}）</b></div>
+   <div class="row"><span>最近（在太陽同一側排成一線）</span><b>${fmtN(mn,2)} AU</b></div>
+   <div class="row"><span>最遠（在太陽兩側排成一線）</span><b>${fmtN(mx,2)} AU</b></div>
+   <p class="note">假設軌道是圓形、在同一平面上。最近距離＝兩者到太陽的距離相減；最遠＝相加。播放看看距離怎麼變。</p>`;
+}
+// table
+const COLS=[{k:'n',h:'行星'},{k:'t',h:'類型'},{k:'a',h:'與太陽距離（AU）',num:1},{k:'m',h:'質量（地球＝1）',num:1,log:1},{k:'vol',h:'體積（地球＝1）',num:1,log:1},{k:'D',h:'密度（g/cm³）',num:1},{k:'moons',h:'衛星數',num:1,show:p=>p.moons>10?'很多':String(p.moons)},{k:'comp',h:'主要組成'},{k:'temp',h:'表面溫度'},{k:'atm',h:'大氣'},{k:'solar',h:'單位面積陽光（地球＝1）',num:1,log:1}];
+const SPLITS=[['t','類型（類地／類木）'],['a','與太陽距離'],['m','質量'],['vol','體積'],['D','密度'],['moons','衛星數'],['comp','主要組成']];
+function drawTable(){
+  const rows=[...PL].sort((x,y)=>{const a=x[S.sortK],b=y[S.sortK];return (typeof a==='number'?a-b:String(a).localeCompare(String(b)))*S.sortDir;});
+  const mx={};COLS.filter(c=>c.num).forEach(c=>mx[c.k]=Math.max(...PL.map(p=>p[c.k])));
+  let h='<thead><tr>'+COLS.map(c=>`<th><button data-sort="${c.k}" aria-pressed="${S.sortK===c.k}">${c.h}${S.sortK===c.k?(S.sortDir>0?' ▲':' ▼'):''}</button></th>`).join('')+'</tr></thead><tbody>';
+  for(const p of rows){h+=`<tr class="${p.t}${p.k===S.sel?' sel':''}" data-k="${p.k}">`;
+    for(const c of COLS){let v=p[c.k];if(c.k==='t')v=p.t==='rock'?'類地':'類木';if(c.show)v=c.show(p);
+      if(c.num){const raw=p[c.k];const f=c.log?Math.log10(raw*100+1)/Math.log10(mx[c.k]*100+1):raw/mx[c.k];const col=p.t==='rock'?'var(--rock)':'var(--gas)';
+        h+=`<td class="num">${c.show?v:(c.k==='vol'?fmtN(raw,raw<10?2:0):c.k==='solar'?fmtN(raw,raw<1?3:1):raw)}<span class="bar" style="width:${Math.max(4,f*100)}%;color:${col}"></span></td>`;}
+      else h+=`<td>${c.k==='n'?`<b>${v}</b>`:v}</td>`;}
+    h+='</tr>';}
+  $('ptab').innerHTML=h+'</tbody>';
+  $('ptab').querySelectorAll('[data-sort]').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();const k=b.dataset.sort;if(S.sortK===k)S.sortDir*=-1;else{S.sortK=k;S.sortDir=1;}drawTable();}));
+  $('ptab').querySelectorAll('tr[data-k]').forEach(tr=>tr.addEventListener('click',()=>{S.sel=tr.dataset.k;req();drawTable();}));
+  // split hint
+  const k=S.split;let txt='';
+  if(k==='t'||k==='comp')txt='水星、金星、地球、火星主要由岩石和金屬組成（類地行星）；木星、土星、天王星、海王星主要由氣體和冰組成（類木行星）。';
+  else{const sorted=[...PL].sort((x,y)=>x[k]-y[k]);let best=0,bi=0;for(let i=0;i<7;i++){const g=sorted[i+1][k]/(sorted[i][k]||.01);if(g>best){best=g;bi=i;}}
+    const lo=sorted.slice(0,bi+1).map(p=>p.n),hi=sorted.slice(bi+1).map(p=>p.n);const same=lo.every(n=>['水星','金星','地球','火星'].includes(n))&&lo.length===4;
+    txt=`依「${SPLITS.find(s=>s[0]===k)[1]}」排序後，最大的落差在 ${sorted[bi].n} 和 ${sorted[bi+1].n} 之間：較小的一組是 ${lo.join('、')}；較大的一組是 ${hi.join('、')}。${same?'剛好就是類地行星和類木行星的分法。':'這項性質不能把類地、類木行星分開。'}`;
+    if(k==='D')txt+=' 類地行星密度大（約 4～5.5），類木行星密度小（約 0.7～1.6），土星甚至小於水。';}
+  $('splitHint').textContent=txt;
+}
+// ================= 宇宙的尺度 =================
+const scO=mk('scale',.62,560,280);
+const LV=[
+ {n:'地球與月球',on:['行星','衛星'],tx:'月球繞地球公轉，平均距離約 38 萬公里，光只要約 1.3 秒。月球是地球唯一的天然衛星。',rows:[['月地距離','約 3.8 × 10⁵ 公里'],['光走','約 1.3 秒']]},
+ {n:'內太陽系',on:['恆星','行星'],tx:'地球到太陽的平均距離定為 1 天文單位（AU），約 1.5 億公里，光約走 500 秒。太陽是離地球最近的恆星。',rows:[['1 AU','≈ 1.5 × 10⁸ 公里'],['光從太陽到地球','約 500 秒（8 分 20 秒）'],['金星','0.72 AU'],['火星','1.52 AU']]},
+ {n:'太陽系',on:['恆星','行星','衛星'],tx:'太陽系以太陽為中心，八大行星在幾乎相同的平面上逆時針公轉。最遠的海王星約 30 AU，光約走 4 小時。整個太陽系距離都遠小於 1 光年（1 光年約 63000 AU）。',rows:[['海王星','約 30 AU'],['光走','約 4 小時'],['1 光年','約 63000 AU']]},
+ {n:'太陽附近的恆星',on:['星系','恆星'],tx:'夜空中閃爍的星星幾乎都是恆星，而且幾乎都在銀河系裡。最近的恆星（太陽以外）是比鄰星，約 4.2 光年；北極星約 400 光年，我們現在看到的北極星光是約 400 年前發出的。',rows:[['比鄰星','約 4.2 光年'],['半人馬座 α','約 4.3 光年'],['天狼星','約 8.7 光年'],['織女星','約 25 光年'],['北極星','約 400 光年']]},
+ {n:'銀河系',on:['星系','恆星'],tx:'銀河系是由兩千多億顆恆星，以及星團、星雲組成的星系。俯視是螺旋狀，側視像荷包蛋：中央較厚、周圍較薄。恆星分布不均勻，中心附近較多、較亮。太陽在離中心約 2/3 半徑處，和其他恆星一起繞銀河系中心旋轉。',rows:[['直徑','約 10 萬光年'],['恆星數','約 2000 億顆以上'],['太陽位置','離中心約 2/3 半徑']]},
+ {n:'星系群',on:['星系群','星系'],tx:'星系和星系聚在一起成為星系群、星系團。仙女座星系是離銀河系很近的大星系，約 250 萬光年：我們看到的是它 250 萬年前發出的光。',rows:[['仙女座星系','約 250 萬光年'],['麥哲倫星雲','約 16～20 萬光年']]},
+ {n:'可觀測的宇宙',on:['宇宙','星系群'],tx:'宇宙是所有時間與空間的總和，所有星系組成宇宙。科學家推論宇宙約在一百多億年前，由高溫、高密度的狀態經大霹靂急速膨脹形成，現在仍在膨脹。看到 100 多億光年外的星系，表示光走了 100 多億年，所以宇宙至少有 100 多億年了。',rows:[['可觀測範圍','約 140 億光年'],['宇宙年齡','約一百多億年'],['現在','持續膨脹中']]},
+];
+const LADDER=['宇宙','星系群','星系','恆星','行星','衛星'];
+function drawScale(){
+  const o=scO;if(!size(o))return;const{ctx,W,H}=o,L=S.lvl;ctx.fillStyle='#070c1f';ctx.fillRect(0,0,W,H);starfield(ctx,W,H,L>=3?.5:.25);
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*.42;
+  const bar=(px,txt)=>{ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(14,H-18);ctx.lineTo(14+px,H-18);ctx.moveTo(14,H-24);ctx.lineTo(14,H-12);ctx.moveTo(14+px,H-24);ctx.lineTo(14+px,H-12);ctx.stroke();ctx.font=FONT(12,700);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(txt,18+px,H-14);};
+  const dot=(x,y,r,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();};
+  if(L===0){const re=R*.18,rm=R*.92;ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(cx,cy,rm,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    dot(cx,cy,re*.5,'#3f8be0');tag(ctx,cx,cy+re*.5+14,'地球','#9cc4ff');dot(cx+rm*Math.cos(.6),cy-rm*Math.sin(.6),re*.14,'#ddd');tag(ctx,cx+rm*Math.cos(.6),cy-rm*Math.sin(.6)-14,'月球','#fff');
+    ctx.strokeStyle='#ffd27a';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+rm*Math.cos(.6),cy-rm*Math.sin(.6));ctx.stroke();tag(ctx,cx+rm*.5*Math.cos(.6),cy-rm*.5*Math.sin(.6)+16,'38 萬公里','#ffd27a');bar(rm/3.8,'10 萬公里');}
+  if(L===1){const k=R/1.6;dot(cx,cy,9,'#ffd23f');[['水星',.39,'#b9b1a8'],['金星',.72,'#e8c37a'],['地球',1,'#3f8be0'],['火星',1.52,'#d4643a']].forEach(([n,a,c],i)=>{ctx.strokeStyle='rgba(255,255,255,.25)';ctx.beginPath();ctx.arc(cx,cy,a*k,0,Math.PI*2);ctx.stroke();const th=rad(40+i*70);dot(cx+a*k*Math.cos(th),cy-a*k*Math.sin(th),4,c);tag(ctx,cx+a*k*Math.cos(th),cy-a*k*Math.sin(th)-13,n,'#fff','rgba(8,14,30,.6)',11);});
+    ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+k*Math.cos(rad(180)),cy);ctx.stroke();tag(ctx,cx-k/2,cy+14,'1 AU ＝ 光 500 秒','#ffd27a');bar(k*.5,'0.5 AU');}
+  if(L===2){const k=R/31;dot(cx,cy,5,'#ffd23f');PL.forEach((p,i)=>{ctx.strokeStyle='rgba(255,255,255,.22)';ctx.beginPath();ctx.arc(cx,cy,p.a*k,0,Math.PI*2);ctx.stroke();if(p.a>3){const th=rad(30+i*50);dot(cx+p.a*k*Math.cos(th),cy-p.a*k*Math.sin(th),3.5,p.col);tag(ctx,cx+p.a*k*Math.cos(th),cy-p.a*k*Math.sin(th)-12,p.n,'#fff','rgba(8,14,30,.6)',11);}});
+    ctx.fillStyle='rgba(200,190,170,.6)';for(let i=0;i<200;i++){const a=2.2+((i*.37)%1)*1.1,th=i*2.4;ctx.fillRect(cx+a*k*Math.cos(th),cy-a*k*Math.sin(th),1,1);}
+    tag(ctx,cx,cy+18,'內行星擠在這裡','#ddd','rgba(8,14,30,.6)',10.5);bar(k*10,'10 AU');}
+  if(L===3){const k=R/27;dot(cx,cy,5,'#ffd23f');tag(ctx,cx,cy+15,'太陽','#ffd27a');[5,10,20].forEach(r=>{ctx.strokeStyle='rgba(255,255,255,.2)';ctx.setLineDash([3,5]);ctx.beginPath();ctx.arc(cx,cy,r*k,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.font=FONT(10.5);ctx.fillStyle='rgba(255,255,255,.55)';ctx.textAlign='left';ctx.fillText(r+' 光年',cx+r*k+3,cy-3);});
+    [['比鄰星',4.2,235],['半人馬座α',4.37,140],['天狼星',8.6,110],['牛郎星',16.7,40],['織女星',25,320]].forEach(([n,d,th])=>{const x=cx+d*k*Math.cos(rad(th)),y=cy-d*k*Math.sin(rad(th));dot(x,y,3,'#fff');tag(ctx,x,y-13,`${n} ${d}`,'#fff','rgba(8,14,30,.6)',11);});
+    tag(ctx,W-10,24,'北極星約 400 光年（在畫面外很遠）→','#bcd8ff','rgba(8,14,30,.7)',11.5,'right');bar(k*5,'5 光年');}
+  if(L===4){const rg=R*1.05;ctx.save();ctx.translate(cx,cy);
+    const glow=ctx.createRadialGradient(0,0,0,0,0,rg*.35);glow.addColorStop(0,'rgba(255,240,200,.95)');glow.addColorStop(1,'rgba(255,220,160,0)');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,rg*.35,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<2600;i++){const h=k=>{const s=Math.sin(i*12.99+k*78.2)*43758.5;return s-Math.floor(s);};const arm=i%2,rr=Math.pow(h(1),.8)*rg,th=arm*Math.PI+rr/rg*5.2+(h(2)-.5)*.7;const x=rr*Math.cos(th),y=rr*Math.sin(th)*.62;
+      ctx.fillStyle=`rgba(${200+h(3)*55|0},${200+h(3)*40|0},255,${.25+.6*(1-rr/rg)})`;ctx.fillRect(x,y,1.3,1.3);}
+    ctx.restore();const sx=cx+rg*2/3*Math.cos(rad(-25)),sy=cy+rg*2/3*Math.sin(rad(-25))*.62;dot(sx,sy,4.5,'#ffd23f');tag(ctx,sx,sy-15,'太陽系在這裡（約 2/3 處）','#ffd27a','rgba(8,14,30,.75)',11.5);
+    ctx.strokeStyle='rgba(255,255,255,.5)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(sx,sy);ctx.stroke();ctx.setLineDash([]);
+    // side view inset
+    const iw=Math.min(W*.34,220),ih=iw*.36,ix=W-iw-10,iy=10;ctx.fillStyle='rgba(8,14,30,.8)';ctx.fillRect(ix,iy,iw,ih+22);ctx.font=FONT(11,700);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText('側視：像荷包蛋',ix+6,iy+15);
+    const icx=ix+iw/2,icy=iy+22+ih/2;ctx.fillStyle='rgba(210,215,255,.55)';ctx.beginPath();ctx.ellipse(icx,icy,iw*.46,ih*.1,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,235,190,.9)';ctx.beginPath();ctx.ellipse(icx,icy,iw*.11,ih*.3,0,0,Math.PI*2);ctx.fill();
+    dot(icx+iw*.46*2/3,icy,3,'#ffd23f');bar(rg*.2*2,'2 萬光年（全寬約 10 萬光年）');}
+  if(L===5){const k=R/2.7;const gal=(x,y,r,n,lab)=>{ctx.save();ctx.translate(x,y);ctx.rotate(-.4);ctx.fillStyle='rgba(220,220,255,.75)';ctx.beginPath();ctx.ellipse(0,0,r,r*.35,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,240,200,.95)';ctx.beginPath();ctx.ellipse(0,0,r*.25,r*.12,0,0,Math.PI*2);ctx.fill();ctx.restore();tag(ctx,x,y+r*.5+14,lab,'#fff','rgba(8,14,30,.6)',11.5);};
+    gal(cx-k*1.25,cy+k*.3,14,0,'銀河系（我們在這裡）');gal(cx+k*1.25,cy-k*.3,18,0,'仙女座星系');gal(cx+k*.9,cy+k*.6,8,0,'三角座星系');dot(cx-k*1.2,cy+k*.48,2,'#fff');
+    ctx.strokeStyle='#ffd27a';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(cx-k*1.25,cy+k*.3);ctx.lineTo(cx+k*1.25,cy-k*.3);ctx.stroke();ctx.setLineDash([]);tag(ctx,cx,cy-14,'約 250 萬光年','#ffd27a');bar(k,'100 萬光年');}
+  if(L===6){for(let i=0;i<900;i++){const h=k=>{const s=Math.sin(i*41.3+k*17.9)*43758.5;return s-Math.floor(s);};const rr=Math.sqrt(h(1))*R,th=h(2)*Math.PI*2+Math.sin(rr*.05)*.6;ctx.fillStyle=`rgba(${180+h(3)*75|0},${170+h(3)*60|0},255,.6)`;ctx.fillRect(cx+rr*Math.cos(th),cy+rr*Math.sin(th),1.4,1.4);}
+    ctx.strokeStyle='rgba(255,210,120,.6)';ctx.setLineDash([5,5]);ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);dot(cx,cy,3,'#ffd23f');tag(ctx,cx,cy+14,'我們','#ffd27a');
+    tag(ctx,cx,cy-R-0+14,'可觀測宇宙的邊界：約 140 億光年','#ffd27a','rgba(8,14,30,.75)',12);ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.6)';ctx.textAlign='left';ctx.fillText('每個小點都是一個星系，各有數千億顆恆星',10,H-12);}
+  ctx.font=FONT(13,700);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(`第 ${L+1} 級：${LV[L].n}`,10,22);
+  // side panel
+  $('scRes').innerHTML=`<div style="font-weight:700;font-size:1.05rem;margin-bottom:4px">${LV[L].n}</div>`+LV[L].rows.map(([a,b])=>`<div class="row"><span>${a}</span><b>${b}</b></div>`).join('')+`<p class="note" style="color:var(--ink);font-size:.92rem">${LV[L].tx}</p>`;
+  $('ladder').innerHTML='<span class="tlabel" style="margin-right:4px">組織層級（大 → 小）</span>'+LADDER.map((n,i)=>`<span class="lv${LV[L].on.includes(n)?' on':''}">${n}${n==='星系'?'（銀河系）':n==='恆星'?'（太陽）':n==='行星'?'（地球）':n==='衛星'?'（月球）':''}</span>${i<LADDER.length-1?'<span class="gt">＞</span>':''}`).join('');
+  document.querySelectorAll('#scSeg button').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===L)));
+}
+// ================= 光年 =================
+const LYT=[['moon','月球',384400,'km'],['sun','太陽',1,'au'],['venusMin','金星（最接近時）',.28,'au'],['mars','火星（平均距離 1.52 AU 的位置到太陽）',1.52,'au'],['jupiter','木星到太陽',5.2,'au'],['neptune','海王星到太陽',30.18,'au'],['prox','比鄰星',4.24,'ly'],['acen','半人馬座 α 星',4.3,'ly'],['sirius','天狼星',8.7,'ly'],['vega','織女星',25,'ly'],['polaris','北極星',400,'ly'],['gc','銀河系中心',26000,'ly'],['m31','仙女座星系',2500000,'ly'],['far','最遠的星系',1.3e10,'ly']];
+function toKm(v,u){return u==='km'?v:u==='au'?v*AUkm:u==='ly'?v*LYkm:v*C;}
+function lyCalc(){
+  let km,name;if(S.lyN!==''&&!isNaN(+S.lyN)){km=toKm(+S.lyN,S.lyU);name=`${S.lyN} ${{ly:'光年',au:'AU',km:'公里',s:'光秒'}[S.lyU]}`;}
+  else{const t=LYT.find(x=>x[0]===S.lyT);km=toKm(t[2],t[3]);name=t[1];}
+  const sec=km/C,ship=km/17/86400/365.25;
+  $('lyRes').innerHTML=`<div class="row"><span>目標</span><b>${name}</b></div>
+  <div class="row"><span>距離</span><b>${fmtN(km,0)} 公里</b></div>
+  <div class="row"><span>＝</span><b>${fmtN(km/AUkm,km/AUkm<10?2:0)} AU</b></div>
+  <div class="row"><span>＝</span><b>${fmtN(km/LYkm,km/LYkm<10?3:0)} 光年</b></div>
+  <div class="row"><span>光走單程</span><b>${dur(sec)}</b></div>
+  ${S.radar?`<div class="row"><span>雷達波來回</span><b>${dur(sec*2)}</b></div>`:''}
+  <div class="row"><span>目前最快的太空船（約 17 公里/秒）</span><b>${dur(ship*YEAR)}</b></div>
+  <p class="note" style="color:var(--ink)">你現在看到的${name}，是它在 <b>${dur(sec)}</b> 前發出的光，也就是它那時候的樣子。${S.radar?'雷達波要去再回來，所以「來回時間 ÷ 2」才是單程距離。':''}</p>`;
+}
+// constellations: [name, RA deg, Dec deg, dist ly]
+const CON={dipper:[['天樞',165.93,61.75,123],['天璇',165.46,56.38,80],['天璣',178.46,53.69,83],['天權',183.86,57.03,81],['玉衡',193.51,55.96,83],['開陽',200.98,54.93,83],['搖光',206.89,49.31,104]],
+  peg:[['室宿一',346.19,15.21,133],['室宿二',345.94,28.08,196],['壁宿一',3.31,15.18,390],['壁宿二',2.10,29.09,97]]};
+const CONL={dipper:[[0,1],[1,2],[2,3],[3,0],[3,4],[4,5],[5,6]],peg:[[0,1],[1,3],[3,2],[2,0]]};
+const conO=mk('con',.78,520,260);let conDrag=null;
+function drawCon(){
+  const o=conO;if(!size(o))return;const{ctx,W,H}=o;ctx.fillStyle='#050a1c';ctx.fillRect(0,0,W,H);starfield(ctx,W,H,.25);
+  const st=CON[S.con].map(([n,ra,dec,d])=>{const r=rad(ra),de=rad(dec);return{n,d,p:[d*Math.cos(de)*Math.cos(r),d*Math.cos(de)*Math.sin(r),d*Math.sin(de)]};});
+  const cen=st.reduce((a,s)=>[a[0]+s.p[0]/st.length,a[1]+s.p[1]/st.length,a[2]+s.p[2]/st.length],[0,0,0]);
+  const D=Math.hypot(...cen);const fwd=cen.map(v=>v/D);let up=[0,0,1];const dU=fwd[2];up=[up[0]-fwd[0]*dU,up[1]-fwd[1]*dU,up[2]-fwd[2]*dU];const lu=Math.hypot(...up);up=up.map(v=>v/lu);
+  const right=[fwd[1]*up[2]-fwd[2]*up[1],fwd[2]*up[0]-fwd[0]*up[2],fwd[0]*up[1]-fwd[1]*up[0]];
+  // camera orbits around the centroid about 'up' axis
+  const ang=rad(S.conAng);const back=fwd.map(v=>-v);
+  const off=[back[0]*Math.cos(ang)+right[0]*Math.sin(ang),back[1]*Math.cos(ang)+right[1]*Math.sin(ang),back[2]*Math.cos(ang)+right[2]*Math.sin(ang)];
+  let cam=cen.map((v,i)=>v+off[i]*D);
+  if(S.conMove&&S.conAng===0){cam=cam.map((v,i)=>v+right[i]*(0.3/63241));} // 0.3 AU sideways
+  const cf=cen.map((v,i)=>v-cam[i]);const cl=Math.hypot(...cf);const f2=cf.map(v=>v/cl);const r2=[f2[1]*up[2]-f2[2]*up[1],f2[2]*up[0]-f2[0]*up[2],f2[0]*up[1]-f2[1]*up[0]];
+  const foc=Math.min(W,H)*1.1*(S.con==='peg'?.55:1)*D/(S.con==='peg'?150:60);
+  const prj=p=>{const q=p.map((v,i)=>v-cam[i]);const z=q[0]*f2[0]+q[1]*f2[1]+q[2]*f2[2];const x=q[0]*r2[0]+q[1]*r2[1]+q[2]*r2[2],y=q[0]*up[0]+q[1]*up[1]+q[2]*up[2];return z>1?[W/2+x/z*foc*(S.conAng===0?1:.55)*(S.conAng===0?1:D/z*0+1),H/2-y/z*foc*(S.conAng===0?1:.55),z]:null;};
+  // ortho for side views to show depth clearly
+  const side=S.conAng>0;
+  const scl=Math.min(W,H)*.42/(S.con==='peg'?200:45);
+  const ortho=p=>{const q=p.map((v,i)=>v-cen[i]);const x=q[0]*r2[0]+q[1]*r2[1]+q[2]*r2[2],y=q[0]*up[0]+q[1]*up[1]+q[2]*up[2];return[W/2+x*scl,H/2-y*scl];};
+  const P=side?ortho:prj;
+  // earth + sight lines in side view
+  if(side){const e=ortho([0,0,0]);const ex=clamp(e[0],-1e5,1e5);ctx.strokeStyle='rgba(255,210,120,.35)';ctx.setLineDash([4,5]);st.forEach(s=>{const p=ortho(s.p);ctx.beginPath();ctx.moveTo(ex,e[1]);ctx.lineTo(p[0],p[1]);ctx.stroke();});ctx.setLineDash([]);
+    if(ex>-20&&ex<W+20){ctx.fillStyle='#3f8be0';ctx.beginPath();ctx.arc(ex,e[1],6,0,Math.PI*2);ctx.fill();tag(ctx,ex,e[1]+16,'地球','#9cc4ff');}
+    else tag(ctx,ex<0?70:W-70,H/2,ex<0?'← 往地球':'往地球 →','#9cc4ff');}
+  ctx.strokeStyle='rgba(140,190,255,.6)';ctx.lineWidth=1.4;CONL[S.con].forEach(([a,b])=>{const pa=P(st[a].p),pb=P(st[b].p);if(pa&&pb){ctx.beginPath();ctx.moveTo(pa[0],pa[1]);ctx.lineTo(pb[0],pb[1]);ctx.stroke();}});
+  st.forEach((s,i)=>{const p=P(s.p);if(!p)return;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p[0],p[1],3.5,0,Math.PI*2);ctx.fill();tag(ctx,p[0]+8,p[1]+(i%2?14:-10),`${s.n} ${s.d} 光年`,'#dfeaff','rgba(8,14,30,.7)',11,'left');});
+  ctx.font=FONT(12.5,700);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(side?`從側面看（轉了 ${S.conAng}°）：其實遠近差很多`:(S.conMove?'太空船在金星軌道附近看：形狀幾乎不變':'從地球看到的星座形狀'),10,20);
+  $('conAngO').textContent=S.conAng+'°';$('conAng').value=S.conAng;
+  const ds=st.map(s=>s.d);$('conHint').textContent=`這些星離地球從 ${Math.min(...ds)} 到 ${Math.max(...ds)} 光年都有，只是剛好在同一個方向，看起來連成星座。星星之間的距離差很大，彼此不一定有關係，也不是太陽系的成員。${S.con==='peg'?'離地球越近的星，光越早到達：壁宿二（97 光年）的光比壁宿一（390 光年）的光晚發出卻先到。':''}在太陽系裡移動零點幾個 AU，和幾十光年比起來太小，所以星座形狀看起來不會變。`;
+}
+// ================= 天體分類 =================
+const EX=[['太陽',[1,0,0,0,0],'太陽系中唯一的恆星，自己會發光發熱。'],['地球',[0,0,1,1,1],'繞太陽、球形、能清除軌道，是行星。'],['木星',[0,0,1,1,1],'類木行星，質量最大。'],['冥王星',[0,0,1,1,0],'球形但清除不了軌道上的小天體，2006 年改列為矮行星。'],['穀神星',[0,0,1,1,0],'小行星帶中最大的天體，也是矮行星。'],['小行星',[0,0,1,0,0],'不規則形狀，多數在火星與木星軌道間，主要成分為岩石和金屬。'],['哈雷彗星',[0,0,1,0,0],'主要由冰雪和灰塵組成，接近太陽才出現彗尾，約 76 年回來一次。'],['月球',[0,1,0,1,0],'繞地球公轉，本身不會發光，靠反射太陽光，是衛星。'],['艾歐星',[0,1,0,1,0],'繞木星運行，成分為岩石與金屬，仍然是衛星（伽利略衛星之一）。']];
+function clsUpdate(){
+  const c=[0,1,2,3,4].map(i=>$('c'+i).checked);let v,t;
+  if(c[0]){v='恆星';t='自己會發光、發熱的天體。夜空中閃爍的星星幾乎都是恆星。';}
+  else if(c[4]){v='衛星';t='繞著行星公轉的天體，本身不會發光。不管組成是岩石還是冰，只要繞行星運行就是衛星。水星、金星沒有衛星，類木行星衛星很多。';}
+  else if(c[1]&&c[2]&&c[3]){v='行星';t='同時滿足三個條件。太陽系有八大行星。';}
+  else if(c[1]&&c[2]){v='矮行星';t='繞恆星、接近球形，但不能清除軌道上的其他小天體，例如冥王星、穀神星。';}
+  else if(c[1]){v='太陽系小天體';t='只滿足「繞恆星運轉」，例如小行星、彗星。';}
+  else{v='—';t='至少要繞著某個天體運轉，或本身會發光。';}
+  $('clsV').textContent=v;$('clsT').textContent=t;
+}
+// meteors
+const metO=mk('met',.62,420,230);
+const MB={earth:{n:'地球',atm:1,c:'#3f8be0',tx:'有大氣：太空碎片高速闖入大氣層，摩擦燃燒發光，就是流星；沒燒完掉到地面的是隕石。大氣保護，所以隕石坑很少；地表的風化、侵蝕也會把隕石坑抹平。白天也有流星，只是陽光太強看不到。'},
+ moon:{n:'月球',atm:0,c:'#b8b8b8',tx:'沒有大氣：碎片不會燃燒，所以月球上看不到流星，碎片直接撞擊地面形成隕石坑，表面布滿隕石坑，也沒有風化作用把坑抹平。'},
+ mercury:{n:'水星',atm:0,c:'#b9b1a8',tx:'幾乎沒有大氣：和月球一樣看不到流星，表面布滿隕石坑。'},
+ venus:{n:'金星',atm:2,c:'#e8c37a',tx:'大氣非常濃（約 92 大氣壓）：碎片在大氣中摩擦燃燒，看得到流星，隕石坑少。'},
+ mars:{n:'火星',atm:.3,c:'#d4643a',tx:'大氣稀薄（約 0.01 大氣壓）：仍然會有流星，但較多碎片能到達地面。'}};
+let mets=[],craters={earth:[],moon:[],mercury:[],venus:[],mars:[]};
+function metGo(){const b=MB[S.met];for(let i=0;i<9;i++){mets.push({x:Math.random(),y:-.05-Math.random()*.35,vx:.18+Math.random()*.15,vy:.55+Math.random()*.25,size:Math.random(),life:1,burn:0});}metRun();}
+let metRaf=0;let metLast=0;
+function metRun(){if(metRaf)return;metLast=0;const step=ts=>{const dt=metLast?Math.min(.05,(ts-metLast)/1000):0;metLast=ts;const b=MB[S.met];
+  for(const m of mets){m.x+=m.vx*dt;m.y+=m.vy*dt;
+    if(b.atm>0&&m.y>.28){m.burn+=dt*b.atm*(1.4-m.size*.8);}
+    if(m.burn>1&&m.size<.75+(.25-b.atm*.08)){m.life=0;}
+    if(m.y>=.8&&m.life>0){m.life=0;craters[S.met].push({x:m.x,r:3+m.size*6*(b.atm?0.5:1)});}}
+  mets=mets.filter(m=>m.life>0&&m.x<1.2);drawMet();if(mets.length)metRaf=requestAnimationFrame(step);else metRaf=0;};metRaf=requestAnimationFrame(step);}
+function drawMet(){
+  const o=metO;if(!size(o))return;const{ctx,W,H}=o;const b=MB[S.met];
+  ctx.fillStyle='#050a1c';ctx.fillRect(0,0,W,H);starfield(ctx,W,H,.4);
+  const gy=H*.8;
+  if(b.atm>0){const g=ctx.createLinearGradient(0,H*.25,0,gy);g.addColorStop(0,'rgba(90,150,255,0)');g.addColorStop(1,`rgba(90,150,255,${.25+.2*Math.min(1,b.atm)})`);ctx.fillStyle=g;ctx.fillRect(0,H*.25,W,gy-H*.25);
+    ctx.font=FONT(11.5,600);ctx.fillStyle='rgba(180,210,255,.85)';ctx.textAlign='right';ctx.fillText('大氣層',W-8,H*.3);}
+  ctx.fillStyle=b.c;ctx.fillRect(0,gy,W,H-gy);ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(0,gy,W,H-gy);
+  for(const c of craters[S.met]){const x=c.x*W;ctx.fillStyle='rgba(0,0,0,.45)';ctx.beginPath();ctx.ellipse(x,gy+3,c.r*1.6,c.r*.5,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.ellipse(x,gy+2,c.r*1.8,c.r*.55,0,Math.PI,0);ctx.stroke();}
+  for(const m of mets){const x=m.x*W,y=m.y*H;if(m.burn>0.02){const L=40+60*Math.min(1,m.burn);const g=ctx.createLinearGradient(x,y,x-m.vx/.7*L,y-m.vy/.7*L);g.addColorStop(0,'rgba(255,240,180,1)');g.addColorStop(1,'rgba(255,160,60,0)');ctx.strokeStyle=g;ctx.lineWidth=2+m.size*2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-m.vx/.7*L,y-m.vy/.7*L);ctx.stroke();}
+    ctx.fillStyle='#ccc';ctx.beginPath();ctx.arc(x,y,1.5+m.size*2.5,0,Math.PI*2);ctx.fill();}
+  ctx.font=FONT(13,700);ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(b.n+(b.atm?'：有大氣':'：沒有大氣'),10,20);
+  $('metInfo').textContent=`${b.n}地面上的坑：${craters[S.met].length} 個`;$('metHint').textContent=b.tx;
+}
+
+// ================= render & controls =================
+function render(){if(S.mode==='sol'){drawSol();infoCard();distRes();}if(S.mode==='scale')drawScale();if(S.mode==='ly'){lyCalc();drawCon();}if(S.mode==='cls'){drawMet();}}
+let raf=0;const req=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;render();});};
+let last=0;function loop(ts){if(!S.play){last=0;return;}const dt=last?Math.min(.1,(ts-last)/1000):0;last=ts;S.t+=dt*S.speed;if(S.mode==='sol'){drawSol();if(S.sel==='comet')infoCard();distRes();}requestAnimationFrame(loop);}
+function setPlay(p){S.play=p;$('solPlay').textContent=p?'❚❚ 暫停':'▶ 播放';if(p)requestAnimationFrame(loop);}
+function segSet(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));}
+function segBind(id,fn){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{segSet(id,b.dataset.v);fn(b.dataset.v);req();}));}
+function setMode(m){S.mode=m;document.querySelectorAll('#modes button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)));['sol','scale','ly','cls'].forEach(k=>$('m-'+k).hidden=k!==m);req();}
+document.querySelectorAll('#modes button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+$('solPlay').addEventListener('click',()=>setPlay(!S.play));
+segBind('solSpeed',v=>{S.speed=+v;});segBind('solScale',v=>{S.scale=v;});
+[['tBelt','belt'],['tPluto','pluto'],['tComet','comet'],['tNames','names']].forEach(([i,k])=>$(i).addEventListener('change',e=>{S[k]=e.target.checked;req();}));
+{const fill=sel=>BODIES.forEach(b=>{const o=document.createElement('option');o.value=b.k;o.textContent=b.n;sel.appendChild(o);});fill($('dA'));fill($('dB'));}
+$('dA').addEventListener('change',e=>{S.dA=e.target.value;req();});$('dB').addEventListener('change',e=>{S.dB=e.target.value;req();});
+{const sel=$('splitSel');SPLITS.forEach(([k,n])=>{const o=document.createElement('option');o.value=k;o.textContent=n;sel.appendChild(o);});sel.addEventListener('change',e=>{S.split=e.target.value;drawTable();});}
+$('sol').addEventListener('pointerdown',ev=>{const r=$('sol').getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;let best=null,bd=1e9;for(const h of SG.hit||[]){const d=Math.hypot(h.x-x,h.y-y);if(d<h.r&&d<bd){bd=d;best=h.k;}}if(best){S.sel=best;req();drawTable();}});
+// scale
+{const sg=$('scSeg');LV.forEach((l,i)=>{const b=document.createElement('button');b.textContent=(i+1)+' '+l.n;b.addEventListener('click',()=>{S.lvl=i;req();});sg.appendChild(b);});}
+$('scPrev').addEventListener('click',()=>{S.lvl=Math.min(LV.length-1,S.lvl+1);req();});$('scNext').addEventListener('click',()=>{S.lvl=Math.max(0,S.lvl-1);req();});
+// ly
+{const sel=$('lyTarget');LYT.forEach(t=>{const o=document.createElement('option');o.value=t[0];o.textContent=t[1];sel.appendChild(o);});sel.addEventListener('change',e=>{S.lyT=e.target.value;S.lyN='';$('lyNum').value='';req();});}
+$('lyNum').addEventListener('input',e=>{S.lyN=e.target.value;req();});$('lyUnit').addEventListener('change',e=>{S.lyU=e.target.value;req();});$('lyRadar').addEventListener('change',e=>{S.radar=e.target.checked;req();});
+segBind('conSeg',v=>{S.con=v;});$('conAng').addEventListener('input',e=>{S.conAng=+e.target.value;req();});$('conMove').addEventListener('change',e=>{S.conMove=e.target.checked;if(S.conMove)S.conAng=0;req();});
+$('con').addEventListener('pointerdown',ev=>{conDrag={x:ev.clientX,a:S.conAng};$('con').setPointerCapture(ev.pointerId);});
+$('con').addEventListener('pointermove',ev=>{if(!conDrag)return;S.conAng=Math.round(clamp(conDrag.a+(ev.clientX-conDrag.x)*.4,0,90));req();});
+$('con').addEventListener('pointerup',()=>{conDrag=null;});$('con').addEventListener('pointercancel',()=>{conDrag=null;});
+// classify
+{const box=$('clsEx');EX.forEach(([n,c,t])=>{const b=document.createElement('button');b.className='chip';b.textContent=n;b.addEventListener('click',()=>{c.forEach((v,i)=>$('c'+i).checked=!!v);clsUpdate();$('clsT').textContent+=' '+n+'：'+t;box.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});box.appendChild(b);});}
+[0,1,2,3,4].forEach(i=>$('c'+i).addEventListener('change',()=>{$('clsEx').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed','false'));clsUpdate();}));
+segBind('metSeg',v=>{S.met=v;});$('metGo').addEventListener('click',metGo);
+$('storyX').addEventListener('click',()=>{$('story').hidden=true;});
+
+// ================= presets =================
+const Q=[
+ {g:'宇宙',items:[
+  {n:'宇宙組織由大到小排序',pg:'p.216 第4題、p.220 第1題、p.225 第6題、p.253 第2題',a:()=>{setMode('scale');S.lvl=4;},tx:'由大到小：宇宙 ＞ 星系群 ＞ 星系（銀河系） ＞ 恆星（太陽）／太陽系 ＞ 行星（地球） ＞ 衛星（月球）。彗星屬於太陽系小天體，比星系小得多。用「縮小一級／放大一級」走一遍，看上方的層級。'},
+  {n:'夜空閃爍的星幾乎都是恆星',pg:'p.216 第1題、p.220 第2題',a:()=>{setMode('scale');S.lvl=3;},tx:'恆星自己會發光發熱，夜空中閃爍的星星幾乎都是恆星，而且幾乎都在銀河系裡。行星、衛星本身不會發光，靠反射太陽光。離地球最近的恆星是太陽。'},
+  {n:'銀河系的形狀與太陽的位置',pg:'p.215 圖㈠、p.220 第4–5題、p.221 第12題',a:()=>{setMode('scale');S.lvl=4;},tx:'銀河系直徑約 10 萬光年，由兩千多億顆恆星組成。俯視為螺旋狀，側視像荷包蛋，中央較厚。恆星分布不均勻，中心附近較密、較亮。太陽在離中心約 2/3 處。'},
+  {n:'大霹靂與宇宙的年齡',pg:'p.216、p.220 第10–11題、p.224 第9–11題',a:()=>{setMode('scale');S.lvl=6;},tx:'宇宙約在一百多億年前由高溫、高密度狀態經大霹靂形成，持續膨脹中。看到 100 多億光年外的星系，代表光走了 100 多億年，宇宙至少這麼老、也是有起始的；但太陽系只有約 46 億年。看到 10 億光年外的星系，只能推論它 10 億年前就存在、我們看到的是它 10 億年前的樣子，不能知道它的年齡。'},
+ ]},
+ {g:'光年與距離',items:[
+  {n:'光年是距離單位',pg:'p.215、p.220 第6題、p.225 第1題',a:()=>{setMode('ly');S.lyT='prox';S.lyN='';},tx:'1 光年是光在真空中走 1 年的距離，約 9.46 × 10¹² 公里，是距離單位，不是時間、亮度或速率的單位。太陽系內行星到地球都不到 1 光年。'},
+  {n:'雷達波來回 10 年，星球多遠？',pg:'p.216 第3題',a:()=>{setMode('ly');S.lyN='5';S.lyU='ly';S.radar=true;},tx:'電波和光一樣快。來回共 10 年，單程 5 年，所以星球距離 5 光年。勾選「雷達來回」看單程和來回時間。'},
+  {n:'阿信看到 10 光年外的恆星',pg:'p.220 第7題、p.253 第1題（天狼星 8.7 光年）',a:()=>{setMode('ly');S.lyN='10';S.lyU='ly';S.radar=false;},tx:'看到的是這顆恆星 10 年前發出的光。距離 ＝ 10 × 365 × 24 × 60 × 60 × 3 × 10⁵ 公里。它不可能是天王星（天王星在太陽系內）。目前的太空船遠比光慢，飛到 8.7 光年外的天狼星要十幾萬年。'},
+  {n:'半人馬座 α 星 4.3 光年',pg:'p.220 第8題',a:()=>{setMode('ly');S.lyT='acen';S.lyN='';},tx:'我們看到的是它 4.3 年前的樣子；光從它傳到地球要 4.3 年（不是 8.6 年）。日地距離和 4.3 光年比起來小很多，所以從太陽量也大約是 4.3 光年。'},
+  {n:'光速太空船 1 小時能到哪？',pg:'p.221 第19題',a:()=>{setMode('ly');S.lyN='2.2';S.lyU='au';S.radar=false;},tx:'1 天文單位光約走 500 秒。寶貝星 2.2 AU 約 1100 秒、小咪星 1.3 AU 約 650 秒，都在 1 小時（3600 秒）內；1.7 光年、25 光年要好幾年。把單位換成 AU、光年試試。'},
+  {n:'太陽在 10 AU 外，光要走多久？',pg:'p.253 第8題',a:()=>{setMode('ly');S.lyN='10';S.lyU='au';S.radar=false;},tx:'1 AU 光走 500 秒，10 AU 就是 5000 秒。也可以算：1.5 × 10⁹ 公里 ÷ 3 × 10⁵ 公里/秒 ＝ 5000 秒。'},
+  {n:'飛到金星軌道附近，星座形狀會變嗎？',pg:'p.220 第3題',a:()=>{setMode('ly');S.con='dipper';S.conAng=0;S.conMove=true;},tx:'恆星離我們幾十到幾百光年，在太陽系內移動不到 1 AU 根本看不出差別，所以星座形狀相同，亮度也幾乎不變。但離太陽近了，太陽會看起來變大。'},
+  {n:'飛馬座四邊形：X、Y 星的光',pg:'p.226 第7題',a:()=>{setMode('ly');S.con='peg';S.conAng=60;S.conMove=false;},tx:'星座中的星星遠近不同，只是方向相近。題目中 X 星 335 光年、Y 星 140 光年：Y 星的光到地球要 140 年（不是 140 天）；兩者都在銀河系內；現在看到的 X 星是它 335 年前的樣子。轉動角度看真實的遠近。'},
+  {n:'北斗七星：彼此距離差很多',pg:'p.253 第4題',a:()=>{setMode('ly');S.con='dipper';S.conAng=70;S.conMove=false;},tx:'北斗七星都是恆星，主要成分是氫和氦（這題的正確答案）。它們離地球 80～123 光年，遠近差很多，只是方向相近；它們不是太陽系的成員；恆星本身也在運動，相對位置不是永遠固定，只是變化很慢。轉動角度看真實的遠近。'},
+ ]},
+ {g:'太陽系與行星',items:[
+  {n:'太陽系的形成',pg:'p.216、p.218 第1–2題、p.221 第13題',a:()=>{setMode('sol');S.sel='sun';},tx:'太陽約在 46 億年前形成，周圍的氣體和塵埃受萬有引力聚集，形成八大行星、矮行星、小行星和彗星等，共同構成太陽系。太陽系是以太陽為中心的行星系統，太陽是其中唯一的恆星。'},
+  {n:'類地行星由內到外的順序',pg:'p.221 第15題、p.218 第5題',a:()=>{setMode('sol');S.sortK='a';S.sortDir=1;S.split='t';S.sel='mercury';},tx:'距離太陽由近到遠：水星、金星、地球、火星（類地行星），木星、土星、天王星、海王星（類木行星）。由水星往外算，第三顆是地球。'},
+  {n:'密度：距離近的密度大',pg:'p.221 第16題',a:()=>{setMode('sol');S.sortK='D';S.sortDir=-1;S.split='D';S.sel='earth';},tx:'類地行星（甲，離太陽近）由岩石、金屬組成，密度大；類木行星（乙、丙）由氣體、冰組成，密度小。所以甲 ＞ 丙。比較表依密度排序看看。'},
+  {n:'體積：誰最大？',pg:'p.218 第3題、p.221 第17題',a:()=>{setMode('sol');S.sortK='vol';S.sortDir=-1;S.split='vol';S.sel='jupiter';},tx:'行星中體積、質量最大的是木星。體積大小：恆星 ＞ 類木行星 ＞ 類地行星 ＞ 衛星，所以土星 ＞ 金星 ＞ 火星 ＞ 月球。'},
+  {n:'類地與類木行星比較',pg:'p.217 老師的話、p.221 第18題、p.226 第8題、p.253 第3題',a:()=>{setMode('sol');S.sortK='t';S.sortDir=1;S.split='t';},tx:'類地行星：離太陽近、岩石金屬、質量體積小、密度大、衛星少（水星、金星沒有）。類木行星：離太陽遠、氣體和冰、質量體積大、密度小、衛星多、沒有岩石外殼。兩類各 4 顆。'},
+  {n:'用哪項性質可以分成兩類？',pg:'p.222 第26題',a:()=>{setMode('sol');S.split='m';S.sortK='m';S.sortDir=1;},tx:'質量、密度、衛星數都能把甲乙（類地）和丙丁（類木）分開；表面重力不行，因為類地和類木的表面重力沒有明顯差異。在比較表右上選不同性質，看是不是剛好分成類地、類木。'},
+  {n:'金星、地球、火星的大氣',pg:'p.218 老師的話、p.221 第20–21題、p.222 第23–24題、p.223 素養1–2',a:()=>{setMode('sol');S.sel='venus';},tx:'金星：96% 二氧化碳、92 大氣壓，溫室效應最強，溫度最高（不是因為最近）。地球：78% 氮、21% 氧。火星：95% 二氧化碳但大氣稀薄（0.01 大氣壓），日夜溫差大。離太陽越近，單位面積接收的太陽能越多：金星 ＞ 地球 ＞ 火星。'},
+  {n:'推理：小光抵達哪顆行星？',pg:'p.222 第22題',a:()=>{setMode('sol');S.sel='mars';},tx:'氣溫偏低、大氣壓約地球的 1/100、體積約地球的一半、岩石地表：這是火星。點各行星的資料卡比對看看。'},
+  {n:'哪兩顆行星最接近時距離最短？',pg:'p.226 第9題',a:()=>{setMode('sol');S.dA='venus';S.dB='earth';S.speed=1;},tx:'最近距離 ＝ 兩者到太陽的距離相減。金星與地球 1 − 0.7 ＝ 0.3 AU，木星與火星 3.7 AU，地球與木星 4.2 AU，火星與土星 8 AU。用「兩個天體之間的距離」換組合比較。'},
+  {n:'哪個距離大於 1 天文單位？',pg:'p.225 第4題',a:()=>{setMode('sol');S.dA='sun';S.dB='venus';},tx:'金星離太陽約 0.72 AU，所以太陽與金星的距離都小於 1 AU；地球與金星最近只有約 0.28 AU。月球繞地球，滿月時月球在地球外側，太陽與月球的距離大於 1 AU。'},
+  {n:'行星位置：4 顆連續行星',pg:'p.225 第2題',a:()=>{setMode('sol');S.sortK='a';S.sortDir=1;S.sel='mars';},tx:'4 顆連續排列、2 顆類地 2 顆類木，只能是地球、火星、木星、土星（甲乙丙丁）。所以金星在太陽和甲（地球）之間，天王星在丁（土星）之外。'},
+  {n:'行星海報：用便條紙推理',pg:'p.226 第10–11題',a:()=>{setMode('sol');S.sortK='vol';S.sortDir=-1;S.split='vol';},tx:'體積是地球 755 倍左右的是土星（類木）。甲的主要成分是氣體（類木）；乙是岩石、金屬（類地）。丁也是岩石、金屬，若翻開的距離大於 1 AU，丁就是火星，乙就不是火星，只能是水星或金星。所以答案是丁、大於 1 的數字。'},
+  {n:'各行星到太陽的距離（AU）',pg:'p.217 知識補給站、p.224 第7題',a:()=>{setMode('sol');S.sortK='a';S.sortDir=1;S.scale='inner';},tx:'水星約 0.4、金星約 0.7、地球 1、火星約 1.5、木星約 5、土星約 9.5、天王星約 19、海王星約 30 AU。天文單位適合用在太陽系內。'},
+ ]},
+ {g:'矮行星、小天體、流星',items:[
+  {n:'冥王星為什麼是矮行星？',pg:'p.219、p.219 第1題、p.222 第27題',a:()=>{setMode('cls');pickEx('冥王星');},tx:'冥王星繞太陽運轉、也是球形，但質量、體積太小，無法以自身重力清除軌道上的其他小天體，所以 2006 年被歸為矮行星。'},
+  {n:'小行星帶在哪裡？',pg:'p.219 第2題、p.222 第28題',a:()=>{setMode('sol');S.belt=true;S.sel='mars';S.scale='sch';},tx:'小行星大多在火星與木星軌道之間，構成小行星帶，成分主要是岩石和金屬（和類地行星相近）；彗星則是冰雪和灰塵。兩者都繞日公轉、都是太陽系成員，碎屑都可能成為流星。'},
+  {n:'彗星的組成與彗尾方向',pg:'p.219 第3題、p.223 第36題、p.224 第8題',a:()=>{setMode('sol');S.comet=true;S.sel='comet';S.speed=1;S.t=26;},tx:'彗星由冰雪和灰塵組成，接近太陽時受陽光照射、太陽風吹拂，放出氣體和塵埃形成彗尾。彗尾永遠背向太陽，不是拖在運動方向的後面。彗星靠反射陽光被看見，不必掉進大氣。按播放看它接近太陽。'},
+  {n:'衛星：艾歐星是什麼？',pg:'p.219、p.223 第30題、p.254 第9題',a:()=>{setMode('cls');pickEx('艾歐星');},tx:'繞行星公轉的就是衛星，不管成分是岩石金屬還是冰。水星、金星沒有衛星；類木行星的衛星較多。月球是地球唯一的天然衛星，火星有兩顆。'},
+  {n:'流星和隕石：要有大氣',pg:'p.219、p.219 第4題、p.223 第31–35題、p.253 第6題',a:()=>{setMode('cls');S.met='earth';setTimeout(metGo,200);},tx:'太空碎粒闖入大氣層和空氣摩擦燃燒發光，就是流星；沒燒完落到地面的是隕石。月球、水星沒有大氣，看不到流星，表面布滿隕石坑。流星在大氣層內，比月亮近得多。白天也有流星，只是陽光太強看不見。換成月球再丟一次比較。'},
+ ]}
+];
+function pickEx(n){const it=EX.find(e=>e[0]===n);it[1].forEach((v,i)=>$('c'+i).checked=!!v);clsUpdate();$('clsT').textContent+=' '+n+'：'+it[2];$('clsEx').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x.textContent===n)));}
+function syncUI(){segSet('solSpeed',S.speed);segSet('solScale',S.scale);$('tBelt').checked=S.belt;$('tPluto').checked=S.pluto;$('tComet').checked=S.comet;$('tNames').checked=S.names;$('dA').value=S.dA;$('dB').value=S.dB;$('splitSel').value=S.split;
+  $('lyTarget').value=S.lyT;$('lyNum').value=S.lyN;$('lyUnit').value=S.lyU;$('lyRadar').checked=S.radar;segSet('conSeg',S.con);$('conMove').checked=S.conMove;segSet('metSeg',S.met);}
+function applyPreset(it){setPlay(false);it.a();syncUI();drawTable();$('story').hidden=false;$('storyT').textContent=it.n+'（'+it.pg+'）';$('storyP').textContent=it.tx;render();$('story').scrollIntoView({behavior:'smooth',block:'nearest'});}
+{const pane=$('qpane');Q.forEach(gr=>{const d=document.createElement('div');d.className='qgrp';d.innerHTML=`<h4>${gr.g}</h4>`;const c=document.createElement('div');c.className='qchips';
+  gr.items.forEach(it=>{const b=document.createElement('button');b.className='qchip';b.innerHTML=`${it.n}<span class="pg">${it.pg}</span>`;b.addEventListener('click',()=>applyPreset(it));c.appendChild(b);});d.appendChild(c);pane.appendChild(d);});
+  const p=document.createElement('p');p.className='note';p.textContent='行星資料取自講義（質量、密度以地球為 1；表面溫度、大氣成分依講義表格）。衛星數量隨新發現持續增加，所以只寫「很多」。';pane.appendChild(p);}
+
+syncUI();drawTable();clsUpdate();
+new ResizeObserver(req).observe(document.querySelector('.wrap'));
+render();
+})();
+</script>
+</body>
+</html>

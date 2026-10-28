@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>晝夜與四季</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+:root{
+  --bg:#eaeef2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1; --grid:#e3e8ee;
+  --accent:#c2410c; --accent-soft:#fbe7dc; --blue:#1c68ad; --green:#1f8a5b; --red:#d23b2f;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --tap:40px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#222c37;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --green:#4cc28e; --red:#ff7468; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#222c37;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --green:#4cc28e; --red:#ff7468; color-scheme:dark }
+@media (min-width:1700px){html{font-size:17px}:root{--tap:48px}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px}
+.eyebrow{font-size:.8rem;letter-spacing:.12em;color:var(--muted);font-weight:500}
+.eyebrow a{color:inherit}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:2px 0 0}
+header p{margin:0;color:var(--muted);max-width:58ch;font-size:.92rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:9px 12px}
+.toolbar + .toolbar{border-top:1px solid var(--line)}
+button,select{font:inherit;font-size:.92rem;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;min-height:var(--tap);padding:0 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:86px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-left:1px solid var(--line);background:transparent;min-height:calc(var(--tap) - 2px);padding:0 11px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.tlabel{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.grp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.slider{display:flex;align-items:center;gap:10px;flex:1 1 300px;min-width:240px}
+.slider input{flex:1;accent-color:var(--accent);min-height:var(--tap)}
+.slider output{font-family:var(--f-mono);font-weight:600;min-width:5.6em;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:34px;padding:2px 12px;cursor:pointer;font-size:.86rem}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.tog{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;min-height:34px;padding:2px 12px 2px 9px;cursor:pointer;font-size:.86rem;user-select:none}
+.tog input{accent-color:var(--accent);margin:0;width:16px;height:16px}
+.tog:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.grid4{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.grid4{grid-template-columns:minmax(0,1fr)}}
+.ptitle{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 10px;padding:9px 12px 0;font-weight:700;font-size:.95rem}
+.ptitle small{font-weight:400;color:var(--muted);font-size:.78rem}
+.cbox{padding:8px 10px 6px}
+canvas{display:block;width:100%;touch-action:none;border-radius:7px}
+.hint{font-size:.78rem;color:var(--muted);padding:0 12px 10px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 22px;padding:10px 14px 12px}
+.ro{display:flex;flex-direction:column;gap:2px;font-size:.92rem}
+.ro .big{font-family:var(--f-display);font-weight:900;font-size:1.55rem;line-height:1.2}
+.ro .big .clk{font-family:var(--f-mono);font-weight:600;font-size:1.25rem;margin-left:8px}
+.kv{display:grid;grid-template-columns:5.4em minmax(0,1fr);gap:6px}
+.kv>span:first-child{color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.pill{display:inline-block;font-weight:700;padding:0 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-right:4px}
+.story{border-left:4px solid var(--accent);padding:10px 14px 12px;position:relative}
+.story h3{margin:0 30px 4px 0;font-size:1rem}
+.story p{margin:0;font-size:.95rem}
+.story .x{position:absolute;right:8px;top:6px;border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;min-width:var(--tap);min-height:var(--tap)}
+.tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:9px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabpane{padding:12px 14px 16px}
+.qgrp{margin-bottom:12px}
+.qgrp h4{margin:0 0 6px;font-size:.82rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
+.qchips{display:flex;flex-wrap:wrap;gap:7px}
+.qchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:36px;padding:3px 13px;cursor:pointer;font-size:.88rem;text-align:left}
+.qchip:hover{border-color:var(--accent)}
+.qchip .pg{color:var(--muted);font-size:.76rem;margin-left:4px}
+.note{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+table.cause{border-collapse:collapse;font-size:.88rem;margin-top:6px;width:100%;max-width:720px}
+table.cause td,table.cause th{border:1px solid var(--line);padding:5px 10px;text-align:left}
+table.cause th{background:var(--accent-soft);font-weight:700}
+.egrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:820px){.egrid{grid-template-columns:minmax(0,1fr)}}
+.res{border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.93rem}
+.res .bigv{font-family:var(--f-mono);font-weight:600;font-size:1.4rem}
+select{border:1px solid var(--line);border-radius:8px;min-height:34px;background:var(--panel);padding:0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../">自然科模擬動畫</a> · 自然（五）7-2</div>
+      <h1>晝夜與四季</h1>
+    </div>
+    <p>拖曳公轉軌道上的地球換日期，點地球換緯度，在天空圖拖曳太陽換時刻。四個畫面和下方數據同步變化；講義題目在最下方。</p>
+  </header>
+
+  <section class="panel" aria-label="控制">
+    <div class="toolbar">
+      <button class="btn primary" id="play">▶ 播放</button>
+      <span class="grp"><span class="tlabel">播放</span>
+        <span class="seg" id="pmSeg">
+          <button data-v="t0.1667" aria-pressed="false">10 分/秒</button><button data-v="t1" aria-pressed="true">1 時/秒</button><button data-v="t3" aria-pressed="false">3 時/秒</button><button data-v="d5" aria-pressed="false">每秒 5 天</button><button data-v="d30" aria-pressed="false">每秒 30 天</button>
+        </span></span>
+      <span class="grp"><button class="btn" data-dd="-30">−1 月</button><button class="btn" data-dd="-1">−1 天</button><button class="btn" data-dd="1">+1 天</button><button class="btn" data-dd="30">+1 月</button></span>
+      <span style="flex:1"></span>
+      <button class="btn" id="resetAll">↺ 回復預設</button>
+    </div>
+    <div class="toolbar">
+      <label class="slider"><span class="tlabel">日期</span><input type="range" id="dateR" min="0" max="364" step="1"><output id="dateO"></output></label>
+      <span class="chips" id="dateChips">
+        <button class="chip" data-date="3/21">春分 3/21</button><button class="chip" data-date="6/22">夏至 6/22</button><button class="chip" data-date="9/23">秋分 9/23</button><button class="chip" data-date="12/22">冬至 12/22</button>
+      </span>
+    </div>
+    <div class="toolbar">
+      <label class="slider"><span class="tlabel">地方時</span><input type="range" id="timeR" min="0" max="1435" step="5"><output id="timeO"></output></label>
+      <span class="chips"><button class="chip" data-time="6">06:00</button><button class="chip" data-time="9">09:00</button><button class="chip" data-time="12">正午</button><button class="chip" data-time="15">15:00</button><button class="chip" data-time="18">18:00</button><button class="chip" data-time="sr">日出</button><button class="chip" data-time="ss">日落</button></span>
+    </div>
+    <div class="toolbar">
+      <label class="slider"><span class="tlabel">觀察者緯度</span><input type="range" id="latR" min="-90" max="90" step="0.5"><output id="latO"></output></label>
+      <span class="chips" id="latChips"></span>
+    </div>
+    <div class="toolbar">
+      <label class="slider" style="flex:0 1 420px"><span class="tlabel">自轉軸傾角</span><input type="range" id="tiltR" min="0" max="40" step="0.5"><output id="tiltO"></output></label>
+      <span class="tlabel">真實的地球是 23.5°；改成 0° 看看會怎樣</span>
+    </div>
+  </section>
+
+  <section class="panel story" id="story" hidden>
+    <button class="x" id="storyX" aria-label="關閉說明">×</button>
+    <h3 id="storyT"></h3>
+    <p id="storyP"></p>
+    <button class="btn" id="storyBack" style="margin-top:8px" hidden>← 回到講義題目列表</button>
+  </section>
+
+  <section class="panel">
+    <div class="readout" id="readout">
+      <div class="ro">
+        <div class="big"><span id="rDate"></span><span class="clk" id="rClock"></span></div>
+        <div id="rSeason"></div>
+        <div class="kv"><span>太陽直射</span><b id="rDecl"></b></div>
+      </div>
+      <div class="ro">
+        <div class="kv"><span>觀察者</span><b id="rLat"></b></div>
+        <div class="kv"><span>現在太陽</span><span id="rSunNow"></span></div>
+        <div class="kv"><span>現在竿影</span><span id="rShNow"></span></div>
+      </div>
+      <div class="ro">
+        <div class="kv"><span>今天晝長</span><b id="rDay"></b></div>
+        <div class="kv"><span>日出</span><span id="rRise"></span></div>
+        <div class="kv"><span>日落</span><span id="rSet"></span></div>
+      </div>
+      <div class="ro">
+        <div class="kv"><span>正午仰角</span><b id="rNoon"></b></div>
+        <div class="kv"><span>正午竿影</span><span id="rNoonSh"></span></div>
+        <div class="kv"><span>單位面積</span><span id="rEnergy"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid4">
+    <section class="panel">
+      <div class="ptitle"><span>① 地球繞太陽公轉 <small>從北極上空斜看；拖曳地球換日期</small></span>
+        <label class="tog"><input type="checkbox" id="tCode">課本代號 甲乙丙丁</label></div>
+      <div class="cbox"><canvas id="orbit" aria-label="地球公轉軌道圖，可拖曳地球改變日期"></canvas></div>
+    </section>
+    <section class="panel">
+      <div class="ptitle"><span>③ 觀察者看到的天空</span>
+        <span class="seg" id="skySeg"><button data-v="sun" aria-pressed="true">太陽與竿影</button><button data-v="stars" aria-pressed="false">北方星空（星軌）</button></span></div>
+      <div class="cbox"><canvas id="sky" aria-label="觀察者所在地的天球與太陽軌跡"></canvas></div>
+      <div class="toolbar" id="skyOpts" style="padding-top:0">
+        <span class="seg" id="skyView"><button data-v="270" aria-pressed="true">課本視角（東在前）</button><button data-v="180" aria-pressed="false">面向南</button><button data-v="0" aria-pressed="false">面向北</button></span>
+        <label class="tog"><input type="checkbox" id="tRef" checked>夏至、春秋分、冬至軌跡</label>
+        <label class="tog"><input type="checkbox" id="tPath">竿影整天軌跡</label>
+      </div>
+      <div class="toolbar" id="starOpts" style="padding-top:0" hidden>
+        <label class="slider" style="flex:1 1 280px"><span class="tlabel">曝光時間</span><input type="range" id="expR" min="0" max="12" step="0.5"><output id="expO"></output></label>
+      </div>
+      <div class="hint" id="skyHint">拖曳太陽可改變時刻；在空白處左右拖曳可旋轉視角。</div>
+    </section>
+    <section class="panel">
+      <div class="ptitle"><span>② 地球受光情形 <small id="globeSub">點或拖曳地球表面換觀察者緯度</small></span>
+        <span class="grp"><span class="seg" id="evSeg"><button data-v="side" aria-pressed="true">側面看</button><button data-v="top" aria-pressed="false">北極上空俯視</button></span>
+        <span class="seg" id="sunSeg"><button data-v="L" aria-pressed="true">太陽在左</button><button data-v="R" aria-pressed="false">太陽在右</button></span></span></div>
+      <div class="cbox"><canvas id="globe" aria-label="地球受太陽光照射的晝夜分布"></canvas></div>
+      <div class="hint" id="globeHint"></div>
+    </section>
+    <section class="panel">
+      <div class="ptitle"><span>④ 圖表</span>
+        <span class="grp"><span class="tlabel">比較地點</span><select id="cmpSel"></select></span></div>
+      <div class="toolbar" style="padding-bottom:0">
+        <span class="seg" id="chartSeg">
+          <button data-v="noonShadow" aria-pressed="true">全年正午竿影</button><button data-v="daylen" aria-pressed="false">全年晝長與日出日落</button><button data-v="decl" aria-pressed="false">全年直射緯度</button><button data-v="latShadow" aria-pressed="false">今天各緯度竿影</button><button data-v="latDay" aria-pressed="false">今天各緯度晝長</button>
+        </span>
+      </div>
+      <div class="cbox"><canvas id="chart" aria-label="圖表"></canvas></div>
+      <div class="hint" id="chartHint"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="q" aria-selected="true">講義題目情境</button>
+      <button role="tab" data-tab="energy" aria-selected="false">直射與斜射（探討活動 7-1）</button>
+      <button role="tab" data-tab="cause" aria-selected="false">自轉還是公轉造成的？</button>
+    </div>
+    <div class="tabpane" id="pane-q" role="tabpanel"></div>
+    <div class="tabpane" id="pane-energy" role="tabpanel" hidden>
+      <div class="toolbar" style="padding:0 0 10px">
+        <span class="seg" id="enSeg"><button data-v="now" aria-pressed="true">現在的太陽</button><button data-v="noon" aria-pressed="false">今天正午</button><button data-v="manual" aria-pressed="false">自己調整仰角</button></span>
+        <label class="slider" id="enManual" hidden><span class="tlabel">光線仰角</span><input type="range" id="enR" min="5" max="90" step="0.5"><output id="enO"></output></label>
+      </div>
+      <div class="egrid">
+        <canvas id="energy" aria-label="直射與斜射的受光面積比較"></canvas>
+        <div class="res" id="enRes"></div>
+      </div>
+    </div>
+    <div class="tabpane" id="pane-cause" role="tabpanel" hidden>
+      <table class="cause">
+        <tr><th>現象</th><th>主要原因</th></tr>
+        <tr><td>晝夜交替、時差、一天中竿影長短與方向改變、日月星辰東升西落、星軌（每小時約 15°）</td><td>地球<b>自轉</b>（由西向東，北極上空看逆時針，一天一圈）</td></tr>
+        <tr><td>四季變化、一年中正午竿影長短改變、晝夜長短隨季節改變、太陽直射位置在南北回歸線之間移動</td><td>地球<b>公轉</b>（一年一圈）加上<b>自轉軸傾斜 23.5°</b></td></tr>
+        <tr><td>地球上任何地方自轉一周的時間</td><td>都相同（一天）；赤道轉的圓最大，速率最快</td></tr>
+        <tr><td>北極星幾乎不動</td><td>自轉軸北端幾乎正指向北極星</td></tr>
+        <tr><td>夏天比冬天熱</td><td>太陽光較直射（單位面積能量多）、白晝較長；<b>不是</b>因為離太陽較近（地球在 1 月初反而離太陽最近）</td></tr>
+      </table>
+      <p class="note">在上面把「自轉軸傾角」調成 0°，再用「每秒 30 天」播放：直射位置一直在赤道、各地晝夜都等長，四季就消失了。</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), mod=(a,n)=>((a%n)+n)%n, lerp=(a,b,f)=>a+(b-a)*f;
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], sc=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const nrm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l];};
+
+// ---------------- calendar ----------------
+const MD=[31,28,31,30,31,30,31,31,30,31,30,31];
+function dIdx(str){const[m,d]=str.split('/').map(Number);let s=0;for(let i=0;i<m-1;i++)s+=MD[i];return s+d-1;}
+function md(d){d=Math.floor(mod(d,365));let m=0;while(d>=MD[m]){d-=MD[m];m++;}return[m+1,d+1];}
+const mdStr=d=>{const[m,dd]=md(d);return m+'/'+dd;};
+const ANC=[79,172,265,355,444];  // 3/21 6/22 9/23 12/22 3/21
+function phaseOf(d){let x=mod(d,365);if(x<79)x+=365;for(let i=0;i<4;i++)if(x<=ANC[i+1])return 90*i+90*(x-ANC[i])/(ANC[i+1]-ANC[i]);return 0;}
+function dOfPhase(p){p=mod(p,360);const i=Math.min(3,Math.floor(p/90));return mod(ANC[i]+(ANC[i+1]-ANC[i])*(p-90*i)/90,365);}
+
+// ---------------- state ----------------
+const S0={d:dIdx('6/22'),t:12,lat:23.5,tilt:23.5,playing:false,pm:'t1',sky:'sun',skyAz:270,ref:true,path:false,exp:4,
+  ev:'side',sun:'L',code:false,chart:'noonShadow',cmp:'none',tab:'q',en:'now',enAlt:45};
+const S={...S0};
+const CITIES=[['北極',90],['北極圈',66.5],['英國',51],['北緯 35°',35],['臺北',25],['臺中',24],['嘉義',23.5],['高雄',22.6],['赤道',0],['南回歸線',-23.5],['紐西蘭',-41],['南極',-90]];
+const CMP=[['none','（不比較）'],['51','英國 北緯 51°'],['35','北緯 35°'],['23.5','嘉義 北緯 23.5°'],['0','赤道'],['-23.5','南回歸線'],['-41','紐西蘭 南緯 41°'],['66.5','北極圈']];
+
+// ---------------- astronomy ----------------
+function geo(d){
+  const ph=phaseOf(d), th=rad(ph+90), e=rad(S.tilt);
+  const p=[Math.cos(th),Math.sin(th),0], s=[-p[0],-p[1],0], a=[Math.sin(e),0,Math.cos(e)];
+  const sd=dot(s,a), e1=nrm(sub(s,sc(a,sd))), e2=cross(a,e1);
+  return{ph,th,p,s,a,e1,e2,dec:deg(Math.asin(clamp(sd,-1,1)))};
+}
+const declOf=d=>deg(Math.asin(Math.sin(rad(S.tilt))*Math.sin(rad(phaseOf(d)))));
+function altaz(lat,dec,H){
+  const f=rad(clamp(lat,-89.999,89.999)),dl=rad(dec),h=rad(H);
+  const E=-Math.cos(dl)*Math.sin(h), N=Math.cos(f)*Math.sin(dl)-Math.sin(f)*Math.cos(dl)*Math.cos(h), U=Math.sin(f)*Math.sin(dl)+Math.cos(f)*Math.cos(dl)*Math.cos(h);
+  return{E,N,U,alt:deg(Math.asin(clamp(U,-1,1))),az:mod(deg(Math.atan2(E,N)),360)};
+}
+function dayInfo(lat,dec){
+  const x=-Math.tan(rad(clamp(lat,-89.99,89.99)))*Math.tan(rad(dec));
+  if(Math.abs(lat)>=89.99&&Math.abs(dec)<1e-6) return{H0:90,len:12,polar:null};
+  if(x<=-1)return{H0:180,len:24,polar:'day'}; if(x>=1)return{H0:0,len:0,polar:'night'};
+  const H0=deg(Math.acos(x));return{H0,len:2*H0/15,polar:null};
+}
+const noonAlt=(lat,dec)=>90-Math.abs(lat-dec);
+function hhmm(h){h=mod(h,24);let m=Math.round(h*60);if(m===1440)m=0;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function hm(h){const m=Math.round(h*60);return `${Math.floor(m/60)} 小時 ${m%60} 分`;}
+function latName(l){if(Math.abs(l)<0.05)return '赤道 0°';return (l>0?'北緯 ':'南緯 ')+fmt(Math.abs(l))+'°';}
+const fmt=v=>(Math.round(v*10)/10).toString();
+function dirName(az){ // azimuth (0 N, 90 E) -> 東偏北 12° style
+  az=mod(az,360);
+  const P=[[0,'北'],[90,'東'],[180,'南'],[270,'西']];
+  for(const[a,n]of P){if(Math.abs(mod(az-a+180,360)-180)<0.6)return '正'+n;}
+  if(az>45&&az<135)return `東偏${az<90?'北':'南'} ${fmt(Math.abs(90-az))}°`;
+  if(az>225&&az<315)return `西偏${az>270?'北':'南'} ${fmt(Math.abs(270-az))}°`;
+  if(az>=135&&az<=225)return `南偏${az<180?'東':'西'} ${fmt(Math.abs(180-az))}°`;
+  const x=az>180?360-az:az;return `北偏${az<180?'東':'西'} ${fmt(x)}°`;
+}
+function seasonOf(d,south){
+  const x=mod(d,365);let n;
+  if(x>=79&&x<172)n='春';else if(x>=172&&x<265)n='夏';else if(x>=265&&x<355)n='秋';else n='冬';
+  if(south)n={春:'秋',夏:'冬',秋:'春',冬:'夏'}[n];return n;
+}
+function specialDay(d){const x=Math.round(mod(d,365));const M={79:'春分',172:'夏至',265:'秋分',355:'冬至'};for(const k in M){if(Math.abs(x-k)<=1)return M[k];}return '';}
+
+// ---------------- canvas helpers ----------------
+const dpr=()=>Math.min(window.devicePixelRatio||1,2);
+function mk(id,ratio,maxH,minH){return{c:$(id),ctx:$(id).getContext('2d'),W:0,H:0,ratio,maxH,minH:minH||0};}
+const CV={orbit:mk('orbit',.66,520,260),sky:mk('sky',.7,540,270),globe:mk('globe',.78,560,280),chart:mk('chart',.62,460,240),energy:mk('energy',.6,380,220)};
+function size(o){const w=o.c.clientWidth;if(!w)return false;const h=Math.max(o.minH,Math.min(o.maxH,Math.round(w*o.ratio)));const r=dpr();
+  if(o.W!==w||o.H!==h||o.r!==r){o.c.style.height=h+'px';o.c.width=Math.round(w*r);o.c.height=Math.round(h*r);o.W=w;o.H=h;o.r=r;}
+  o.ctx.setTransform(r,0,0,r,0,0);return true;}
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const FONT=(s,w)=>`${w||500} ${s}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+function hexLerp(a,b,f){f=clamp(f,0,1);const pa=[1,3,5].map(i=>parseInt(a.substr(i,2),16)),pb=[1,3,5].map(i=>parseInt(b.substr(i,2),16));return '#'+pa.map((v,i)=>Math.round(v+(pb[i]-v)*f).toString(16).padStart(2,'0')).join('');}
+function arrowL(ctx,x1,y1,x2,y2,col,w,head){const a=Math.atan2(y2-y1,x2-x1),hd=head||9;ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w||2;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-Math.cos(a)*hd*.6,y2-Math.sin(a)*hd*.6);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-Math.cos(a-.42)*hd,y2-Math.sin(a-.42)*hd);ctx.lineTo(x2-Math.cos(a+.42)*hd,y2-Math.sin(a+.42)*hd);ctx.closePath();ctx.fill();}
+function tag(ctx,x,y,t,col,bg,size,align){ctx.font=FONT(size||12,700);const w=ctx.measureText(t).width+10;let x0=align==='left'?x:align==='right'?x-w:x-w/2;ctx.fillStyle=bg||'rgba(8,14,30,.72)';ctx.fillRect(x0,y-10,w,20);ctx.fillStyle=col||'#fff';ctx.textAlign='left';ctx.fillText(t,x0+5,y+4.5);}
+const STARS=Array.from({length:110},(_,i)=>{const h=k=>{const s=Math.sin(i*12.9898+k*78.233)*43758.5453;return s-Math.floor(s);};return[h(1),h(2),h(3)];});
+function starfield(ctx,W,H,alpha){ctx.fillStyle=`rgba(255,255,255,${alpha})`;for(const[u,v,z]of STARS)ctx.fillRect(u*W,v*H,z>.85?1.6:1,z>.85?1.6:1);}
+
+// latitude lines
+function latLines(){const e=S.tilt,L=[[0,'赤道','#ffffff']];if(e>=0.5){L.push([e,'北回歸線','#ff8a3d'],[-e,'南回歸線','#ff8a3d'],[90-e,'北極圈','#9fe0ff'],[-(90-e),'南極圈','#9fe0ff']);}return L;}
+
+// per-pixel lit globe. B = {R,U,V} world unit vectors for screen right, screen up, toward viewer
+function drawGlobe(ctx,cx,cy,R,B,g,opt){
+  opt=opt||{};const r=dpr(),N=Math.max(8,Math.ceil(2*R*r)),off=document.createElement('canvas');off.width=off.height=N;
+  const oc=off.getContext('2d'),img=oc.createImageData(N,N),D=img.data,half=N/2,Rp=R*r;
+  const lines=opt.lines?latLines():[];const lineThr=(opt.lineW||1.25)/Rp;
+  const obsLat=opt.obsLat!==undefined?rad(opt.obsLat):null;
+  const s=g.s,a=g.a,e1=g.e1,e2=g.e2;
+  for(let j=0;j<N;j++){const v=(half-(j+.5))/Rp;
+    for(let i=0;i<N;i++){const u=((i+.5)-half)/Rp,q=u*u+v*v;if(q>1)continue;const w=Math.sqrt(1-q);
+      const nx=u*B.R[0]+v*B.U[0]+w*B.V[0],ny=u*B.R[1]+v*B.U[1]+w*B.V[1],nz=u*B.R[2]+v*B.U[2]+w*B.V[2];
+      const ns=nx*s[0]+ny*s[1]+nz*s[2], sa=nx*a[0]+ny*a[1]+nz*a[2];
+      const f=clamp(ns*Rp*.35+.5,0,1); // soft terminator
+      const lam=.55+.45*Math.max(0,ns);
+      let cr=lerp(18,lam*78,f),cg=lerp(32,lam*150,f),cb=lerp(70,lam*228,f);
+      const lat=Math.asin(clamp(sa,-1,1));
+      if(opt.lon){const lon=Math.atan2(nx*e2[0]+ny*e2[1]+nz*e2[2],nx*e1[0]+ny*e1[1]+nz*e1[2]);const k=Math.PI/12;const dd=Math.abs(mod(lon+k/2,k)-k/2)*Math.cos(lat);if(dd<.75/Rp){cr=lerp(cr,255,.28);cg=lerp(cg,255,.28);cb=lerp(cb,255,.28);}}
+      for(const L of lines){if(Math.abs(lat-rad(L[0]))<lineThr){
+        if(opt.bars){ if(f>.5){cr=255;cg=80;cb=70;} else {cr=90;cg=215;cb=255;} }
+        else {const c=L[2];cr=parseInt(c.substr(1,2),16);cg=parseInt(c.substr(3,2),16);cb=parseInt(c.substr(5,2),16);}
+        break;}}
+      if(obsLat!==null&&Math.abs(lat-obsLat)<lineThr*.9){cr=255;cg=214;cb=80;}
+      const p=(j*N+i)*4,aa=clamp((1-Math.sqrt(q))*Rp*1.2,0,1);D[p]=cr;D[p+1]=cg;D[p+2]=cb;D[p+3]=255*aa;}}
+  oc.putImageData(img,0,0);ctx.drawImage(off,cx-N/(2*r),cy-N/(2*r),N/r,N/r);
+}
+const proj=(B,v,cx,cy,R)=>[cx+R*dot(v,B.R),cy-R*dot(v,B.U),dot(v,B.V)];
+const obsVec=(g,lat,H)=>{const f=rad(lat),h=rad(H);return add(sc(add(sc(g.e1,Math.cos(h)),sc(g.e2,Math.sin(h))),Math.cos(f)),sc(g.a,Math.sin(f)));};
+
+// ---------------- ① orbit ----------------
+const EL=rad(28), LO={};
+function drawOrbit(g){
+  const o=CV.orbit;if(!size(o))return;const{ctx,W,H}=o;
+  ctx.fillStyle='#14204a';ctx.fillRect(0,0,W,H);starfield(ctx,W,H,.35);
+  const cx=W/2,cy=H*.53,k=Math.min(W*.38,H*.36/Math.sin(EL)*1.0);
+  Object.assign(LO,{cx,cy,k});
+  const P=th=>[cx+k*Math.cos(th),cy-k*Math.sin(th)*Math.sin(EL)];
+  // orbit
+  ctx.strokeStyle='rgba(140,220,120,.85)';ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(cx,cy,k,k*Math.sin(EL),0,0,Math.PI*2);ctx.stroke();
+  for(const a0 of[45,135,225,315]){const t1=rad(a0-8),t2=rad(a0+8);const[x1,y1]=P(t1),[x2,y2]=P(t2);arrowL(ctx,x1,y1,x2,y2,'rgba(160,235,140,.95)',2.5,10);}
+  // sun
+  const gl=ctx.createRadialGradient(cx,cy,4,cx,cy,k*.3);gl.addColorStop(0,'rgba(255,235,150,1)');gl.addColorStop(.25,'rgba(255,190,60,.9)');gl.addColorStop(1,'rgba(255,170,40,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(cx,cy,k*.3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffcf3f';ctx.beginPath();ctx.arc(cx,cy,Math.max(14,k*.1),0,Math.PI*2);ctx.fill();
+  ctx.font=FONT(13,700);ctx.fillStyle='#5a3a00';ctx.textAlign='center';ctx.fillText('太陽',cx,cy+5);
+  const B={R:[1,0,0],U:[0,Math.sin(EL),Math.cos(EL)],V:[0,-Math.cos(EL),Math.sin(EL)]};
+  const Rs=Math.max(15,k*.12), Rc=Math.max(20,k*.17);
+  const names=[['丁','春分','3/21'],['甲','夏至','6/22'],['乙','秋分','9/23'],['丙','冬至','12/22']];
+  const items=[];
+  for(let q=0;q<4;q++){const ph=q*90,gg=geo(dOfPhase(ph)),[x,y]=P(rad(ph+90));items.push({x,y,gg,R:Rs,q});}
+  const cur={...P(g.th)};const[cx2,cy2]=P(g.th);
+  items.push({x:cx2,y:cy2,gg:g,R:Rc,cur:true});
+  items.sort((A,Bb)=>A.y-Bb.y); // far first
+  for(const it of items){
+    if(it.cur){ // ray from the sun
+      ctx.strokeStyle='rgba(255,210,90,.9)';ctx.lineWidth=3;ctx.setLineDash([]);ctx.beginPath();const dx=it.x-cx,dy=it.y-cy,l=Math.hypot(dx,dy);ctx.moveTo(cx+dx/l*k*.12,cy+dy/l*k*.12);ctx.lineTo(it.x-dx/l*(it.R+4),it.y-dy/l*(it.R+4));ctx.stroke();
+    }
+    ctx.globalAlpha=it.cur?1:.62;
+    drawGlobe(ctx,it.x,it.y,it.R,B,it.gg,{lines:true,lineW:it.cur?1.4:1.1});
+    // axis
+    const a=it.gg.a,ax=a[0],ay=a[2]*Math.cos(EL);ctx.strokeStyle='#fff';ctx.lineWidth=it.cur?2:1.4;ctx.beginPath();ctx.moveTo(it.x-ax*it.R*1.45,it.y+ay*it.R*1.45);ctx.lineTo(it.x+ax*it.R*1.45,it.y-ay*it.R*1.45);ctx.stroke();
+    ctx.font=FONT(10,700);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('北',it.x+ax*it.R*1.62,it.y-ay*it.R*1.62-2);
+    ctx.globalAlpha=1;
+    if(!it.cur){const n=names[it.q];const below=it.q===2||it.q===1&&false;const ly=it.q===0?it.y-it.R-26:it.q===2?it.y+it.R+22:it.y+it.R+22;
+      tag(ctx,it.x,ly,(S.code?n[0]+' ':'')+n[1]+' '+n[2],'#ffe08a');}
+  }
+  ctx.font=FONT(12,700);ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText('從北極上空看：地球逆時針公轉，一年一圈',10,20);
+  ctx.font=FONT(11.5);ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText('自轉軸始終指向同一方向（北極星），傾斜 '+fmt(S.tilt)+'°',10,38);
+  tag(ctx,cx2,cy2-Rc-28,`${mdStr(S.d)}　直射${g.dec>0.05?'北緯 '+fmt(g.dec)+'°':g.dec<-0.05?'南緯 '+fmt(-g.dec)+'°':'赤道'}`,'#fff','rgba(194,65,12,.92)',12.5);
+  LO.ex=cx2;LO.ey=cy2;LO.R=Rc;
+}
+
+// ---------------- ② globe ----------------
+const LG={};
+function drawGlobePanel(g){
+  const o=CV.globe;if(!size(o))return;const{ctx,W,H}=o;
+  ctx.fillStyle='#14204a';ctx.fillRect(0,0,W,H);starfield(ctx,W,H,.3);
+  const sunL=S.sun==='L';const R=Math.min(H*.4,W*.27),cx=W*(sunL?.42:.58),cy=H*.5;
+  let B;
+  if(S.ev==='side'){const Rv=sunL?sc(g.s,-1):g.s;const U=nrm(sub(g.a,sc(g.s,dot(g.a,g.s))));B={R:Rv,U,V:cross(Rv,U)};}
+  else{const Rv=sunL?sc(g.e1,-1):g.e1;const Vv=g.a;B={R:Rv,U:cross(Vv,Rv),V:Vv};}
+  Object.assign(LG,{cx,cy,R,B,g});
+  // sun rays
+  for(let i=0;i<7;i++){const y=cy-R*.95+i*R*.317;const x1=sunL?10:W-10,x2=sunL?cx-R*1.16:cx+R*1.16;arrowL(ctx,x1+(sunL?0:0),y,x2,y,'rgba(255,190,60,.9)',2.2,9);}
+  ctx.save();ctx.translate(sunL?16:W-16,cy);ctx.rotate(-Math.PI/2);ctx.font=FONT(12,700);ctx.fillStyle='#ffd27a';ctx.textAlign='center';ctx.fillText('太陽光',0,sunL?-2:12);ctx.restore();
+  drawGlobe(ctx,cx,cy,R,B,g,{lines:true,bars:S.ev==='side',lon:S.ev==='top',obsLat:S.lat,lineW:S.ev==='side'?2.2:1.4});
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  const sideX=sunL?cx+R+8:cx-R-8, al=sunL?'left':'right';
+  if(S.ev==='side'){
+    // axis
+    const[nx,ny]=proj(B,g.a,cx,cy,R);const[sx,sy]=proj(B,sc(g.a,-1),cx,cy,R);
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(sx+(sx-cx)*.22,sy+(sy-cy)*.22);ctx.lineTo(nx+(nx-cx)*.22,ny+(ny-cy)*.22);ctx.stroke();ctx.setLineDash([]);
+    ctx.font=FONT(12,700);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('北極',nx+(nx-cx)*.3,ny+(ny-cy)*.3-2);ctx.fillText('南極',sx+(sx-cx)*.3,sy+(sy-cy)*.3+12);
+    // rotation arrow near north pole (west -> east)
+    {const c=[cx+(nx-cx)*1.12,cy+(ny-cy)*1.12];ctx.strokeStyle='#ff9ab0';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(c[0],c[1],R*.2,R*.06,Math.atan2(ny-cy,nx-cx)+Math.PI/2,Math.PI*.15,Math.PI*.85);ctx.stroke();}
+    // day-length labels per latitude line
+    const nd=nrm(sub(sunL?B.R:sc(B.R,-1),sc(g.a,dot(sunL?B.R:sc(B.R,-1),g.a))));const narrow=W<520;
+    for(const[L,name]of latLines()){const di=dayInfo(L,g.dec);const v=add(sc(g.a,Math.sin(rad(L))),sc(nd,Math.cos(rad(L))));const[px,py]=proj(B,v,cx,cy,R);
+      const hrs=di.polar==='day'?'24':di.polar==='night'?'0':fmt(di.len);
+      const txt=narrow?`${name.replace('北回歸線','北回').replace('南回歸線','南回')} 晝${hrs}時`:`${name}　晝 ${hrs} 時`;
+      tag(ctx,sunL?px+8:px-8,py,txt,L===0?'#fff':'#ffd9b0','rgba(8,14,30,.72)',narrow?10.5:11.5,sunL?'left':'right');}
+    // subsolar point
+    const[ux,uy,uz]=proj(B,g.s,cx,cy,R);ctx.fillStyle='#ffe14a';ctx.beginPath();ctx.arc(ux,uy,6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#7a4c00';ctx.lineWidth=1.5;ctx.stroke();
+    tag(ctx,ux+(sunL?10:-10),uy-18,'直射 '+(Math.abs(g.dec)<.05?'赤道':latName(g.dec)),'#4a2f00','rgba(255,225,80,.95)',11.5,sunL?'left':'right');
+    ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign=sunL?'right':'left';
+    ctx.fillText('緯線上紅色：白天　藍色：夜晚',sunL?W-8:8,H-10);
+  } else {
+    // north-pole view: time labels around rim
+    ctx.font=FONT(11.5,700);ctx.textAlign='center';
+    for(let hh=0;hh<24;hh+=3){const H=(hh-12)*15;const v=add(sc(g.e1,Math.cos(rad(H))),sc(g.e2,Math.sin(rad(H))));const[px,py]=proj(B,v,cx,cy,R*1.12);
+      ctx.fillStyle=hh===12?'#ffe14a':hh===0?'#9fd0ff':'rgba(255,255,255,.85)';ctx.fillText(hh===12?'正午 12時':hh===0?'午夜 0時':String(hh).padStart(2,'0')+' 時',px,py+4);}
+    // rotation arrow (ccw)
+    ctx.strokeStyle='#ff9ab0';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(cx,cy,R*.22,Math.PI*1.2,Math.PI*1.95);ctx.stroke();
+    {const a=Math.PI*1.2,x=cx+R*.22*Math.cos(a),y=cy+R*.22*Math.sin(a);ctx.fillStyle='#ff9ab0';ctx.beginPath();ctx.moveTo(x-6,y+2);ctx.lineTo(x+4,y+6);ctx.lineTo(x+1,y-5);ctx.fill();}
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,3.5,0,Math.PI*2);ctx.fill();ctx.font=FONT(11.5,700);ctx.fillText('北極',cx,cy+16);
+    ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign=sunL?'right':'left';
+    ctx.fillText('只看得到北半球；中心是北極，邊緣是赤道',sunL?W-8:8,H-26);ctx.fillText('地球逆時針自轉，經線每小時轉 15°',sunL?W-8:8,H-10);
+  }
+  // observer
+  const Hh=15*(S.t-12),ov=obsVec(g,S.lat,Hh),[ox,oy,oz]=proj(B,ov,cx,cy,R);
+  const front=oz>=-0.02;
+  ctx.fillStyle=front?'#ffd166':'rgba(255,209,102,.35)';ctx.strokeStyle=front?'#3b2a00':'rgba(255,209,102,.9)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(ox,oy,7.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+  tag(ctx,ox+12,oy+18,'觀察者 '+hhmm(S.t)+(front?'':'（在背面）'),'#ffd166','rgba(8,14,30,.78)',11.5,'left');
+  LG.ox=ox;LG.oy=oy;
+}
+
+// ---------------- ③ sky ----------------
+const SK={};
+function skyCol(alt){const K=[[-18,'#050a1a','#0c1631'],[-6,'#152251','#523e6e'],[0,'#2f4d8e','#e89a6a'],[10,'#3d7fd6','#a6d0f4']];
+  if(alt<=K[0][0])return[K[0][1],K[0][2]];if(alt>=K[3][0])return[K[3][1],K[3][2]];
+  for(let i=0;i<3;i++)if(alt<=K[i+1][0]){const f=(alt-K[i][0])/(K[i+1][0]-K[i][0]);return[hexLerp(K[i][1],K[i+1][1],f),hexLerp(K[i][2],K[i+1][2],f)];}}
+function drawSky(g){
+  const o=CV.sky;if(!size(o))return;const{ctx,W,H}=o;
+  if(S.sky==='stars'){drawStars(g);return;}
+  const dec=g.dec,lat=S.lat,Hn=15*(S.t-12),sun=altaz(lat,dec,Hn);
+  const[c1,c2]=skyCol(sun.alt);const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,c1);bg.addColorStop(1,c2);ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  if(sun.alt<-4)starfield(ctx,W,H*.7,clamp((-sun.alt-4)/10,0,1)*.7);
+  const el=rad(22),va=rad(S.skyAz),f=[Math.sin(va),Math.cos(va),0],rr=[Math.cos(va),-Math.sin(va),0];
+  const Rg=Math.min(W*.4,H*.5),cx=W/2,cy=H*.66;
+  const P=v=>{const x=v[0]*rr[0]+v[1]*rr[1],y=v[0]*f[0]+v[1]*f[1];return[cx+Rg*x,cy-Rg*(v[2]*Math.cos(el)+y*Math.sin(el)),-y*Math.cos(el)+v[2]*Math.sin(el)];};
+  Object.assign(SK,{P,Rg,cx,cy});
+  // ground
+  const gc=hexLerp('#4f7d43','#16261a',clamp((-sun.alt+2)/14,0,1));
+  ctx.fillStyle=gc;ctx.beginPath();ctx.ellipse(cx,cy,Rg,Rg*Math.sin(el),0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1.2;ctx.stroke();
+  // dome outline
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(cx,cy,Rg,Math.PI,0);ctx.stroke();
+  // meridian (N - zenith - S)
+  ctx.beginPath();for(let a=0;a<=180;a+=3){const v=[0,Math.cos(rad(a)),Math.sin(rad(a))];const[x,y]=P(v);a?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();ctx.setLineDash([]);
+  {const[x,y]=P([0,0,1]);ctx.fillStyle='rgba(255,255,255,.8)';ctx.font=FONT(11.5,600);ctx.textAlign='center';ctx.fillText('天頂',x,y-7);}
+  // reference paths
+  const pathPts=(dd)=>{const pts=[];for(let h=-180;h<=180;h+=2){const s=altaz(lat,dd,h);pts.push({h,v:[s.E,s.N,s.U],alt:s.alt});}return pts;};
+  const drawPath=(pts,col,w,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.beginPath();let on=false;for(const p of pts){if(p.alt<0){on=false;continue;}const[x,y]=P(p.v);if(!on){ctx.moveTo(x,y);on=true;}else ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);};
+  if(S.ref&&S.tilt>.4){[[S.tilt,'夏至'],[0,'春秋分'],[-S.tilt,'冬至']].forEach(([dd,nm])=>{const pts=pathPts(dd);drawPath(pts,'rgba(255,255,255,.45)',1.4,[5,4]);
+    const nn=pts.filter(p=>p.alt>0);if(nn.length){const top=nn.reduce((a,b)=>a.alt>b.alt?a:b);const[x,y]=P(top.v);ctx.font=FONT(11,600);ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign='center';ctx.fillText(nm,x,y-8);}});}
+  const today=pathPts(dec);drawPath(today,'#ff6b4a',3);
+  // compass
+  ctx.font=FONT(15,700);ctx.textAlign='center';
+  for(const[nm,v]of[['北',[0,1,0]],['南',[0,-1,0]],['東',[1,0,0]],['西',[-1,0,0]]]){const[x,y,z]=P(sc(v,1.13));ctx.fillStyle=z>0?'#fff':'rgba(255,255,255,.75)';ctx.fillText(nm,x,y+5);}
+  // polaris
+  if(lat>0.5){const p=[0,Math.cos(rad(lat)),Math.sin(rad(lat))];const[x,y]=P(p);ctx.fillStyle='#cfe6ff';ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();ctx.font=FONT(11,600);ctx.textAlign='left';ctx.fillText('北極星（仰角 '+fmt(lat)+'°）',x+6,y-4);}
+  // shadow path
+  const h0=Rg*.2;
+  if(S.path){ctx.fillStyle='rgba(20,20,20,.55)';for(let h=-180;h<=180;h+=7.5){const s=altaz(lat,dec,h);if(s.alt<3)continue;const L=h0/Math.tan(rad(s.alt))/Rg;if(L>1.25)continue;const tip=[-s.E/Math.cos(rad(s.alt))*L,-s.N/Math.cos(rad(s.alt))*L,0];const[x,y]=P(tip);ctx.beginPath();ctx.arc(x,y,2.6,0,Math.PI*2);ctx.fill();}}
+  // stick + shadow
+  const base=P([0,0,0]),top=P([0,0,h0/Rg]);
+  if(sun.alt>0.2){const L=h0/Math.tan(rad(sun.alt))/Rg,ca=Math.cos(rad(sun.alt))||1;const Lc=Math.min(L,1.3);const tip=[-sun.E/ca*Lc,-sun.N/ca*Lc,0];const[tx,ty]=P(tip);
+    ctx.strokeStyle='rgba(15,15,15,.8)';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(base[0],base[1]);ctx.lineTo(tx,ty);ctx.stroke();ctx.lineCap='butt';
+    if(L>1.3){ctx.font=FONT(11,600);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('影子很長（超出畫面）',tx,ty+16);}}
+  ctx.strokeStyle='#c9a46b';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(base[0],base[1]);ctx.lineTo(top[0],top[1]);ctx.stroke();
+  ctx.fillStyle='#ffd166';ctx.beginPath();ctx.arc(base[0],base[1],3,0,Math.PI*2);ctx.fill();
+  // sun
+  if(sun.alt>-1){const[x,y,z]=P([sun.E,sun.N,sun.U]);
+    if(sun.alt>0){ctx.strokeStyle='rgba(255,220,120,.7)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(top[0],top[1]);ctx.stroke();ctx.setLineDash([]);}
+    const r0=Math.max(10,Rg*.06);const gl=ctx.createRadialGradient(x,y,r0*.5,x,y,r0*2.6);gl.addColorStop(0,'rgba(255,235,150,.85)');gl.addColorStop(1,'rgba(255,235,150,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(x,y,r0*2.6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(x,y,r0,0,Math.PI*2);ctx.fill();SK.sx=x;SK.sy=y;SK.sr=r0;}
+  else{SK.sx=null;}
+  // texts
+  ctx.font=FONT(13,700);ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(`${latName(lat)}　${mdStr(S.d)}　${hhmm(S.t)}`,10,20);
+  ctx.font=FONT(12);ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.fillText(sun.alt>0?`太陽仰角 ${fmt(sun.alt)}°，在${dirName(sun.az)}`:'太陽在地平線下（夜晚）',10,38);
+  ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText('紅線：今天太陽的軌跡',10,H-10);
+}
+// stars facing north
+const NSTARS=Array.from({length:70},(_,i)=>{const h=k=>{const s=Math.sin(i*91.17+k*37.7)*43758.5453;return s-Math.floor(s);};return{dec:90-h(1)*50,ra:h(2)*360,m:h(3)};});
+const DIPPER=[[61.75,166],[56.4,165.5],[53.7,178.5],[57,183.9],[56,193.5],[54.9,201],[49.3,207]];
+function drawStars(g){
+  const o=CV.sky;const{ctx,W,H}=o;const lat=S.lat;
+  ctx.fillStyle='#050a1c';ctx.fillRect(0,0,W,H);
+  if(lat<=0.5){ctx.fillStyle='#fff';ctx.font=FONT(15,700);ctx.textAlign='center';ctx.fillText('南半球看不到北極星',W/2,H/2-8);ctx.font=FONT(12.5);ctx.fillText('把觀察者緯度調到北半球再看',W/2,H/2+14);return;}
+  const k=Math.min(W,H)/105, hy=H*.86, px=W/2, py=hy-lat*k;
+  const lst=15*(S.t-12)+mod(S.d-79,365)*360/365.24;  // degrees
+  const pos=(dec,ra,dh)=>{const h=rad(lst-ra-(dh||0)),rho=(90-dec)*k;return[px-rho*Math.sin(h),py-rho*Math.cos(h)];};
+  const altOf=(dec,ra,dh)=>altaz(lat,dec,lst-ra-(dh||0)).alt;
+  const dh=S.exp*15;
+  // trails
+  ctx.lineWidth=1.6;
+  const all=[...NSTARS.map(s=>({...s,big:false})),...DIPPER.map(([dec,ra])=>({dec,ra,m:.95,big:true}))];
+  for(const s of all){if(dh>0){const n=Math.max(4,Math.ceil(dh/3));ctx.strokeStyle=s.big?'rgba(180,220,255,.8)':'rgba(170,200,255,.45)';ctx.beginPath();let on=false;
+      for(let q=0;q<=n;q++){const d2=dh*(1-q/n);if(altOf(s.dec,s.ra,d2)<0){on=false;continue;}const[x,y]=pos(s.dec,s.ra,d2);if(!on){ctx.moveTo(x,y);on=true;}else ctx.lineTo(x,y);}ctx.stroke();}
+    if(altOf(s.dec,s.ra)>0){const[x,y]=pos(s.dec,s.ra);ctx.fillStyle='#fff';const r=s.big?2.6:(s.m>.8?1.8:1.1);ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}}
+  // dipper lines
+  ctx.strokeStyle='rgba(140,190,255,.55)';ctx.lineWidth=1;ctx.beginPath();DIPPER.forEach(([dec,ra],i)=>{const[x,y]=pos(dec,ra);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  {const[x,y]=pos(DIPPER[0][0],DIPPER[0][1]),[x2,y2]=pos(DIPPER[3][0],DIPPER[3][1]);ctx.moveTo(x2,y2);ctx.lineTo(...pos(DIPPER[2][0],DIPPER[2][1]));}ctx.stroke();
+  {const[x,y]=pos(DIPPER[3][0],DIPPER[3][1]);ctx.font=FONT(11.5,600);ctx.fillStyle='#bcd8ff';ctx.textAlign='left';if(altOf(57,183.9)>0)ctx.fillText('北斗七星',x+8,y-6);}
+  // angle sector for a reference star
+  if(dh>0){const ref=DIPPER[6];const[x1,y1]=pos(ref[0],ref[1],dh),[x2,y2]=pos(ref[0],ref[1]);ctx.strokeStyle='rgba(255,210,120,.85)';ctx.setLineDash([4,4]);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(px,py);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+    const a1=Math.atan2(y1-py,x1-px),a2=Math.atan2(y2-py,x2-px);ctx.beginPath();ctx.arc(px,py,26,a1,a2,true);ctx.stroke();
+    tag(ctx,px+30,py-30,`${fmt(S.exp)} 小時 × 15° = ${fmt(dh)}°`,'#ffd27a','rgba(8,14,30,.8)',12.5,'left');}
+  // polaris
+  ctx.fillStyle='#ffe9a8';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();ctx.font=FONT(12,700);ctx.textAlign='left';ctx.fillText('北極星',px+8,py+16);
+  // ground
+  ctx.fillStyle='#0f1a12';ctx.fillRect(0,hy,W,H-hy);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.beginPath();ctx.moveTo(0,hy);ctx.lineTo(W,hy);ctx.stroke();
+  ctx.font=FONT(15,700);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('北',px,hy+20);ctx.textAlign='left';ctx.fillText('西',8,hy+20);ctx.textAlign='right';ctx.fillText('東',W-8,hy+20);
+  // altitude of polaris
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,hy);ctx.stroke();ctx.setLineDash([]);
+  ctx.font=FONT(11);ctx.fillStyle='rgba(255,255,255,.75)';ctx.textAlign='left';ctx.fillText(`北極星仰角 = 緯度 ${fmt(lat)}°`,px+6,(py+hy)/2);
+  ctx.font=FONT(13,700);ctx.fillStyle='#fff';ctx.fillText(`面向北方　${hhmm(S.t)}`,10,20);
+  ctx.font=FONT(12);ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText('星星繞北極星逆時針轉，每小時約 15°',10,38);
+}
+
+// ---------------- ④ chart ----------------
+const CH={};
+function drawChart(g){
+  const o=CV.chart;if(!size(o))return;const{ctx,W,H}=o;
+  const ink=css('--ink'),muted=css('--muted'),line=css('--line'),acc=css('--accent'),blue=css('--blue'),red=css('--red'),grid=css('--grid');
+  ctx.clearRect(0,0,W,H);
+  const L=46,R=14,T=24,Bm=30,pw=W-L-R,ph=H-T-Bm;
+  const annual=['noonShadow','daylen','decl'].includes(S.chart);
+  const cmp=S.cmp==='none'?null:+S.cmp;
+  let xmin,xmax,ymin,ymax,ylab,xlabs;
+  if(annual){xmin=0;xmax=365;}else{xmin=-90;xmax=90;}
+  const X=x=>L+pw*(x-xmin)/(xmax-xmin);
+  // y ranges
+  if(S.chart==='noonShadow'||S.chart==='latShadow'){ymin=0;ymax=4;ylab='竿長的幾倍';}
+  if(S.chart==='daylen'){ymin=0;ymax=24;ylab='地方時';}
+  if(S.chart==='latDay'){ymin=0;ymax=24;ylab='晝長（時）';}
+  if(S.chart==='decl'){ymin=-40;ymax=40;ylab='直射緯度';}
+  const inv=S.chart==='daylen';const Y=y=>T+ph*(inv?(y-ymin)/(ymax-ymin):1-(y-ymin)/(ymax-ymin));
+  Object.assign(CH,{X,Y,L,pw,xmin,xmax,annual,T,ph});
+  // grid
+  ctx.strokeStyle=grid;ctx.lineWidth=1;ctx.font=FONT(11);ctx.fillStyle=muted;
+  if(annual){const mstart=[0];MD.forEach((m,i)=>mstart.push(mstart[i]+m));ctx.textAlign='center';
+    for(let m=0;m<12;m++){const x=X(mstart[m]);ctx.beginPath();ctx.moveTo(x,T);ctx.lineTo(x,T+ph);ctx.stroke();ctx.fillText((m+1)+'月',X(mstart[m]+MD[m]/2),H-10);}
+    [[79,'春分'],[172,'夏至'],[265,'秋分'],[355,'冬至']].forEach(([d,n])=>{ctx.strokeStyle=line;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(X(d),T);ctx.lineTo(X(d),T+ph);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=muted;ctx.fillText(n,X(d),T-8);});
+  } else {ctx.textAlign='center';for(let x=-90;x<=90;x+=15){ctx.strokeStyle=grid;ctx.beginPath();ctx.moveTo(X(x),T);ctx.lineTo(X(x),T+ph);ctx.stroke();if(x%30===0){ctx.fillStyle=muted;ctx.fillText(x===0?'0°':(Math.abs(x)+'°'+(x>0?'N':'S')),X(x),H-10);}}}
+  const ystep=(S.chart==='decl')?10:(S.chart.includes('Shadow')?1:3);
+  ctx.textAlign='right';for(let y=ymin;y<=ymax+1e-6;y+=ystep){ctx.strokeStyle=grid;ctx.beginPath();ctx.moveTo(L,Y(y));ctx.lineTo(L+pw,Y(y));ctx.stroke();ctx.fillStyle=muted;
+    const t=S.chart==='daylen'?String(y).padStart(2,'0')+':00':S.chart==='decl'?(y===0?'0°':Math.abs(y)+'°'+(y>0?'N':'S')):String(y);ctx.fillText(t,L-5,Y(y)+4);}
+  ctx.save();ctx.translate(11,T+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillStyle=muted;ctx.fillText(ylab,0,0);ctx.restore();
+  const plot=(xs,fy,col,w,dash,segCol)=>{ctx.lineWidth=w;ctx.setLineDash(dash||[]);let prev=null;for(const x of xs){const y=fy(x);if(y===null||!isFinite(y)){prev=null;continue;}const pt=[X(x),Y(clamp(y,ymin,ymax))];
+    if(prev){ctx.strokeStyle=segCol?segCol(x):col;ctx.beginPath();ctx.moveTo(prev[0],prev[1]);ctx.lineTo(pt[0],pt[1]);ctx.stroke();}prev=pt;}ctx.setLineDash([]);};
+  const days=Array.from({length:366},(_,i)=>i), lats=Array.from({length:361},(_,i)=>-90+i*.5);
+  const shLen=(lat,dec)=>{const a=noonAlt(lat,dec);return a<=0.5?null:1/Math.tan(rad(a));};
+  let hint='';
+  if(S.chart==='noonShadow'){
+    const fy=lat=>d=>shLen(lat,declOf(d));
+    const sc_=lat=>d=>{const dc=declOf(d);return Math.abs(lat-dc)<.3?acc:(lat>dc?blue:red);};
+    plot(days,fy(S.lat),blue,3,null,sc_(S.lat));
+    if(cmp!==null)plot(days,fy(cmp),muted,2,[6,4]);
+    const v=shLen(S.lat,g.dec);hint=`藍色：正午影子朝北　紅色：朝南　橘色：太陽在頭頂、幾乎沒有影子。${latName(S.lat)}今天正午竿影 ${v===null?'—（太陽沒有升起）':fmt(v)+' 倍竿長'}。點圖可以換日期。`;
+  }
+  if(S.chart==='daylen'){
+    const sr=lat=>d=>{const di=dayInfo(lat,declOf(d));return di.polar?null:12-di.len/2;}, ss=lat=>d=>{const di=dayInfo(lat,declOf(d));return di.polar?null:12+di.len/2;};
+    // fill day band
+    ctx.fillStyle='rgba(255,190,80,.28)';ctx.beginPath();days.forEach((d,i)=>{const di=dayInfo(S.lat,declOf(d));const y=di.polar==='day'?0:di.polar==='night'?12:12-di.len/2;i?ctx.lineTo(X(d),Y(y)):ctx.moveTo(X(d),Y(y));});
+    for(let i=days.length-1;i>=0;i--){const d=days[i],di=dayInfo(S.lat,declOf(d));const y=di.polar==='day'?24:di.polar==='night'?12:12+di.len/2;ctx.lineTo(X(d),Y(y));}ctx.closePath();ctx.fill();
+    plot(days,sr(S.lat),ink,2.5);plot(days,ss(S.lat),ink,2.5);
+    if(cmp!==null){plot(days,sr(cmp),muted,2,[6,4]);plot(days,ss(cmp),muted,2,[6,4]);}
+    ctx.font=FONT(11);ctx.fillStyle=muted;ctx.textAlign='left';ctx.fillText('上方曲線：日出時刻　下方曲線：日落時刻（中間淺色＝白晝）',L+4,T+ph-6);
+    const di=dayInfo(S.lat,g.dec);hint=`${latName(S.lat)}今天${di.polar==='day'?'永晝（24 小時白天）':di.polar==='night'?'永夜（整天看不到太陽）':`日出 ${hhmm(12-di.len/2)}、日落 ${hhmm(12+di.len/2)}，晝長 ${hm(di.len)}`}。圖的縱軸向下是時間變晚。`;
+  }
+  if(S.chart==='decl'){
+    plot(days,d=>declOf(d),acc,3);
+    ctx.strokeStyle=blue;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(L,Y(clamp(S.lat,ymin,ymax)));ctx.lineTo(L+pw,Y(clamp(S.lat,ymin,ymax)));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=blue;ctx.font=FONT(11.5,600);ctx.textAlign='left';ctx.fillText('觀察者 '+latName(S.lat),L+4,Y(clamp(S.lat,ymin,ymax))-6);
+    // overhead days
+    const hits=[];for(let d=0;d<365;d++){const a=declOf(d)-S.lat,b=declOf(d+1)-S.lat;if(Math.abs(a)<.02)hits.push(d);else if(a*b<0)hits.push(Math.abs(a)<=Math.abs(b)?d:d+1);}
+    const uniq=[];hits.forEach(d=>{if(!uniq.length||d-uniq[uniq.length-1]>3)uniq.push(d);});
+    uniq.forEach(d=>{ctx.fillStyle=blue;ctx.beginPath();ctx.arc(X(d),Y(S.lat),5,0,Math.PI*2);ctx.fill();ctx.font=FONT(11.5,700);ctx.textAlign='center';ctx.fillStyle=ink;ctx.fillText(mdStr(d),X(d),Y(S.lat)+(S.lat>0?18:-10));});
+    let north=0;for(let d=0;d<365;d++){if(declOf(d+.5)<S.lat-1e-6)north++;}
+    hint=`一年中太陽直射${latName(S.lat)}：${Math.abs(S.lat)>S.tilt+1e-6?'0 天（在南北回歸線之外，太陽永遠不會直射）':uniq.length?uniq.length+' 天（'+uniq.map(mdStr).join('、')+'）':'—'}。正午影子偏北約 ${north} 天，偏南約 ${365-north-uniq.length} 天。`;
+  }
+  if(S.chart==='latShadow'){
+    plot(lats,l=>shLen(l,g.dec),blue,3,null,l=>Math.abs(l-g.dec)<.6?acc:(l>g.dec?blue:red));
+    hint=`今天（${mdStr(S.d)}）直射${Math.abs(g.dec)<.05?'赤道':latName(g.dec)}，那裡正午竿影最短；離直射緯度越遠，竿影越長。藍色朝北、紅色朝南；斷掉的地方太陽沒有升起。點圖可以換緯度。`;
+  }
+  if(S.chart==='latDay'){
+    plot(lats,l=>{const di=dayInfo(l,g.dec);return di.len;},acc,3);
+    ctx.strokeStyle=muted;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(L,Y(12));ctx.lineTo(L+pw,Y(12));ctx.stroke();ctx.setLineDash([]);
+    hint=`今天（${mdStr(S.d)}）各緯度的晝長。${Math.abs(g.dec)<.3?'春分、秋分：各地晝夜等長，都是 12 小時。':g.dec>0?'北半球晝長夜短，越往北白天越長，北極圈以北永晝；南半球相反。':'北半球晝短夜長，北極圈以北永夜；南半球晝長夜短，南極圈以南永晝。'}赤道永遠約 12 小時。`;
+  }
+  // markers
+  ctx.strokeStyle=acc;ctx.lineWidth=1.6;
+  const mx=annual?X(S.d):X(clamp(S.lat,-90,90));ctx.beginPath();ctx.moveTo(mx,T);ctx.lineTo(mx,T+ph);ctx.stroke();
+  ctx.fillStyle=acc;ctx.font=FONT(11.5,700);ctx.textAlign=mx>W-80?'right':'left';ctx.fillText(annual?mdStr(S.d):latName(S.lat),mx+(mx>W-80?-4:4),T+12);
+  if(cmp!==null&&(S.chart==='noonShadow'||S.chart==='daylen'))hint+=`　虛線：${latName(cmp)}。`;
+  $('chartHint').textContent=hint;
+}
+
+// ---------------- energy ----------------
+function enAlt(g){if(S.en==='manual')return S.enAlt;if(S.en==='noon')return noonAlt(S.lat,g.dec);return altaz(S.lat,g.dec,15*(S.t-12)).alt;}
+function drawEnergy(g){
+  const o=CV.energy;if(!size(o))return;const{ctx,W,H}=o;
+  const ink=css('--ink'),muted=css('--muted'),line=css('--line'),acc=css('--accent');
+  ctx.clearRect(0,0,W,H);
+  const a=enAlt(g);const gy=H*.78,cell=Math.min(W/16,34);
+  // ground grid
+  ctx.strokeStyle=line;ctx.lineWidth=1;for(let x=0;x<=W;x+=cell){ctx.beginPath();ctx.moveTo(x,gy);ctx.lineTo(x+cell*.6,gy+cell*.6);ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.moveTo(0,gy+cell*.6);ctx.lineTo(W,gy+cell*.6);ctx.stroke();
+  ctx.fillStyle=muted;ctx.font=FONT(11.5);ctx.textAlign='left';ctx.fillText('地面（方格紙）',6,gy+cell*.6+16);
+  // reference direct beam
+  const bw=cell*1.6;const x0=W*.22;
+  const beam=(cx,alt,col,lab)=>{const ar=rad(alt),len=H*.72,foot=bw/Math.sin(ar);
+    const ox=-Math.cos(ar)*len,oy=-Math.sin(ar)*len,p1=[cx-foot/2,gy],p2=[cx+foot/2,gy];
+    const gr=ctx.createLinearGradient(cx+ox,gy+oy,cx,gy);gr.addColorStop(0,col+'22');gr.addColorStop(1,col+'aa');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p2[0],p2[1]);ctx.lineTo(p2[0]+ox,p2[1]+oy);ctx.lineTo(p1[0]+ox,p1[1]+oy);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p1[0]+ox,p1[1]+oy);ctx.moveTo(p2[0],p2[1]);ctx.lineTo(p2[0]+ox,p2[1]+oy);ctx.stroke();
+    ctx.fillStyle=col;ctx.fillRect(p1[0],gy-3,foot,6);
+    ctx.font=FONT(12,700);ctx.textAlign='center';ctx.fillStyle=ink;ctx.fillText(lab,cx,gy+cell*.6+34);
+    ctx.font=FONT(11);ctx.fillStyle=muted;ctx.fillText('受光寬度 '+fmt(foot/bw)+' 格',cx,gy+cell*.6+50);
+    return foot;};
+  const f1=beam(x0,90,'#f0a000','直射（仰角 90°）');
+  const cx2=clamp(W*.7,W*.5,W-Math.min(W*.45,bw/Math.sin(rad(Math.max(a,5)))/2)-8);
+  let f2=0;if(a>0.5){f2=beam(cx2,Math.max(a,3),'#ff6b3d',`${S.en==='manual'?'':S.en==='noon'?'正午':'現在'}仰角 ${fmt(a)}°`);}
+  else{ctx.fillStyle=muted;ctx.font=FONT(13,700);ctx.textAlign='center';ctx.fillText('太陽在地平線下，沒有陽光',W*.68,gy-40);}
+  ctx.font=FONT(11.5);ctx.fillStyle=muted;ctx.textAlign='left';ctx.fillText('同樣寬度、同樣能量的光束',8,18);
+  const e=a>0?Math.sin(rad(a)):0;
+  $('enRes').innerHTML=a>0?`<div>照到地面的面積：直射的 <span class="bigv">${fmt(1/e)}</span> 倍</div>
+    <div>單位面積得到的能量：直射的 <span class="bigv">${Math.round(e*100)}%</span></div>
+    <p class="note">同一束光斜射時，照到的面積變大、能量分散，所以單位面積受光較少、地表溫度較低。夏天正午仰角大（較直射）、白晝又長，所以比較熱。</p>
+    <p class="note">太陽能板要和陽光垂直才收得最多能量：板子與水平面的夾角 ＝ 90° − 仰角 ＝ <b>${fmt(90-a)}°</b>（朝向太陽那一側）。</p>`
+    :'<div>太陽在地平線下，這時沒有陽光照射。</div>';
+}
+
+// ---------------- readouts ----------------
+function readouts(g){
+  const dec=g.dec,lat=S.lat,di=dayInfo(lat,dec),sp=specialDay(S.d);
+  $('rDate').textContent=mdStr(S.d)+(sp?' '+sp:'');$('rClock').textContent=hhmm(S.t);
+  $('rSeason').innerHTML=`<span class="pill">北半球 ${seasonOf(S.d,false)}季</span><span class="pill" style="background:transparent;border:1px solid var(--line);color:var(--muted)">南半球 ${seasonOf(S.d,true)}季</span>`;
+  $('rDecl').textContent=Math.abs(dec)<.05?'赤道（0°）':latName(dec);
+  $('rLat').textContent=latName(lat);
+  const sun=altaz(lat,dec,15*(S.t-12));
+  $('rSunNow').textContent=sun.alt>0?`仰角 ${fmt(sun.alt)}°，${dirName(sun.az)}`:'在地平線下（夜晚）';
+  $('rShNow').textContent=sun.alt>0.3?`朝${dirName(sun.az+180)}，${sun.alt>88?'幾乎沒有影子':'約 '+fmt(1/Math.tan(rad(sun.alt)))+' 倍竿長'}`:'沒有影子';
+  if(di.polar){$('rDay').textContent=di.polar==='day'?'永晝（24 小時）':'永夜（0 小時）';$('rRise').textContent='—';$('rSet').textContent='—';}
+  else{$('rDay').textContent=hm(di.len)+(Math.abs(di.len-12)<.05?'（晝夜等長）':di.len>12?'（晝長夜短）':'（晝短夜長）');
+    const r=altaz(lat,dec,-di.H0),s=altaz(lat,dec,di.H0);
+    $('rRise').textContent=`${hhmm(12-di.len/2)}，${Math.abs(lat)>89.9?'—':dirName(r.az)}`;$('rSet').textContent=`${hhmm(12+di.len/2)}，${Math.abs(lat)>89.9?'—':dirName(s.az)}`;}
+  const na=noonAlt(lat,dec);
+  const where=Math.abs(lat-dec)<.05?'正在頭頂（天頂）':lat>dec?`天頂偏南 ${fmt(lat-dec)}°`:`天頂偏北 ${fmt(dec-lat)}°`;
+  $('rNoon').textContent=na>0?`${fmt(na)}°（${where}）`:'太陽沒有升起';
+  $('rNoonSh').textContent=na<=0?'—':Math.abs(lat-dec)<.05?'幾乎沒有影子':`朝${lat>dec?'北':'南'}，約 ${fmt(1/Math.tan(rad(na)))} 倍竿長`;
+  $('rEnergy').textContent=sun.alt>0?`現在是直射時的 ${Math.round(Math.sin(rad(sun.alt))*100)}%`:'現在沒有陽光';
+  // controls
+  if(document.activeElement!==$('dateR'))$('dateR').value=Math.round(mod(S.d,365))%365;
+  $('dateO').textContent=mdStr(S.d);
+  if(document.activeElement!==$('timeR'))$('timeR').value=Math.round(S.t*12)*5%1440;
+  $('timeO').textContent=hhmm(S.t);
+  if(document.activeElement!==$('latR'))$('latR').value=S.lat;
+  $('latO').textContent=latName(S.lat);
+  $('tiltR').value=S.tilt;$('tiltO').textContent=fmt(S.tilt)+'°';
+  $('expO').textContent=fmt(S.exp)+' 小時';$('expR').value=S.exp;
+  document.querySelectorAll('#latChips .chip').forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.lat-S.lat)<.01)));
+  document.querySelectorAll('#dateChips .chip').forEach(b=>b.setAttribute('aria-pressed',String(Math.round(mod(S.d,365))===dIdx(b.dataset.date))));
+  $('globeHint').textContent=S.ev==='side'?'和課本圖一樣：每條緯線上紅色是白天、藍色是夜晚，旁邊寫出今天晝長。黃線是觀察者的緯度。':'從北極上空往下看：面向太陽的經線是正午，西邊還沒到正午、東邊已過正午。拖曳可以轉動地球（改變時刻）。';
+  $('globeSub').textContent=S.ev==='side'?'點或拖曳地球表面換觀察者緯度':'拖曳地球改變時刻';
+}
+
+// ---------------- render loop ----------------
+function render(){const g=geo(S.d);drawOrbit(g);drawGlobePanel(g);drawSky(g);drawChart(g);if(S.tab==='energy')drawEnergy(g);readouts(g);}
+let raf=0;const req=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;render();});};
+let last=0;
+function loop(ts){if(!S.playing){last=0;return;}const dt=last?Math.min(.1,(ts-last)/1000):0;last=ts;
+  const m=S.pm[0],v=+S.pm.slice(1);
+  if(m==='t'){S.t+=dt*v;if(S.t>=24){S.t-=24;S.d=mod(S.d+1,365);}}else{S.d=mod(S.d+dt*v,365);}
+  render();requestAnimationFrame(loop);}
+function setPlay(p){S.playing=p;$('play').textContent=p?'❚❚ 暫停':'▶ 播放';if(p)requestAnimationFrame(loop);}
+
+// ---------------- controls ----------------
+function segSet(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));}
+function segBind(id,fn){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{segSet(id,b.dataset.v);fn(b.dataset.v);req();}));}
+$('play').addEventListener('click',()=>setPlay(!S.playing));
+segBind('pmSeg',v=>{S.pm=v;});
+document.querySelectorAll('[data-dd]').forEach(b=>b.addEventListener('click',()=>{S.d=mod(Math.round(S.d)+ +b.dataset.dd,365);req();}));
+$('dateR').addEventListener('input',e=>{S.d=+e.target.value;req();});
+$('timeR').addEventListener('input',e=>{S.t=(+e.target.value)/60;req();});
+$('latR').addEventListener('input',e=>{S.lat=+e.target.value;req();});
+$('tiltR').addEventListener('input',e=>{S.tilt=+e.target.value;req();});
+$('expR').addEventListener('input',e=>{S.exp=+e.target.value;req();});
+document.querySelectorAll('[data-date]').forEach(b=>b.addEventListener('click',()=>{S.d=dIdx(b.dataset.date);req();}));
+document.querySelectorAll('[data-time]').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.time,di=dayInfo(S.lat,declOf(S.d));
+  if(v==='sr'||v==='ss'){if(di.polar)return;S.t=v==='sr'?12-di.len/2+.05:12+di.len/2-.05;}else S.t=+v;req();}));
+{const box=$('latChips');CITIES.forEach(([n,l])=>{const b=document.createElement('button');b.className='chip';b.dataset.lat=l;b.textContent=n+(Math.abs(l)<90&&l!==0?' '+Math.abs(l)+'°'+(l>0?'N':'S'):'');b.addEventListener('click',()=>{S.lat=l;req();});box.appendChild(b);});}
+{const sel=$('cmpSel');CMP.forEach(([v,n])=>{const op=document.createElement('option');op.value=v;op.textContent=n;sel.appendChild(op);});sel.addEventListener('change',e=>{S.cmp=e.target.value;req();});}
+$('tCode').addEventListener('change',e=>{S.code=e.target.checked;req();});
+$('tRef').addEventListener('change',e=>{S.ref=e.target.checked;req();});
+$('tPath').addEventListener('change',e=>{S.path=e.target.checked;req();});
+segBind('skySeg',v=>{S.sky=v;$('skyOpts').hidden=v!=='sun';$('starOpts').hidden=v!=='stars';$('skyHint').textContent=v==='sun'?'拖曳太陽可改變時刻；在空白處左右拖曳可旋轉視角。':'拖曳畫面可改變時刻；調整曝光時間看星軌的圓心角。';});
+segBind('skyView',v=>{S.skyAz=+v;});
+segBind('evSeg',v=>{S.ev=v;});
+segBind('sunSeg',v=>{S.sun=v;});
+segBind('chartSeg',v=>{S.chart=v;});
+segBind('enSeg',v=>{S.en=v;$('enManual').hidden=v!=='manual';});
+$('enR').addEventListener('input',e=>{S.enAlt=+e.target.value;$('enO').textContent=fmt(S.enAlt)+'°';req();});
+function setTab(t){S.tab=t;document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));['q','energy','cause'].forEach(k=>$('pane-'+k).hidden=k!==t);req();}
+document.querySelectorAll('[role=tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+function syncUI(){segSet('pmSeg',S.pm);segSet('skySeg',S.sky);segSet('skyView',S.skyAz);segSet('evSeg',S.ev);segSet('sunSeg',S.sun);segSet('chartSeg',S.chart);segSet('enSeg',S.en);
+  $('skyOpts').hidden=S.sky!=='sun';$('starOpts').hidden=S.sky!=='stars';$('tCode').checked=S.code;$('tRef').checked=S.ref;$('tPath').checked=S.path;$('cmpSel').value=S.cmp;$('enManual').hidden=S.en!=='manual';$('enR').value=S.enAlt;$('enO').textContent=fmt(S.enAlt)+'°';}
+$('resetAll').addEventListener('click',()=>{setPlay(false);Object.assign(S,S0,{tab:S.tab});syncUI();$('story').hidden=true;req();});
+$('storyX').addEventListener('click',()=>{$('story').hidden=true;});
+$('storyBack').addEventListener('click',()=>{setTab('q');$('storyBack').hidden=true;$('pane-q').scrollIntoView({behavior:'smooth',block:'start'});});
+
+// pointer interactions
+function pt(cv,ev){const r=cv.getBoundingClientRect();return{x:ev.clientX-r.left,y:ev.clientY-r.top};}
+function dragOn(cv,down,move){let h=null;cv.addEventListener('pointerdown',ev=>{const p=pt(cv,ev);h=down(p);if(!h)return;setPlay(false);cv.setPointerCapture(ev.pointerId);move(h,p);req();ev.preventDefault();});
+  cv.addEventListener('pointermove',ev=>{if(h){move(h,pt(cv,ev));req();}});const up=()=>{h=null;};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);}
+dragOn($('orbit'),p=>'earth',(h,p)=>{const x=(p.x-LO.cx)/LO.k,y=-(p.y-LO.cy)/LO.k/Math.sin(EL);const th=deg(Math.atan2(y,x));S.d=Math.round(dOfPhase(th-90))%365;});
+dragOn($('globe'),p=>{const dx=p.x-LG.cx,dy=p.y-LG.cy;if(Math.hypot(dx,dy)>LG.R*1.05)return null;return S.ev==='side'?'lat':{type:'rot',a:Math.atan2(dy,dx),t:S.t};},
+  (h,p)=>{const u=(p.x-LG.cx)/LG.R,v=-(p.y-LG.cy)/LG.R;
+    if(h==='lat'){const q=u*u+v*v;const w=Math.sqrt(Math.max(0,1-Math.min(1,q)));const n=nrm(add(add(sc(LG.B.R,u),sc(LG.B.U,v)),sc(LG.B.V,w)));S.lat=Math.round(deg(Math.asin(clamp(dot(n,LG.g.a),-1,1)))*2)/2;}
+    else{const a=Math.atan2(p.y-LG.cy,p.x-LG.cx);const da=deg(a-h.a);S.t=mod(h.t-da/15,24);}});
+dragOn($('sky'),p=>{if(S.sky==='stars')return{type:'st',x:p.x,t:S.t};if(SK.sx!=null&&Math.hypot(p.x-SK.sx,p.y-SK.sy)<SK.sr+22)return 'sun';return{type:'rot',x:p.x,az:S.skyAz};},
+  (h,p)=>{if(h==='sun'){const g=geo(S.d);let best=S.t,bd=1e9;for(let t=0;t<24;t+=1/12){const s=altaz(S.lat,g.dec,15*(t-12));if(s.alt<-1)continue;const[x,y]=SK.P([s.E,s.N,s.U]);const dd=Math.hypot(x-p.x,y-p.y);if(dd<bd){bd=dd;best=t;}}S.t=best;}
+    else if(h.type==='rot'){S.skyAz=mod(h.az-(p.x-h.x)*.5,360);segSet('skyView','x');}
+    else{S.t=mod(h.t-(p.x-h.x)/40,24);}});
+dragOn($('chart'),p=>'c',(h,p)=>{if(p.x<CH.L||p.x>CH.L+CH.pw)return;const x=CH.xmin+(p.x-CH.L)/CH.pw*(CH.xmax-CH.xmin);if(CH.annual)S.d=Math.round(clamp(x,0,364));else S.lat=Math.round(clamp(x,-90,90)*2)/2;});
+
+// ---------------- presets ----------------
+const Q=[
+ {g:'晝夜交替（地球自轉）',items:[
+  {n:'由北極上空看地球自轉方向',pg:'p.227 表㈠、p.231 第1題',s:{d:'3/21',t:9,lat:23.5,ev:'top',pm:'t1',play:true},tx:'從北極上空往下看，地球依逆時針方向自轉；從赤道上空看則是由西向東轉，一天轉一圈。面向太陽的一半是白天，另一半是黑夜，所以有晝夜交替。'},
+  {n:'各地自轉一周的時間都相同',pg:'p.231 第2題',s:{d:'3/21',t:6,lat:0,ev:'top',pm:'t3',play:true},tx:'北緯 23.5°、赤道、南緯 47° 都跟著地球一起轉，轉一圈都是一天（24 小時）。不同的只有轉動的圓圈大小：赤道的圓最大，速率最快。'},
+  {n:'時差：哪裡是正午、正午前、正午後？',pg:'p.235 第9–11題',s:{d:'3/21',t:12,lat:23.5,ev:'top',sun:'L'},tx:'面向太陽的那條經線是正午。地球由西向東轉，所以在它西邊的地方還沒轉到太陽正前方（正午之前），東邊的地方已經過了正午。同一條經線上的地方時刻相同。每 15° 經度差 1 小時。飛機要一直被正午的陽光照射，就要往西飛（與自轉方向相反）。'},
+  {n:'星星東升西落、北極星幾乎不動',pg:'p.227 圖㈠、p.231 第5題、p.237 第6題',s:{d:'10/15',t:20,lat:23.5,sky:'stars',exp:0,pm:'t1',play:true},tx:'地球由西向東自轉，所以星星看起來由東向西運動、東升西落。地軸北端幾乎正指向北極星，所以北極星幾乎不動，其他星星繞著它逆時針轉。4 小時後星星往西移了約 60°，要往西方天空找。'},
+  {n:'星軌：每小時約轉 15°',pg:'p.234 素養2、p.253 第5題',s:{d:'10/15',t:23,lat:23.5,sky:'stars',exp:4},tx:'曝光 4 小時，每顆星都繞北極星轉了 4 × 15° = 60°，所有星軌的圓心角都一樣；離北極星越遠，弧越長。反過來，量到圓心角 30°，就知道拍了 2 小時。'},
+ ]},
+ {g:'四季變化（公轉＋自轉軸傾斜）',items:[
+  {n:'公轉圖：甲乙丙丁是哪個節氣？',pg:'p.228 圖㈤、p.231 第7題、p.235 第3–4題、p.254 第12題',s:{d:'6/22',t:12,lat:23.5,code:true},tx:'從北極上空看，地球逆時針公轉，自轉軸一直指向同一方向。北極傾向太陽的位置是夏至（直射北回歸線），北極背向太陽的位置是冬至（直射南回歸線），兩者中間是春分、秋分（直射赤道）。拖曳地球繞一圈看直射位置的變化。'},
+  {n:'夏至：北半球晝長夜短、北極圈內永晝',pg:'p.228–229、p.235 第5–8題',s:{d:'6/22',t:12,lat:23.5,ev:'side',chart:'latDay'},tx:'夏至太陽直射北回歸線，北半球晝長夜短，越往北白天越長，北極圈以北永晝；南極圈以南永夜。赤道永遠晝夜約等長，所以赤道的晝夜長短變化最不明顯。'},
+  {n:'冬至：北半球晝短夜長、北極圈內永夜',pg:'p.229',s:{d:'12/22',t:12,lat:23.5,ev:'side',chart:'latDay'},tx:'冬至太陽直射南回歸線，北半球晝短夜長，北極圈以北永夜，南極圈以南永晝。南半球的季節和北半球相反，這時是夏天。'},
+  {n:'春分、秋分：各地晝夜等長',pg:'p.229、p.232 第12題',s:{d:'3/21',t:12,lat:23.5,ev:'side',chart:'latDay'},tx:'春分、秋分太陽直射赤道，晝夜分界線通過南北極，世界各地白天和黑夜幾乎都是 12 小時。'},
+  {n:'自轉軸不傾斜會怎樣？',pg:'p.232 第8題',s:{d:'6/22',t:12,lat:23.5,tilt:0,pm:'d30',play:true,chart:'noonShadow'},tx:'自轉軸傾角變成 0° 後，太陽永遠直射赤道，一年四季各地晝夜等長、正午仰角都不變，就沒有明顯的季節變化（但仍然有晝夜）。把傾角拉回 23.5° 比較看看。'},
+  {n:'季節不是因為離太陽遠近',pg:'p.230 第2題、p.233 第14題、p.236 第4題',s:{d:'12/25',t:12,lat:-41,chart:'daylen',cmp:'51'},tx:'地球在每年 1 月初離太陽最近，北半球卻是冬天；而且同一天南、北半球的季節相反（紐西蘭在 12 月是夏天、晝長夜短，英國是冬天）。季節變化是因為自轉軸傾斜，讓太陽直射位置、正午仰角和晝夜長短改變。'},
+  {n:'直射與斜射：單位面積的能量',pg:'探討活動 7-1、p.232 第9、13題',s:{d:'6/22',t:12,lat:23.5,tab:'energy',en:'manual',enAlt:43},tx:'同樣一束光，斜射時照到的面積較大，單位面積得到的能量較少。拉動仰角滑桿比較：仰角 90° 時能量最集中。'},
+ ]},
+ {g:'太陽軌跡、仰角與竿影',items:[
+  {n:'嘉義不同季節的太陽軌跡',pg:'p.229 圖㈥',s:{d:'6/22',t:9,lat:23.5,ref:true,skyAz:270},tx:'夏至太陽從東偏北升起、西偏北落下，正午在頭頂（仰角 90°），晝長夜短；春分、秋分從正東升起、正西落下，晝夜等長；冬至從東偏南升起、西偏南落下，正午仰角最小（43°），晝短夜長。換日期看紅線移動。'},
+  {n:'嘉義夏至正午太陽在頭頂',pg:'p.230 第5題、p.233 第20題',s:{d:'6/22',t:12,lat:23.5},tx:'北回歸線（23.5°N）上的嘉義在夏至正午時，太陽在頭頂，竿影幾乎看不見；這天太陽從東偏北升起、西偏北落下，白天比黑夜長。因為陽光幾乎是平行光，同一緯度不管站在平地、高樓或山上，影子長度都一樣。'},
+  {n:'一天中竿影的變化',pg:'p.230、p.254 第11題',s:{d:'3/21',t:6.3,lat:23.5,path:true,pm:'t1',play:true},tx:'早上太陽剛升起時竿影很長；太陽越升越高，竿影越來越短；正午最短；下午又逐漸變長。影子永遠在太陽的反方向，所以早上朝西、下午朝東。春秋分時影子末端的軌跡是一條東西向直線。'},
+  {n:'臺中一年中哪天正午竿影最長？',pg:'p.230 第4題、p.236 第1題',s:{d:'12/22',t:12,lat:24,chart:'noonShadow'},tx:'冬至太陽直射南回歸線，北半球正午仰角最小、竿影最長，所以「日照權」以冬至日為標準。拖曳圖上的日期看竿影長度怎麼變。'},
+  {n:'冬至臺南正午太陽仰角',pg:'p.233 第16題',s:{d:'12/22',t:12,lat:23},tx:'正午仰角 ＝ 90° − |觀察者緯度 − 直射緯度| ＝ 90° − (23° + 23.5°) ＝ 43.5°。讀數「正午仰角」可以直接驗算。'},
+  {n:'冬至四地竿影：北極、赤道、北回歸線、南回歸線',pg:'p.233 第21題',s:{d:'12/22',t:12,lat:23.5,chart:'latShadow'},tx:'冬至直射南回歸線，那裡正午竿影最短；赤道仰角約 66.5°，影子不到半竿長；北回歸線仰角 43°，影子比竿子長；北極永夜，沒有影子。用圖表看各緯度的竿影長度。'},
+  {n:'日出時影子在西偏北 → 冬至',pg:'p.234 第22題',s:{d:'12/22',t:6.85,lat:23.5,path:true},tx:'影子和太陽方向相反。日出時影子在西偏北，表示太陽從東偏南升起；正午影子在正北且和身高差不多長（仰角約 45°），所以這天接近冬至。'},
+  {n:'全年正午旗竿影子長度變化',pg:'p.234 第24題',s:{d:'3/21',t:12,lat:23.5,chart:'noonShadow',pm:'d30',play:true},tx:'嘉義正午竿影在夏至最短（幾乎為零），冬至最長，春秋分介於兩者之間。北回歸線以北，正午影子幾乎全年都朝北。圖上影子最短的那天，太陽仰角最大、單位面積能量最多。'},
+  {n:'各緯度正午竿影長度（一個月後的變化）',pg:'p.234 素養1',s:{d:'3/21',t:12,lat:30,chart:'latShadow'},tx:'這天赤道上竿影最短，表示直射赤道（春分或秋分）。按「+1 月」：若北邊的甲地竿影變長，表示直射點往南移（秋分後），那麼赤道附近的乙地竿影變長、南半球的丙地竿影變短。'},
+  {n:'南回歸線以南：太陽在北方',pg:'p.233 第17題',s:{d:'6/22',t:12,lat:-30,ref:true,skyAz:180},tx:'在南回歸線以南，太陽一年四季正午都在北方；12/22 太陽最接近頭頂，6/22 最偏離頭頂。看不到北極星。'},
+  {n:'南緯 23.5° 春分的太陽軌跡',pg:'p.233 第18題',s:{d:'3/21',t:9,lat:-23.5,ref:true,skyAz:180},tx:'春分各地太陽都從正東升起、正西落下；南緯 23.5° 正午太陽在天頂偏北 23.5°，仰角 66.5°。'},
+  {n:'6/22 南回歸線正午陽光',pg:'p.233 第19題、p.254 第13題',s:{d:'6/22',t:12,lat:-23.5,tab:'energy',en:'noon'},tx:'夏至直射北回歸線，南回歸線正午仰角 ＝ 90° − 47° ＝ 43°，太陽在北方、陽光從北邊斜射下來。反過來，6/21 看到正午仰角 43° 且太陽偏北，就知道人在南回歸線上。'},
+  {n:'北極 6/22 正午陽光',pg:'p.254 第14題',s:{d:'6/22',t:12,lat:90},tx:'夏至北極永晝，太陽整天在地平線上方繞圈，仰角約 23.5°。站在北極時，所有方向都是南方，所以陽光從南方以 23.5° 斜射。'},
+  {n:'外婆家與舅舅家的緯度',pg:'p.237 第9題',s:{d:'6/22',t:12,lat:28,chart:'noonShadow'},tx:'夏至直射北回歸線。正午太陽在外婆家的南方，表示外婆家在北回歸線以北（緯度大於 23.5°N）。3 個月後是秋分，直射赤道，正午太陽在舅舅家的北方，表示舅舅家在南半球。所以兩家緯度至少相差 23.5° 以上，選項中只有相差 30° 合理。拉動緯度滑桿，看讀數「正午仰角」寫天頂偏南還是偏北。'},
+ ]},
+ {g:'直射次數、晝長圖表',items:[
+  {n:'一年中被太陽直射的天數',pg:'p.233 第15題',s:{d:'6/22',t:12,lat:22.6,chart:'decl'},tx:'直射點只在南、北回歸線之間移動。高雄（22.6°N）在回歸線之間，一年被直射 2 天；北回歸線上只有夏至 1 天；臺北、東京在回歸線以北，0 天。換緯度看藍點有幾個。'},
+  {n:'臺灣四地正午影子偏北的天數',pg:'p.234 第25題',s:{d:'6/22',t:12,lat:24.5,chart:'decl'},tx:'正午影子偏北的條件是太陽直射點在當地的南邊。北回歸線以北的地方，整年影子都偏北；越往南，直射點跑到北邊的天數越多，影子偏北的天數就越少。'},
+  {n:'古井每年兩天被直射 → 推算緯度',pg:'p.237 第7題',s:{d:'5/16',t:12,lat:19,chart:'decl'},tx:'直射點從 3/21（赤道）往北移，6/22 到北回歸線。5/16 大約在這段路程的中間偏北，所以緯度介於 0° 和 23.5° 之間，約北緯 19°。圖上可以看到 5/16 和 7/29 兩天直射。'},
+  {n:'太陽能板的傾角',pg:'p.237 第8題',s:{d:'6/22',t:12,lat:35,tab:'energy',en:'noon'},tx:'北緯 35° 夏至正午仰角 ＝ 90° − (35° − 23.5°) ＝ 78.5°。板子要和陽光垂直，所以板子與水平面的夾角 ＝ 90° − 78.5° ＝ 11.5°。'},
+  {n:'晝長全年變化圖：判斷在南半球',pg:'p.236 第2題',s:{d:'1/15',t:12,lat:-35,chart:'daylen'},tx:'這個地方 12、1 月白天最長、6、7 月白天最短，和北半球相反，所以在赤道以南。晝長最多相差約 4 小時（不是 8 小時）。'},
+  {n:'夏季想去日照最長的地方',pg:'p.236 第3題',s:{d:'6/22',t:12,lat:40,chart:'latDay'},tx:'夏至前後北半球晝長夜短，越往北白天越長。表中北緯 40° 的甲地白天最長，但「太陽正好直射」的地方一定在南北回歸線之間；白天 13.5 小時的北緯 23.5° 乙地，這時正被直射。'},
+  {n:'同經度四地的日照時間比較',pg:'p.237 第5題、p.255 第16題',s:{d:'6/22',t:12,lat:66.5,ev:'side'},tx:'看側面圖每條緯線上紅色（白天）和藍色（夜晚）的長度：北半球夏季，越往北白天越長、南半球越往南白天越短；冬季相反。極點、極圈內會出現永晝或永夜。'},
+ ]}
+];
+function applyPreset(it){
+  setPlay(false);const s=it.s;
+  Object.assign(S,S0,{tab:S.tab});
+  if(s.d)S.d=dIdx(s.d);if(s.t!==undefined)S.t=s.t;['lat','tilt','ev','sun','sky','exp','code','ref','path','chart','cmp','skyAz','pm','en','enAlt'].forEach(k=>{if(s[k]!==undefined)S[k]=s[k];});
+  syncUI();setTab(s.tab||'q');
+  $('story').hidden=false;$('storyT').textContent=it.n+'（'+it.pg+'）';$('storyP').textContent=it.tx;$('storyBack').hidden=!s.tab;
+  render();if(s.play)setPlay(true);
+  $('story').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+{const pane=$('pane-q');Q.forEach(gr=>{const d=document.createElement('div');d.className='qgrp';d.innerHTML=`<h4>${gr.g}</h4>`;const c=document.createElement('div');c.className='qchips';
+  gr.items.forEach(it=>{const b=document.createElement('button');b.className='qchip';b.innerHTML=`${it.n}<span class="pg">${it.pg}</span>`;b.addEventListener('click',()=>applyPreset(it));c.appendChild(b);});d.appendChild(c);pane.appendChild(d);});
+  const p=document.createElement('p');p.className='note';p.textContent='點一個情境，畫面會跳到題目描述的日期、時刻和地點，上方出現解說；之後可以繼續拖曳、播放。模型使用地方太陽時（正午＝太陽最高），不考慮大氣折射，所以日出日落時刻和實際會差幾分鐘。';pane.appendChild(p);}
+
+syncUI();
+new ResizeObserver(req).observe(document.querySelector('.wrap'));
+render();
+})();
+</script>
+</body>
+</html>
