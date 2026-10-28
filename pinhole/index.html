@@ -81,7 +81,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   <header>
     <div class="eyebrow">光學 · 光的直線傳播</div>
     <h1 id="h1">針孔成像</h1>
-    <p>拖曳光源、針孔或屏幕改變距離，再調整孔的大小、形狀與數量，觀察屏幕上的像或光斑如何變化。</p>
+    <p id="intro">拖曳光源、針孔或屏幕改變距離，再調整孔的大小、形狀與數量，觀察屏幕上的像或影子如何變化。</p>
     <div class="seg mode" data-k="mode" role="group" aria-label="模式">
       <button data-v="pinhole">針孔成像</button>
       <button data-v="point">點光源成像</button>
@@ -101,7 +101,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
     <section class="panel">
       <div class="panel-head">
         <h2 id="scr-title">屏幕上的像</h2>
-        <div class="ref"><span id="ref-label">實物：</span><canvas id="ref" width="88" height="132"></canvas><span>從暗箱後方看屏幕，格線 1 cm</span></div>
+        <div class="ref"><span id="ref-label">實物：</span><canvas id="ref" width="88" height="132"></canvas><span id="ref-note">從暗箱後方看屏幕，格線 1 cm</span></div>
       </div>
       <div class="scr-wrap"><canvas id="scr" aria-label="屏幕上的成像"></canvas></div>
       <div class="formula" id="formula"></div>
@@ -121,22 +121,22 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
         <input id="xc" type="range" min="0" max="92" step="0.5">
       </div>
       <div class="ctl">
-        <div class="ctl-row"><label for="xp">針孔位置（物距 d）</label><output id="o-xp"></output></div>
+        <div class="ctl-row"><label for="xp" id="xp-label">針孔位置（物距 d）</label><output id="o-xp"></output></div>
         <input id="xp" type="range" min="4" max="96" step="0.5">
       </div>
       <div class="ctl">
-        <div class="ctl-row"><label for="xs">屏幕位置（像距 D）</label><output id="o-xs"></output></div>
+        <div class="ctl-row"><label for="xs" id="xs-label">屏幕位置（像距 D）</label><output id="o-xs"></output></div>
         <input id="xs" type="range" min="8" max="100" step="0.5">
       </div>
-      <div class="ctl">
+      <div class="ctl" id="a-ctl">
         <div class="ctl-row"><label for="a">孔的大小 a</label><output id="o-a"></output></div>
         <input id="a" type="range" min="0.05" max="3" step="0.05">
       </div>
       <div class="ctl">
-        <div class="ctl-row"><label for="yc">物體高低位置</label><output id="o-yc"></output></div>
+        <div class="ctl-row"><label for="yc" id="yc-label">物體高低位置</label><output id="o-yc"></output></div>
         <input id="yc" type="range" min="-8" max="10" step="0.5">
       </div>
-      <div class="ctl">
+      <div class="ctl" id="shape-ctl">
         <span class="label">孔的形狀</span>
         <div class="seg" data-k="shape">
           <button data-v="circle">圓形</button>
@@ -144,7 +144,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
           <button data-v="triangle">三角形</button>
         </div>
       </div>
-      <div class="ctl">
+      <div class="ctl" id="holes-ctl">
         <span class="label">孔的數量</span>
         <div class="seg" data-k="holes">
           <button data-v="1">1 個</button>
@@ -185,9 +185,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
       <button class="btn" data-preset="multi">開 3 個孔</button>
     </div>
     <div class="note">
-      <h3>點光源：光斑形狀同孔</h3>
-      <p>只有一個發光點時，屏幕上得到的是孔形狀的光斑，方向和孔相同、不倒立，大小 s = a(d+D)⁄d。</p>
-      <button class="btn" data-preset="point-tri">點光源＋三角孔</button>
+      <h3>點光源與影子</h3>
+      <p>手電筒照人，光被擋住就在牆上留下影子。影子正立、和物體同形狀；物體越靠近光源，影子越大，h′ = h(d+D)⁄d。</p>
+      <button class="btn" data-preset="point">看影子</button>
     </div>
   </section>
 </div>
@@ -268,6 +268,22 @@ function renderSprite(t){
   }
 }
 
+/* ---------- obstacle silhouette (person, right arm raised) ---------- */
+function makePerson(fill,stroke){
+  const c=document.createElement('canvas');c.width=SPW;c.height=SPH;const g=c.getContext('2d');
+  g.setTransform(R,0,0,-R,3*R,4.5*R);g.fillStyle=fill;g.lineJoin='round';g.lineCap='round';
+  g.beginPath();g.arc(0,3.15,.78,0,7);g.fill();
+  g.beginPath();g.moveTo(-.85,2.25);g.lineTo(.85,2.25);g.lineTo(.75,-.6);g.lineTo(-.75,-.6);g.closePath();g.fill();
+  g.strokeStyle=fill;g.lineWidth=.55;
+  g.beginPath();g.moveTo(-.4,-.5);g.lineTo(-.55,-3.75);g.moveTo(.4,-.5);g.lineTo(.6,-3.75);
+  g.moveTo(-.8,2.05);g.lineTo(-1.45,-.3);
+  g.moveTo(.8,2.05);g.lineTo(1.75,3.2);g.lineTo(2.05,4.1);g.stroke();
+  if(stroke){g.globalCompositeOperation='source-atop';}
+  return c;
+}
+const personSide=makePerson('#5d6780');
+const personShadow=makePerson('#06070a');
+
 /* ---------- canvases ---------- */
 const side=$('#side'),sc=side.getContext('2d');
 const scr=$('#scr'),qc=scr.getContext('2d');
@@ -303,6 +319,49 @@ function vmark(x,y1,y2,label){
   sc.font=`500 12px ${MONO}`;sc.fillStyle=col.fg;sc.textAlign='left';sc.textBaseline='middle';sc.fillText(label,x+6,Y((y1+y2)/2));
 }
 
+function drawSidePoint(){
+  const xc=S.xc,xp=S.xp,xs=S.xs,{d,D,k}=geo(),ly=S.yc,WH=BH+4;
+  const yT=ly+(HOBJ/2-ly)*k,yB=ly+(-HOBJ/2-ly)*k;
+  sc.save();sc.beginPath();sc.rect(0,Y(WH),X(xs)+1,Y(-WH)-Y(WH));sc.clip();
+  // light filling the space
+  const g=sc.createRadialGradient(X(xc),Y(ly),0,X(xc),Y(ly),(xs-xc+10)*scale);
+  g.addColorStop(0,'rgba(255,200,110,.30)');g.addColorStop(1,'rgba(255,200,110,.06)');
+  sc.fillStyle=g;sc.fillRect(X(xc),Y(WH),X(xs)-X(xc),Y(-WH)-Y(WH));
+  // shadow region behind the obstacle
+  sc.fillStyle='rgba(6,7,10,.88)';sc.beginPath();
+  sc.moveTo(X(xp),Y(HOBJ/2));sc.lineTo(X(xs),Y(yT));sc.lineTo(X(xs),Y(yB));sc.lineTo(X(xp),Y(-HOBJ/2));sc.closePath();sc.fill();
+  if(S.rays){
+    sc.strokeStyle=col.flame;sc.lineWidth=1.4;sc.globalAlpha=.95;sc.beginPath();
+    sc.moveTo(X(xc),Y(ly));sc.lineTo(X(xs),Y(yT));sc.moveTo(X(xc),Y(ly));sc.lineTo(X(xs),Y(yB));sc.stroke();
+    sc.globalAlpha=.35;sc.lineWidth=1;sc.setLineDash([3,4]);sc.beginPath();
+    [WH*.85,WH*.45,-WH*.45,-WH*.85].forEach(y=>{sc.moveTo(X(xc),Y(ly));sc.lineTo(X(xs),Y(y));});
+    sc.stroke();sc.setLineDash([]);sc.globalAlpha=1;
+  }
+  sc.restore();
+  // wall: lit, with the shadow on it
+  sc.fillStyle='#f3e4c2';sc.fillRect(X(xs)-3,Y(WH),6,Y(-WH)-Y(WH));
+  sc.save();sc.beginPath();sc.rect(X(xs)-5,Y(WH),10,Y(-WH)-Y(WH));sc.clip();
+  sc.fillStyle='#06070a';sc.fillRect(X(xs)-3,Y(yT),6,Y(yB)-Y(yT));sc.restore();
+  vmark(X(xs)+12,yT,yB,'h′');
+  // obstacle (person)
+  sc.save();sc.translate(X(xp),Y(0));sc.scale(scale,scale);sc.drawImage(personSide,-3,-4.5,6,9);sc.restore();
+  const hx=X(xp)-3.4*scale;
+  sc.strokeStyle=col.muted;sc.lineWidth=1;sc.beginPath();
+  sc.moveTo(hx,Y(4));sc.lineTo(hx,Y(-4));sc.moveTo(hx-4,Y(4));sc.lineTo(hx+4,Y(4));sc.moveTo(hx-4,Y(-4));sc.lineTo(hx+4,Y(-4));sc.stroke();
+  sc.font=`500 12px ${MONO}`;sc.fillStyle=col.fg;sc.textAlign='right';sc.textBaseline='middle';sc.fillText('h',hx-6,Y(0));
+  // light source
+  sc.save();sc.translate(X(xc),Y(ly));sc.scale(scale,scale);sc.drawImage(sprite,-3,-4.5,6,9);sc.restore();
+  // grips + labels
+  sc.font=`11px ${C('--f-body')}`;sc.textAlign='center';sc.textBaseline='bottom';
+  [[xp,'#5d6780','物體'],[xs,col.paper,'屏幕（牆）']].forEach(([x,c,t])=>{
+    sc.fillStyle=c;sc.beginPath();sc.moveTo(X(x),Y(WH+.6));sc.lineTo(X(x)-6,Y(WH+.6)-9);sc.lineTo(X(x)+6,Y(WH+.6)-9);sc.fill();
+    sc.fillStyle=col.fg;sc.fillText(t,X(x),Y(WH+.6)-11);
+  });
+  sc.fillStyle=col.fg;sc.fillText('點光源',X(xc),Y(ly+2.2));
+  dim(X(xc),X(xp),Y(-22),`d = ${d.toFixed(1)}`);
+  dim(X(xp),X(xs),Y(-22),`D = ${D.toFixed(1)}`);
+}
+
 function drawSide(){
   sc.setTransform(dpr,0,0,dpr,0,0);
   sc.fillStyle=col.panel;sc.fillRect(0,0,SW,SH);
@@ -316,6 +375,7 @@ function drawSide(){
   sc.textAlign='left';sc.fillText('cm',X(104)+4,ry-5);
   // axis
   sc.setLineDash([4,5]);sc.strokeStyle=col.line;sc.beginPath();sc.moveTo(X(-8),Y(0));sc.lineTo(X(106),Y(0));sc.stroke();sc.setLineDash([]);
+  if(point){drawSidePoint();return;}
   // camera box (pinhole → screen)
   sc.fillStyle='rgba(0,0,0,.38)';sc.fillRect(X(xp),Y(BH),X(xs)-X(xp),Y(-BH)-Y(BH));
   sc.strokeStyle=col.line;sc.lineWidth=1.5;sc.beginPath();
@@ -404,19 +464,18 @@ function drawScreen(){
   }
   const {d,D,m,k}=geo();
   if(S.mode==='point'){
-    const L=clamp(.35+.65*Math.pow(50/(d+D),2),.35,1),sz=k*S.a,TH2=Math.sqrt(3)/2;
-    qc.save();qc.globalCompositeOperation='lighter';qc.globalAlpha=L;
-    qc.shadowColor='rgba(255,180,80,.9)';qc.shadowBlur=18;qc.fillStyle='#fff1c9';
-    offsets().forEach(o=>{
-      const X0=cx,Y0=cy-(k*o-m*S.yc)*ps,r=Math.max(1.5,sz*ps/2);
-      qc.beginPath();
-      if(S.shape==='circle')qc.arc(X0,Y0,r,0,7);
-      else if(S.shape==='square')qc.rect(X0-r,Y0-r,2*r,2*r);
-      else{qc.moveTo(X0,Y0-2*r*TH2/2);qc.lineTo(X0+r,Y0+2*r*TH2/2);qc.lineTo(X0-r,Y0+2*r*TH2/2);qc.closePath();}
-      qc.fill();
-    });
-    qc.restore();
-    drawScreenLabels(cx,cy,ps);
+    const ly=S.yc,L=clamp(.45+.55*Math.pow(50/(d+D),2),.45,1);
+    const gx=cx,gy=cy-ly*ps,rad=Math.max(Q*.9,(d+D)*1.3*ps);
+    const g=qc.createRadialGradient(gx,gy,0,gx,gy,rad);
+    g.addColorStop(0,`rgba(255,236,196,${L})`);g.addColorStop(.5,`rgba(240,214,170,${L*.55})`);g.addColorStop(1,`rgba(220,190,150,${L*.2})`);
+    qc.fillStyle=g;qc.fillRect(0,0,Q,Q);
+    qc.save();qc.translate(cx,cy-ly*(1-k)*ps);qc.scale(k*ps,k*ps);qc.drawImage(personShadow,-3,-4.5,6,9);qc.restore();
+    qc.setTransform(dpr,0,0,dpr,0,0);
+    for(let i=-16;i<=16;i++){
+      qc.strokeStyle=i%5===0?'rgba(60,50,35,.28)':'rgba(60,50,35,.12)';qc.lineWidth=1;qc.beginPath();
+      qc.moveTo(cx+i*ps,0);qc.lineTo(cx+i*ps,Q);qc.moveTo(0,cy+i*ps);qc.lineTo(Q,cy+i*ps);qc.stroke();
+    }
+    qc.fillStyle='rgba(255,200,110,.95)';qc.beginPath();qc.arc(gx,gy,3,0,7);qc.fill();
     return;
   }
   const b=bright(D);
@@ -448,7 +507,7 @@ function drawScreenLabels(cx,cy,ps){
 
 function drawRef(){
   rc.setTransform(1,0,0,1,0,0);rc.clearRect(0,0,88,132);
-  rc.drawImage(sprite,0,0,88,132);
+  rc.drawImage(S.mode==='point'?personSide:sprite,0,0,88,132);
 }
 
 /* ---------- UI ---------- */
@@ -461,27 +520,32 @@ function syncUI(){
   document.querySelectorAll('.seg').forEach(g=>{const k=g.dataset.k;g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(S[k]))));});
   $('#t-rays').setAttribute('aria-pressed',String(S.rays));
   $('#t-auto').setAttribute('aria-pressed',String(S.auto));
-  $('#t-auto').textContent=S.auto?'停止移動':'自動移動針孔';
-  const point=S.mode==='point';
+    const point=S.mode==='point';
+  $('#intro').textContent=point?'點光源發出的光沿直線前進，被物體擋住的地方就形成影子。拖曳光源、物體或牆改變距離，觀察影子的大小與位置。':'拖曳光源、針孔或屏幕改變距離，再調整孔的大小、形狀與數量，觀察屏幕上的像如何變化。';
   $('#h1').textContent=point?'點光源成像':'針孔成像';
-  $('#scr-title').textContent=point?'屏幕上的光斑':'屏幕上的像';
-  $('#ref-label').textContent=point?'光源：':'實物：';
+  $('#scr-title').textContent=point?'牆上的影子':'屏幕上的像';
+  $('#ref-note').textContent=point?'從光源這一側看牆，格線 1 cm':'從暗箱後方看屏幕，格線 1 cm';
+  $('#ref-label').textContent=point?'物體：':'實物：';
   $('#xc-label').textContent=point?'光源位置':'蠟燭位置';
-  $('#k-top').textContent=point?'從點光源出發的光':'來自火焰頂端的光';
+  $('#k-top').textContent=point?'擦過物體邊緣的光線（影子邊界）':'來自火焰頂端的光';
   $('#k-bot').hidden=point;
-  $('#k-hint').textContent=point?'光源可前後上下拖曳；針孔、屏幕可左右拖曳':'蠟燭可前後上下拖曳；針孔、屏幕可左右拖曳';
+  $('#k-hint').textContent=point?'光源可前後上下拖曳；物體、屏幕可左右拖曳':'蠟燭可前後上下拖曳；針孔、屏幕可左右拖曳';
   $('#obj-ctl').hidden=point;
   const m=G.m,hi=HOBJ*m,blur=S.a*G.k,br=area()/(G.D*G.D)/REF;
+  ['a-ctl','shape-ctl','holes-ctl'].forEach(id=>$('#'+id).hidden=point);
+  $('#xp-label').textContent=point?'物體位置（d：光源到物體）':'針孔位置（物距 d）';
+  $('#xs-label').textContent=point?'屏幕位置（D：物體到屏幕）':'屏幕位置（像距 D）';
+  $('#yc-label').textContent=point?'光源高低位置':'物體高低位置';
+  $('#t-auto').textContent=S.auto?'停止移動':point?'自動移動物體':'自動移動針孔';
   if(point){
-    const sz=S.a*G.k,lr=Math.pow(50/(G.d+G.D),2),SN={circle:'圓形',square:'方形',triangle:'三角形'};
-    $('#formula').innerHTML=`s = a × (d+D) ⁄ d = ${fmt(S.a,2)} × ${fmt(G.d+G.D)} ⁄ ${fmt(G.d)} = <b>${fmt(sz,2)} cm</b>`;
+    const h2=HOBJ*G.k;
+    $('#formula').innerHTML=`h′ = h × (d+D) ⁄ d = ${fmt(HOBJ)} × ${fmt(G.d+G.D)} ⁄ ${fmt(G.d)} = <b>${fmt(h2,2)} cm</b>`;
     $('#readout').innerHTML=
-      `<dt>孔的大小 a</dt><dd>${fmt(S.a,2)} cm</dd>`+
-      `<dt>光斑大小 s</dt><dd>${fmt(sz,2)} cm</dd>`+
-      `<dt>光斑形狀</dt><dd>與孔相同（${SN[S.shape]}）</dd>`+
-      `<dt>光斑方向</dt><dd>與孔同向，不倒立</dd>`+
-      `<dt>光斑中心高度</dt><dd>${fmt(-m*S.yc+0,1)} cm</dd>`+
-      `<dt>相對亮度 ∝ 1 ⁄ (d+D)²</dt><dd>${fmt(lr,2)} ×</dd>`;
+      `<dt>物高 h</dt><dd>${fmt(HOBJ)} cm</dd>`+
+      `<dt>影子高 h′</dt><dd>${fmt(h2,2)} cm</dd>`+
+      `<dt>放大倍率 (d+D) ⁄ d</dt><dd>× ${fmt(G.k,2)}</dd>`+
+      `<dt>影子性質</dt><dd>正立、放大、與物體同形狀</dd>`+
+      `<dt>影子中心高度</dt><dd>${fmt(S.yc*(1-G.k)+0,1)} cm</dd>`;
     return;
   }
   $('#formula').innerHTML=`h′ = h × D ⁄ d = ${fmt(HOBJ)} × ${fmt(G.D)} ⁄ ${fmt(G.d)} = <b>${fmt(hi,2)} cm</b>`;
@@ -510,7 +574,7 @@ const presets={
   'tri-big':{mode:'pinhole',shape:'triangle',a:2.6,holes:1,xc:0,xp:30,xs:50},
   big:{mode:'pinhole',a:1.6,shape:'circle',holes:1},
   multi:{mode:'pinhole',holes:3,a:.3,shape:'circle',xc:0,xp:30,xs:56},
-  'point-tri':{mode:'point',shape:'triangle',a:1.5,holes:1,xc:0,xp:30,xs:52,yc:0}
+  point:{mode:'point',xc:4,xp:24,xs:60,yc:0,rays:true}
 };
 document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{
   Object.assign(S,presets[b.dataset.preset]);S.auto=false;dirty=true;
@@ -524,6 +588,7 @@ function hit(p){
   const hh=S.mode==='point'?2.5:5.5;
   if(Math.abs(p.x-S.xc)<3&&p.y>S.yc-hh&&p.y<S.yc+hh)return'obj';
   if(Math.abs(p.y)<BH+6){
+    if(S.mode==='point'&&Math.abs(p.x-S.xp)<3&&Math.abs(p.y)<5.5)return'pin';
     const dp=Math.abs(p.x-S.xp),ds=Math.abs(p.x-S.xs),r=Math.max(2.2,14/scale);
     if(Math.min(dp,ds)<r)return dp<=ds?'pin':'scr';
   }
