@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>凸透鏡成像立體視角</title>
+<title>透鏡成像立體視角</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -69,6 +69,14 @@ h1 {
 }
 .formula { font-family: var(--f-mono); color: var(--muted); font-size: 0.92rem; margin: 0; }
 .hint { color: var(--muted); margin: 0; font-size: 0.92rem; }
+.crumb { font-size: 0.9rem; color: var(--muted); }
+.crumb a { color: var(--lens); }
+
+/* 凸透鏡／凹透鏡切換 */
+.seg { display: inline-flex; justify-self: start; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; min-height: 40px; padding: 6px 18px; font-size: 1rem; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--lens); color: var(--panel); }
 
 .bench { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .bench svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
@@ -123,15 +131,15 @@ dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
 <body>
 <div class="wrap">
   <header>
-    <h1>凸透鏡成像立體視角</h1>
+    <div class="crumb"><a href="../">自然科模擬動畫</a> · 光學 · <a id="to2d" href="../lens/">平面側視版</a> · <a href="../mirror/">面鏡成像</a></div>
+    <h1>透鏡成像立體視角</h1>
     <p class="formula">1/f = 1/p + 1/q　　m = −q / p</p>
-    <p class="hint">從物體端往成像端看。拖曳綠色箭頭改變物距和高度，也可以用下方拉桿。注意黑色旗子在像裡跑到哪一邊。</p>
+    <p class="hint">從物體端往成像端看。先選凸透鏡或凹透鏡，再拖曳綠色箭頭改變物距和高度，也可以用下方拉桿。注意黑色旗子在像裡跑到哪一邊。</p>
     <p class="rotate-hint">手機橫拿，畫面會更大。</p>
-    <p class="hint"><a href="../">← 所有模擬</a>　·　<a href="../lens/">平面側視版</a></p>
   </header>
 
   <div class="bench">
-    <svg id="scene" viewBox="0 0 1000 600" aria-label="凸透鏡成像立體光路圖">
+    <svg id="scene" viewBox="0 0 1000 600" aria-label="透鏡成像立體光路圖">
       <defs>
         <clipPath id="clip"><rect x="0" y="0" width="1000" height="600"></rect></clipPath>
       </defs>
@@ -143,6 +151,10 @@ dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
   <div class="below">
     <section class="card" aria-label="控制">
       <h2>控制</h2>
+      <div class="seg" role="group" aria-label="透鏡種類">
+        <button id="tConvex" type="button" aria-pressed="true">凸透鏡</button>
+        <button id="tConcave" type="button" aria-pressed="false">凹透鏡</button>
+      </div>
       <div class="slider-row">
         <div class="top"><label for="fSlider">焦距 f</label><output id="fOut">60 公分</output></div>
         <input id="fSlider" type="range" min="20" max="100" step="1" value="60">
@@ -156,9 +168,9 @@ dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
         <input id="hSlider" type="range" min="10" max="80" step="1" value="40">
       </div>
       <div class="rays">
-        <label><input type="checkbox" id="r1" checked><span class="swatch" style="background: var(--ray1)"></span>平行光軸 → 折射後通過焦點</label>
+        <label><input type="checkbox" id="r1" checked><span class="swatch" style="background: var(--ray1)"></span><span id="r1Text">平行光軸 → 折射後通過焦點</span></label>
         <label><input type="checkbox" id="r2" checked><span class="swatch" style="background: var(--ray2)"></span>通過透鏡中心 → 直線前進</label>
-        <label><input type="checkbox" id="r3" checked><span class="swatch" style="background: var(--ray3)"></span>通過焦點 → 折射後平行光軸</label>
+        <label><input type="checkbox" id="r3" checked><span class="swatch" style="background: var(--ray3)"></span><span id="r3Text">通過焦點 → 折射後平行光軸</span></label>
         <label><input type="checkbox" id="r4" checked><span class="swatch" style="background: var(--flag)"></span>旗子尖端 → 通過透鏡中心（看左右）</label>
       </div>
       <button id="reset" type="button">重設</button>
@@ -191,6 +203,9 @@ const Z_MIN = -260, Z_MAX = 470;
 
 const DEFAULT = { f: 60, p: 150, h: 40 };
 let state = { ...DEFAULT };
+let lensType = 'convex';   // 'convex' 凸透鏡、'concave' 凹透鏡
+const isConcave = () => lensType === 'concave';
+const signedF = () => (isConcave() ? -state.f : state.f);   // 凹透鏡的焦距取負值
 
 const svg = document.getElementById('scene');
 const dyn = document.getElementById('dyn');
@@ -336,8 +351,9 @@ function updateObject() {
 
 // ===== 物理計算（薄透鏡公式）=====
 function solve() {
-  const { f, p, h } = state;
-  if (Math.abs(p - f) < 0.01) return { none: true };
+  const { p, h } = state;
+  const f = signedF();
+  if (Math.abs(p - f) < 0.01) return { none: true };   // 物體在凸透鏡焦點上：不成像
   const q = (p * f) / (p - f);   // 正 = 實像（透鏡另一側），負 = 虛像（物體同側）
   const m = -q / p;              // 負 = 倒立且左右相反，正 = 正立
   return { q, m, hi: m * h };
@@ -416,15 +432,31 @@ function render() {
   const ring = [];
   for (let i = 0; i < 64; i++) { const a = (i / 64) * 2 * Math.PI; ring.push([LENS_R * Math.cos(a), LENS_R * Math.sin(a), 0]); }
   out += seg([0, -LENS_R, 0], [0, RAIL_Y, 0], css('rail-side'), { width: 3 });
-  out += poly(ring, css('lens-fill'), css('lens'), { width: 2.5 });
-  out += label([0, LENS_R, 0], '凸透鏡', 'svg-small', { dy: -8 });
+  if (isConcave()) {
+    // 凹透鏡：邊緣比中間厚，畫出前後兩圈當作鏡片的厚邊
+    const back = ring.map(([x, y]) => [x, y, -6]), front = ring.map(([x, y]) => [x, y, 6]);
+    out += poly(back, 'none', css('lens'), { width: 2 });
+    out += poly(front, css('lens-fill'), css('lens'), { width: 2.5 });
+    for (const a of [0, Math.PI / 2, Math.PI, 1.5 * Math.PI]) {
+      out += seg([LENS_R * Math.cos(a), LENS_R * Math.sin(a), -6], [LENS_R * Math.cos(a), LENS_R * Math.sin(a), 6], css('lens'), { width: 2 });
+    }
+  } else {
+    out += poly(ring, css('lens-fill'), css('lens'), { width: 2.5 });
+  }
+  out += label([0, LENS_R, 0], isConcave() ? '凹透鏡' : '凸透鏡', 'svg-small', { dy: -8 });
 
   // ----- 光線（都從物體的箭頭尖端或旗子尖端出發）-----
+  const conc = isConcave();
+  const fs = signedF();   // 帶正負號的焦距
+  // 沿著方向 d 往成像端（z 增加）延伸到很遠
+  const extendDir = (A, d) => { if (d[2] < 0) d = d.map(v => -v); const t = (FAR - A[2]) / d[2]; return [A[0] + d[0] * t, A[1] + d[1] * t, FAR]; };
+  // 光線 1：平行光軸射向透鏡。凸透鏡：折射後通過焦點 F′；凹透鏡：折射後好像從焦點 F 發出
   if (show('r1')) {
     const c = css('ray1'), A = [0, h, 0];
     out += seg(tip, A, c);
-    out += seg(A, extend(A, [0, 0, f]), c);
-    if (virtual) out += seg(A, imgTip, c, { dash: '5 6', opacity: 0.75 });
+    out += seg(A, extendDir(A, [0 - A[0], 0 - A[1], fs - A[2]]), c);
+    if (conc) out += seg(A, [0, 0, -f], c, { dash: '5 6', opacity: 0.75 });   // 反向延長線回到 F
+    else if (virtual) out += seg(A, imgTip, c, { dash: '5 6', opacity: 0.75 });
   }
   if (show('r2')) {
     const c = css('ray2'), O = [0, 0, 0];
@@ -432,12 +464,14 @@ function render() {
     out += seg(O, extend(tip, O), c);
     if (virtual) out += seg(O, imgTip, c, { dash: '5 6', opacity: 0.75 });
   }
+  // 光線 3：折射後平行光軸。凸透鏡：沿「焦點 F 與尖端」的連線射入；凹透鏡：朝另一側焦點 F′ 射入
   if (show('r3') && !r.none) {
     const c = css('ray3');
-    const B = [0, h * f / (f - p), 0];   // 沿「焦點 F 與尖端」的連線打到透鏡的高度
+    const B = [0, h * fs / (fs - p), 0];   // 打到透鏡的高度
     out += seg(tip, B, c);
     out += seg(B, [0, B[1], FAR], c);
-    if (p < f) out += seg([0, 0, -f], tip, c, { dash: '3 6', opacity: 0.6 });
+    if (!conc && p < f) out += seg([0, 0, -f], tip, c, { dash: '3 6', opacity: 0.6 });
+    if (conc) out += seg(B, [0, 0, f], c, { dash: '3 6', opacity: 0.6 });   // 原本瞄準 F′ 的方向
     if (virtual) out += seg(B, imgTip, c, { dash: '5 6', opacity: 0.75 });
   }
   if (show('r4')) {
@@ -465,7 +499,8 @@ function updateReadout(r) {
   const { f, p, h } = state;
   const near = (a, b) => Math.abs(a - b) < 0.01;
   let region;
-  if (near(p, 2 * f)) region = '物體在 2F 上';
+  if (isConcave()) region = '凹透鏡：物體放在哪裡，都成正立、縮小的虛像';
+  else if (near(p, 2 * f)) region = '物體在 2F 上';
   else if (p > 2 * f) region = '物體在 2F 以外';
   else if (p > f) region = '物體在 F 與 2F 之間';
   else if (near(p, f)) region = '物體在焦點 F 上';
@@ -474,7 +509,7 @@ function updateReadout(r) {
 
   pSlider.value = Math.round(p);
   hSlider.value = Math.round(h);
-  document.getElementById('fOut').textContent = `${f} 公分`;
+  document.getElementById('fOut').textContent = isConcave() ? `−${f} 公分` : `${f} 公分`;
   document.getElementById('pSliderOut').textContent = `${fmt(p, 0)} 公分`;
   document.getElementById('hSliderOut').textContent = `${fmt(h, 0)} 公分`;
   document.getElementById('pOut').textContent = `${fmt(p)} 公分`;
@@ -504,7 +539,9 @@ function updateReadout(r) {
     ${far ? '<span class="chip">像超出畫面</span>' : ''}`;
   note.textContent = real
     ? '上下顛倒加上左右相反，等於把物體繞著光軸轉 180°，不是鏡子裡的反像。'
-    : '虛像和物體方向相同：旗子仍在右手邊，也沒有上下顛倒。';
+    : isConcave()
+      ? '凹透鏡的像永遠是正立、縮小的虛像：旗子仍在右手邊，也沒有上下顛倒。'
+      : '虛像和物體方向相同：旗子仍在右手邊，也沒有上下顛倒。';
 }
 
 // ===== 拖曳物體 =====
@@ -566,6 +603,26 @@ document.getElementById('reset').addEventListener('click', () => {
   scheduleRender();
 });
 
+// ===== 凸透鏡／凹透鏡切換（網址 #concave 直接打開凹透鏡，和平面版互通）=====
+const RAY_TEXT = {
+  convex: ['平行光軸 → 折射後通過焦點', '通過焦點 → 折射後平行光軸'],
+  concave: ['平行光軸 → 折射後好像從焦點 F 發出', '射向另一側焦點 F′ → 折射後平行光軸'],
+};
+function setType(type) {
+  lensType = type === 'concave' ? 'concave' : 'convex';
+  document.getElementById('tConvex').setAttribute('aria-pressed', String(!isConcave()));
+  document.getElementById('tConcave').setAttribute('aria-pressed', String(isConcave()));
+  document.getElementById('r1Text').textContent = RAY_TEXT[lensType][0];
+  document.getElementById('r3Text').textContent = RAY_TEXT[lensType][1];
+  const hash = isConcave() ? '#concave' : '';
+  document.getElementById('to2d').href = '../lens/' + hash;
+  try { history.replaceState(null, '', location.pathname + location.search + hash); } catch (e) {}
+  scheduleRender();
+}
+document.getElementById('tConvex').addEventListener('click', () => setType('convex'));
+document.getElementById('tConcave').addEventListener('click', () => setType('concave'));
+window.addEventListener('hashchange', () => setType(location.hash === '#concave' ? 'concave' : 'convex'));
+
 new ResizeObserver(() => { updateScale(); scheduleRender(); }).observe(svg);
 const onTheme = () => { readColors(); scheduleRender(); };
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', onTheme);
@@ -574,6 +631,7 @@ new MutationObserver(onTheme).observe(document.documentElement, { attributes: tr
 setupCamera();
 updateScale();
 readColors();
+setType(location.hash === '#concave' ? 'concave' : 'convex');
 render();
 </script>
 
