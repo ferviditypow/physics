@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>橫波與縱波：繩波與彈簧波</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+<style>
+:root{
+  --bg:#f4f5f2; --panel:#ffffff; --fg:#1b2420; --muted:#5e6b64; --line:#d6dbd4;
+  --rope:#2f5d8a; --spring:#4a7c59; --hot:#d9480f; --hot2:#7048c7; --hot3:#0b8a8f;
+  --ghost:#9aa5a0; --crest:#d9480f; --trough:#7048c7; --dense:#b42318; --sparse:#1570ef; --arrow:#1f8a4c;
+  --display:"Noto Serif TC","Songti TC",serif; --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1412; --panel:#161d1a; --fg:#e6ece8; --muted:#97a59e; --line:#2a3530;
+  --rope:#8bb4e0; --spring:#8fd0a0; --hot:#ff8a4c; --hot2:#b9a2ff; --hot3:#5fd3d8;
+  --ghost:#6b7570; --crest:#ff8a4c; --trough:#b9a2ff; --dense:#ff7a6b; --sparse:#6fb1ff; --arrow:#4fd18a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1412; --panel:#161d1a; --fg:#e6ece8; --muted:#97a59e; --line:#2a3530;
+  --rope:#8bb4e0; --spring:#8fd0a0; --hot:#ff8a4c; --hot2:#b9a2ff; --hot3:#5fd3d8;
+  --ghost:#6b7570; --crest:#ff8a4c; --trough:#b9a2ff; --dense:#ff7a6b; --sparse:#6fb1ff; --arrow:#4fd18a; color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.6}
+.wrap{max-width:1000px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 48px max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+.crumb{font-size:.85rem;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}.crumb a{color:inherit}
+h1{font-family:var(--display);font-size:clamp(22px,4vw,30px);margin:0;letter-spacing:.02em}
+.sub{color:var(--muted);margin:4px 0 0}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+.lab{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:500;margin:0 0 6px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+canvas{display:block;width:100%;touch-action:none}
+#main{height:300px} #tl{height:46px;cursor:ew-resize} #pt{height:170px} #disp{height:130px}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.row label{display:flex;align-items:center;gap:6px;font-size:14px}
+input[type=range]{width:120px;accent-color:var(--rope)}
+button{font:inherit;font-weight:500;background:var(--rope);color:#fff;border:0;border-radius:6px;padding:7px 14px;cursor:pointer;line-height:1.3}
+button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+button.big{font-size:16px;padding:8px 18px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg button{border-radius:0;background:transparent;color:var(--fg);padding:6px 11px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--rope);color:#fff}
+.time{font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;font-family:var(--display)}
+.time small{font-size:13px;font-weight:400;color:var(--muted);font-family:var(--body);margin-left:6px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.notes h2{font-size:16px;margin:0 0 6px}.notes p{margin:0 0 6px}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.verdict{border-left:4px solid var(--hot);padding:8px 12px;background:var(--panel);border-radius:0 8px 8px 0}
+#status{font-size:14px}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;color:#fff}
+@media (max-width:600px){#main{height:240px} input[type=range]{width:100px} .hidemobile{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="crumb"><a href="../">自然科模擬動畫</a> · 波動 · <a href="../wave/">水波側視</a> · <a href="../wave3d/">水波 3D</a></div>
+    <h1>橫波與縱波：繩波、彈簧波</h1>
+    <p class="sub">波形往右傳，質點卻留在原地來回振動。用「▸ ¼T」一格一格推進，比較每經過四分之一週期波形怎麼變、質點跑到哪。</p>
+  </header>
+
+  <div class="row">
+    <span class="seg" role="group" aria-label="介質">
+      <button data-med="rope" aria-pressed="true">繩波（橫波）</button>
+      <button data-med="springT" aria-pressed="false">彈簧橫波</button>
+      <button data-med="springL" aria-pressed="false">彈簧縱波</button>
+    </span>
+    <span class="seg" role="group" aria-label="波源">
+      <button data-src="cont" aria-pressed="true">連續波</button>
+      <button data-src="pulse" aria-pressed="false">單一脈波</button>
+      <button data-src="full" aria-pressed="false">整條已有波</button>
+    </span>
+  </div>
+
+  <section class="stage">
+    <p class="lab"><span id="mainlab">繩子側視：點一下繩上的質點可追蹤它（最多 3 個）</span><span class="time" id="tdisp">t = 0 <small>T</small></span></p>
+    <canvas id="main" aria-label="波動動畫"></canvas>
+    <canvas id="tl" aria-label="時間軸，每小格四分之一週期，可拖曳"></canvas>
+    <div class="key" style="margin-top:6px">
+      <span><i style="background:var(--crest)"></i>波峰／密部</span>
+      <span><i style="background:var(--trough)"></i>波谷／疏部</span>
+      <span><i style="background:var(--hot)"></i><i style="background:var(--hot2)"></i><i style="background:var(--hot3)"></i>追蹤的質點</span>
+      <span><i style="background:var(--ghost)"></i>參考波形（虛線）</span>
+      <span><i style="background:var(--arrow)"></i>質點速度</span>
+    </div>
+  </section>
+
+  <div class="row">
+    <button id="play" class="big">▶ 播放</button>
+    <span class="steps">
+      <button id="back" class="ghost">◂ 退一格</button>
+      <button id="fwd" class="ghost">進一格 ▸</button>
+      <span class="seg" role="group" aria-label="每格長度">
+        <button data-step="0.0625">1/16 T</button>
+        <button data-step="0.125">1/8 T</button>
+        <button data-step="0.25" aria-pressed="true">1/4 T</button>
+        <button data-step="0.5">1/2 T</button>
+        <button data-step="1">1 T</button>
+      </span>
+    </span>
+    <button id="reset" class="ghost">⟲ 重置到 t = 0</button>
+  </div>
+  <div class="row">
+    <label for="spd">播放速度 <input id="spd" type="range" min="0.02" max="1" step="0.02" value="0.25"> <span id="spdv">¼ 週期／秒</span></label>
+    <label for="amp">振幅 A <input id="amp" type="range" min="10" max="60" step="1" value="40"></label>
+    <label for="lam">波長 λ <input id="lam" type="range" min="140" max="400" step="10" value="240"></label>
+  </div>
+  <div class="row">
+    <button id="mark" class="ghost">📌 記住現在的波形當參考</button>
+    <label><input id="autoghost" type="checkbox" checked> 進一格時自動把「上一格」留成參考</label>
+    <label><input id="grid" type="checkbox" checked> 顯示 λ/4 格線</label>
+    <label><input id="vel" type="checkbox" checked> 速度箭頭</label>
+    <label><input id="only" type="checkbox"> 只看追蹤的質點</label>
+    <label><input id="labels" type="checkbox" checked> 波峰／波谷標示</label>
+  </div>
+
+  <div class="verdict" id="status">點一下繩上的質點開始追蹤。</div>
+
+  <section class="stage">
+    <p class="lab"><span>追蹤質點的位移－時間圖（質點在原地振動；橫軸每格 ¼T）</span></p>
+    <canvas id="pt" aria-label="質點位移對時間圖"></canvas>
+  </section>
+
+  <section class="stage" id="dispbox" hidden>
+    <p class="lab"><span>縱波的位移－位置圖：把每圈彈簧「往右的位移」畫成向上，就會得到和橫波一樣的正弦曲線</span></p>
+    <canvas id="disp" aria-label="縱波位移對位置圖"></canvas>
+  </section>
+
+  <div class="notes">
+    <div>
+      <h2>每經過 ¼ 週期</h2>
+      <p>波形整體向右移動 <b>¼ 波長</b>（1 個週期移 1 個波長，所以 v = λ／T）。打開 λ/4 格線，按「進一格 ▸」，看波峰剛好從一條格線跳到下一條。</p>
+      <p>而每一個質點都只在自己的平衡位置附近來回：¼T 後，在平衡位置的質點會到最高（或最低）點；在最高點的質點會回到平衡位置。</p>
+    </div>
+    <div>
+      <h2>怎麼判斷質點現在往哪動</h2>
+      <p>看「下一格」：波往右傳，所以質點接下來的位置，就是它<b>左邊鄰居現在</b>的位置。左邊比較高 → 質點正在往上；左邊比較低 → 正在往下。波峰和波谷上的質點瞬間速度為零。</p>
+    </div>
+    <div>
+      <h2>橫波 vs 縱波</h2>
+      <p><b>橫波</b>：質點振動方向 ⟂ 傳播方向，看得到波峰、波谷（繩波、彈簧上下抖）。<b>縱波</b>：質點振動方向 ∥ 傳播方向，看到的是密部、疏部（彈簧前後推）。兩者的週期、波長、波速關係完全相同，所以縱波的位移圖也是正弦曲線。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const main = $('main'), tl = $('tl'), pt = $('pt'), dispC = $('disp');
+  const mx = main.getContext('2d'), tx = tl.getContext('2d'), px = pt.getContext('2d'), dx = dispC.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- state ----
+  let med = 'rope', src = 'cont';
+  let tau = 0;                     // time in periods
+  let playing = false, last = performance.now();
+  let stepSize = 0.25;
+  let refTau = null;               // reference (ghost) waveform time
+  let tracked = [];                // rest positions (in units of λ, so they survive λ changes)
+  const TMAX = 8;                  // timeline length in periods
+  const HOT = ['hot','hot2','hot3'];
+  let hist = [];                   // [tau, y] samples of tracked particles for the y-t graph (recomputed analytically, so no storage needed)
+
+  let C = {};
+  function readColors(){ const s = getComputedStyle(document.documentElement);
+    ['fg','muted','line','rope','spring','hot','hot2','hot3','ghost','crest','trough','dense','sparse','arrow','panel','bg'].forEach(k => C[k] = s.getPropertyValue('--'+k).trim()); }
+  readColors();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+  new MutationObserver(readColors).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+  function fit(c, ctx){ const r = c.getBoundingClientRect(), d = devicePixelRatio || 1;
+    c.width = r.width*d; c.height = r.height*d; ctx.setTransform(d,0,0,d,0,0); return [r.width, r.height]; }
+  let MW,MH,TW,TH,PW,PH,DW,DH;
+  function resize(){ [MW,MH]=fit(main,mx); [TW,TH]=fit(tl,tx); [PW,PH]=fit(pt,px); [DW,DH]=fit(dispC,dx); }
+  addEventListener('resize', ()=>{ resize(); });
+
+  const X0 = 40;                   // x of the wave source (left end) on canvas
+  const A = () => +$('amp').value, L = () => +$('lam').value;
+  const ampL = () => Math.min(A(), L()/12*0.8);     // longitudinal amplitude limited so coils never cross
+
+  // displacement (in pixels, positive = up for transverse, = rightward for longitudinal) of the particle whose rest position is x0 (canvas px) at time t (periods)
+  function dispAt(x0, t, amp){
+    const s = (x0 - X0)/L();           // distance from source in wavelengths
+    if (s < 0) return 0;
+    const ph = t - s;                  // phase in periods: source motion delayed by s periods
+    if (src === 'cont'){ if (ph < 0) return 0; return amp*Math.sin(2*Math.PI*ph); }
+    if (src === 'pulse'){ if (ph < 0 || ph > 0.5) return 0; return amp*Math.sin(2*Math.PI*ph); }
+    return amp*Math.sin(2*Math.PI*ph); // full: wave already everywhere
+  }
+  function velAt(x0, t, amp){ // d/dt in px per period
+    const s = (x0 - X0)/L(), ph = t - s;
+    if (s < 0) return 0;
+    if (src === 'cont' && ph < 0) return 0;
+    if (src === 'pulse' && (ph < 0 || ph > 0.5)) return 0;
+    return amp*2*Math.PI*Math.cos(2*Math.PI*ph);
+  }
+  const isL = () => med === 'springL';
+
+  function arrow(ctx, x1,y1,x2,y2,col,w=2){
+    const a = Math.atan2(y2-y1,x2-x1), h = 8;
+    ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-h*Math.cos(a-0.45), y2-h*Math.sin(a-0.45));
+    ctx.lineTo(x2-h*Math.cos(a+0.45), y2-h*Math.sin(a+0.45)); ctx.closePath(); ctx.fill();
+  }
+  function label(ctx, s, x, y, col, align='center', size=13, weight=600){
+    ctx.font = `${weight} ${size}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = col; ctx.fillText(s, x, y);
+  }
+  const fmtT = t => { const q = Math.round(t*16)/16; const n = Math.floor(q), f = q-n;
+    const fr = {0:'',0.25:'¼',0.5:'½',0.75:'¾',0.125:'⅛',0.375:'⅜',0.625:'⅝',0.875:'⅞',0.0625:'1/16',0.1875:'3/16',0.3125:'5/16',0.4375:'7/16',0.5625:'9/16',0.6875:'11/16',0.8125:'13/16',0.9375:'15/16'}[f];
+    return (n===0 && fr) ? fr : (n + (fr||'')); };
+
+  // ---- main scene ----
+  function drawMain(){
+    const ctx = mx, mid = MH*0.5, amp = isL() ? ampL() : A(), lam = L();
+    ctx.clearRect(0,0,MW,MH);
+    const front = X0 + lam*tau;    // leading edge of the wave
+    // λ/4 grid
+    if ($('grid').checked){
+      for (let i=0; X0+i*lam/4 < MW; i++){
+        const x = X0 + i*lam/4, major = i%4===0;
+        ctx.strokeStyle = C.line; ctx.lineWidth = major?1.5:1; ctx.setLineDash(major?[]:[3,5]);
+        ctx.beginPath(); ctx.moveTo(x, 26); ctx.lineTo(x, MH-26); ctx.stroke();
+        if (major) label(ctx, i===0?'波源':`${i/4}λ`, x, MH-14, C.muted, 'center', 11, 500);
+        else if (i%4===2) label(ctx, '½λ', x, MH-14, C.muted, 'center', 10, 400);
+      }
+      ctx.setLineDash([]);
+      label(ctx, '每小格 = ¼λ', MW-8, MH-14, C.muted, 'right', 11, 500);
+    }
+    // rest line
+    ctx.setLineDash([4,6]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(MW,mid); ctx.stroke(); ctx.setLineDash([]);
+    label(ctx, '平衡位置', MW-8, mid-12, C.muted, 'right', 11, 500);
+
+    const only = $('only').checked;
+    const trackedPx = tracked.map(s => X0 + s*lam);
+    const hotIndex = x0 => trackedPx.findIndex(t => Math.abs(t-x0) < 0.5);
+
+    if (!isL()){
+      // ----- transverse: rope or spring -----
+      const spacing = lam/16;
+      // ghost (reference waveform)
+      if (refTau !== null){
+        ctx.strokeStyle = C.ghost; ctx.lineWidth = 2; ctx.setLineDash([6,5]); ctx.beginPath();
+        for (let x=X0; x<=MW; x+=2){ const y = mid - dispAt(x, refTau, amp); x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+        ctx.stroke(); ctx.setLineDash([]);
+        label(ctx, `參考：t = ${fmtT(refTau)} T`, 8, 14, C.ghost, 'left', 12);
+      }
+      // medium line
+      const col = med==='rope' ? C.rope : C.spring;
+      ctx.globalAlpha = only ? 0.25 : 1;
+      if (med === 'rope'){
+        ctx.strokeStyle = col; ctx.lineWidth = 3.5; ctx.beginPath();
+        for (let x=X0; x<=MW; x+=2){ const y = mid - dispAt(x, tau, amp); x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+        ctx.stroke();
+      } else {
+        // spring: zigzag coils along the displaced curve
+        ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath();
+        const pitch = 7, h = 9;
+        for (let x=X0; x<=MW; x+=1){ const y = mid - dispAt(x, tau, amp) + h*Math.sin(x/pitch*Math.PI*2); x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+        ctx.stroke();
+      }
+      // particles
+      for (let x0 = X0; x0 <= MW; x0 += spacing){
+        const y = mid - dispAt(x0, tau, amp), hi = hotIndex(x0);
+        if (hi < 0){ ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x0, y, 3.2, 0, 7); ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+      // crest / trough labels
+      if ($('labels').checked && src !== 'pulse'){
+        for (let n=0; n<40; n++){
+          const xc = X0 + lam*(tau - 0.25 - n), xt = xc - lam/2; // crest where phase = 1/4 period
+          if (xc < X0 || xc > MW) { if (xc < X0) break; else continue; }
+          ctx.fillStyle = C.crest; ctx.beginPath(); ctx.arc(xc, mid-amp, 4, 0, 7); ctx.fill();
+          label(ctx,'波峰', xc, mid-amp-16, C.crest, 'center', 12);
+          if (xt >= X0 && xt <= MW){ ctx.fillStyle = C.trough; ctx.beginPath(); ctx.arc(xt, mid+amp, 4, 0, 7); ctx.fill(); label(ctx,'波谷', xt, mid+amp+16, C.trough, 'center', 12); }
+        }
+        // wavelength bracket
+        let cx1 = null;
+        for (let n=0;n<40;n++){ const xc = X0 + lam*(tau-0.25-n); if (xc >= X0+10 && xc+lam <= MW-10 && xc+lam <= front) { cx1 = xc; } if (xc < X0) break; }
+        if (cx1 !== null){ const y = mid - amp - 34; ctx.strokeStyle = C.fg; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.moveTo(cx1,y-5); ctx.lineTo(cx1,y+5); ctx.moveTo(cx1+lam,y-5); ctx.lineTo(cx1+lam,y+5); ctx.moveTo(cx1,y); ctx.lineTo(cx1+lam,y); ctx.stroke();
+          label(ctx,'λ', cx1+lam/2, y-10, C.fg, 'center', 13); }
+      }
+      // amplitude marker
+      ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(MW-18, mid); ctx.lineTo(MW-18, mid-amp); ctx.stroke();
+      label(ctx,'A', MW-18, mid-amp-9, C.muted, 'center', 11, 500);
+      // tracked particles
+      tracked.forEach((s, i) => {
+        const x0 = X0 + s*lam, y = mid - dispAt(x0, tau, amp), c = C[HOT[i]];
+        ctx.strokeStyle = c; ctx.setLineDash([3,4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, mid-amp-8); ctx.lineTo(x0, mid+amp+8); ctx.stroke(); ctx.setLineDash([]);
+        if ($('vel').checked){ const v = velAt(x0, tau, amp)*0.12; if (Math.abs(v) > 2) arrow(ctx, x0, y, x0, y - v, c, 2.5); }
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x0, y, 8, 0, 7); ctx.fill();
+        ctx.strokeStyle = C.panel; ctx.lineWidth = 2; ctx.stroke();
+        label(ctx, 'PQR'[i], x0, mid+amp+38, c, 'center', 14);
+      });
+      if (src !== 'full') { label(ctx, '波前', Math.min(front, MW-20), 36, C.fg, 'center', 12); }
+    } else {
+      // ----- longitudinal spring -----
+      const spacing = lam/12, h = 36;
+      const dense = C.dense, sparse = C.sparse;
+      // ghost coils
+      if (refTau !== null){
+        ctx.strokeStyle = C.ghost; ctx.lineWidth = 1.2; ctx.setLineDash([3,3]);
+        for (let x0 = X0; x0 <= MW; x0 += spacing){ const x = x0 + dispAt(x0, refTau, amp);
+          ctx.beginPath(); ctx.moveTo(x, mid-h-18); ctx.lineTo(x, mid-h-6); ctx.stroke(); }
+        ctx.setLineDash([]); label(ctx, `參考：t = ${fmtT(refTau)} T（上方短線）`, 8, 14, C.ghost, 'left', 12);
+      }
+      // coils drawn as vertical lines joined by thin rails
+      ctx.globalAlpha = only ? 0.25 : 1;
+      let prev = null;
+      ctx.lineWidth = 2.2;
+      for (let x0 = X0; x0 <= MW; x0 += spacing){
+        const x = x0 + dispAt(x0, tau, amp), hi = hotIndex(x0);
+        if (hi < 0){ ctx.strokeStyle = C.spring; ctx.beginPath(); ctx.moveTo(x, mid-h); ctx.lineTo(x, mid+h); ctx.stroke(); }
+        if (prev !== null){ ctx.strokeStyle = C.spring; ctx.lineWidth = 1; ctx.globalAlpha = (only?0.25:1)*0.5; ctx.beginPath(); ctx.moveTo(prev, mid-h); ctx.lineTo(x, mid+h); ctx.stroke(); ctx.globalAlpha = only?0.25:1; ctx.lineWidth = 2.2; }
+        prev = x;
+      }
+      ctx.globalAlpha = 1;
+      // compression / rarefaction labels: strain dξ/dx = -(2π/λ)·amp·cos(2π(τ-s)); compression when cos=1 → s = τ - n
+      if ($('labels').checked && src !== 'pulse'){
+        for (let n=0; n<40; n++){
+          const xd = X0 + lam*(tau - n), xs = xd - lam/2;
+          if (xd < X0) break;
+          if (xd <= MW){ label(ctx,'密部', xd, mid-h-16, dense, 'center', 13); ctx.fillStyle = dense; ctx.beginPath(); ctx.arc(xd, mid-h-4, 3, 0, 7); ctx.fill(); }
+          if (xs >= X0 && xs <= MW){ label(ctx,'疏部', xs, mid+h+16, sparse, 'center', 13); ctx.fillStyle = sparse; ctx.beginPath(); ctx.arc(xs, mid+h+4, 3, 0, 7); ctx.fill(); }
+        }
+        let xd1 = null; for (let n=0;n<40;n++){ const xd = X0 + lam*(tau-n); if (xd >= X0+10 && xd+lam <= MW-10 && xd+lam <= front) xd1 = xd; if (xd < X0) break; }
+        if (xd1 !== null){ const y = mid - h - 34; ctx.strokeStyle = C.fg; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.moveTo(xd1,y-5); ctx.lineTo(xd1,y+5); ctx.moveTo(xd1+lam,y-5); ctx.lineTo(xd1+lam,y+5); ctx.moveTo(xd1,y); ctx.lineTo(xd1+lam,y); ctx.stroke();
+          label(ctx,'λ（密部到密部）', xd1+lam/2, y-10, C.fg, 'center', 12); }
+      }
+      // tracked coils
+      tracked.forEach((s, i) => {
+        const x0 = X0 + s*lam, x = x0 + dispAt(x0, tau, amp), c = C[HOT[i]];
+        ctx.strokeStyle = c; ctx.setLineDash([3,4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0-amp-6, mid+h+6); ctx.lineTo(x0+amp+6, mid+h+6); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x, mid-h); ctx.lineTo(x, mid+h); ctx.stroke();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, mid, 7, 0, 7); ctx.fill();
+        if ($('vel').checked){ const v = velAt(x0, tau, amp)*0.12; if (Math.abs(v) > 2) arrow(ctx, x, mid, x + v, mid, c, 2.5); }
+        label(ctx, 'PQR'[i], x0, mid+h+22, c, 'center', 14);
+      });
+      if (src !== 'full') label(ctx, '波前', Math.min(front, MW-20), 36, C.fg, 'center', 12);
+    }
+    // propagation arrow
+    arrow(ctx, X0, 24, X0+110, 24, C.fg, 2); label(ctx,'傳播方向', X0+120, 24, C.fg, 'left', 12);
+    // source hand
+    if (src !== 'full'){ ctx.fillStyle = C.muted; ctx.beginPath(); ctx.arc(isL()? X0 + dispAt(X0, tau, amp) - 14 : X0-14, isL()? mid : mid - dispAt(X0, tau, amp), 6, 0, 7); ctx.fill(); }
+  }
+
+  // ---- timeline ----
+  function drawTimeline(){
+    const ctx = tx; ctx.clearRect(0,0,TW,TH);
+    const pad = 14, w = TW - 2*pad, y = 20;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(pad+w,y); ctx.stroke();
+    for (let i=0; i<=TMAX*4; i++){ const x = pad + w*i/(TMAX*4), big = i%4===0;
+      ctx.strokeStyle = big ? C.fg : C.muted; ctx.lineWidth = big?1.5:1;
+      ctx.beginPath(); ctx.moveTo(x, y-(big?9:5)); ctx.lineTo(x, y+(big?9:5)); ctx.stroke();
+      if (big) label(ctx, `${i/4}T`, x, y+18, C.muted, 'center', 11, 500);
+    }
+    if (refTau !== null){ const xr = pad + w*Math.min(refTau,TMAX)/TMAX; ctx.fillStyle = C.ghost; ctx.beginPath(); ctx.moveTo(xr, y-12); ctx.lineTo(xr-5, y-20); ctx.lineTo(xr+5, y-20); ctx.closePath(); ctx.fill(); }
+    const xt = pad + w*Math.min(tau,TMAX)/TMAX;
+    ctx.fillStyle = C.hot; ctx.beginPath(); ctx.arc(xt, y, 7, 0, 7); ctx.fill();
+    ctx.strokeStyle = C.panel; ctx.lineWidth = 2; ctx.stroke();
+  }
+  function scrub(e){ const r = tl.getBoundingClientRect(); const pad = 14, w = r.width-2*pad;
+    const f = Math.max(0, Math.min(1, (e.clientX - r.left - pad)/w)); setTau(Math.round(f*TMAX*16)/16); }
+  tl.addEventListener('pointerdown', e => { tl.setPointerCapture(e.pointerId); pause(); scrub(e); });
+  tl.addEventListener('pointermove', e => { if (e.buttons) scrub(e); });
+
+  // ---- particle y–t graph ----
+  function drawPt(){
+    const ctx = px; ctx.clearRect(0,0,PW,PH);
+    const padL = 36, padR = 10, w = PW-padL-padR, mid = PH/2, ampPx = Math.min(PH*0.36, 60);
+    const amp = isL()?ampL():A(), span = 4; // periods visible
+    const t0 = Math.max(0, Math.ceil(tau*4)/4 - span + 0.25); // keep now near the right
+    const tStart = Math.max(0, Math.min(t0, Math.max(0, tau - span*0.75)));
+    const xOf = t => padL + w*(t - tStart)/span;
+    // grid every 1/4 T
+    for (let t = Math.ceil(tStart*4)/4; t <= tStart+span+1e-9; t += 0.25){ const x = xOf(t), big = Math.abs(t - Math.round(t)) < 1e-6;
+      ctx.strokeStyle = C.line; ctx.lineWidth = big?1.5:1; ctx.setLineDash(big?[]:[3,4]); ctx.beginPath(); ctx.moveTo(x, mid-ampPx-10); ctx.lineTo(x, mid+ampPx+10); ctx.stroke(); ctx.setLineDash([]);
+      if (big) label(ctx, `${t}T`, x, PH-9, C.muted, 'center', 11, 500);
+    }
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(padL, mid); ctx.lineTo(PW-padR, mid); ctx.stroke();
+    label(ctx, isL()?'+A →':'+A', 18, mid-ampPx, C.muted, 'center', 11, 500); label(ctx, isL()?'−A ←':'−A', 18, mid+ampPx, C.muted, 'center', 11, 500); label(ctx,'0', 18, mid, C.muted, 'center', 11, 500);
+    if (!tracked.length){ label(ctx, '還沒有追蹤的質點：點一下上面的質點', PW/2, mid, C.muted, 'center', 13, 500); return; }
+    tracked.forEach((s, i) => {
+      const x0 = X0 + s*L(), c = C[HOT[i]];
+      ctx.strokeStyle = c; ctx.lineWidth = 2.2; ctx.beginPath(); let started=false;
+      for (let t = tStart; t <= Math.min(tau, tStart+span); t += span/w){ const y = mid - dispAt(x0, t, amp)/amp*ampPx; const x = xOf(t); started?ctx.lineTo(x,y):ctx.moveTo(x,y); started=true; }
+      ctx.stroke();
+      const yn = mid - dispAt(x0, tau, amp)/amp*ampPx;
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(xOf(Math.min(tau,tStart+span)), yn, 6, 0, 7); ctx.fill();
+      label(ctx, 'PQR'[i], xOf(Math.min(tau,tStart+span))+12, yn, c, 'left', 13);
+    });
+    if (refTau !== null && refTau >= tStart && refTau <= tStart+span){ const x = xOf(refTau); ctx.strokeStyle = C.ghost; ctx.setLineDash([5,4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, mid-ampPx-10); ctx.lineTo(x, mid+ampPx+10); ctx.stroke(); ctx.setLineDash([]); }
+  }
+
+  // ---- longitudinal displacement graph ----
+  function drawDisp(){
+    if (!isL()) return;
+    const ctx = dx; ctx.clearRect(0,0,DW,DH); const mid = DH/2, amp = ampL(), gAmp = Math.min(DH*0.34, 42);
+    if ($('grid').checked){ for (let i=0; X0+i*L()/4 < DW; i++){ const x = X0+i*L()/4; ctx.strokeStyle = C.line; ctx.lineWidth = i%4?1:1.5; ctx.setLineDash(i%4?[3,5]:[]); ctx.beginPath(); ctx.moveTo(x, 10); ctx.lineTo(x, DH-10); ctx.stroke(); } ctx.setLineDash([]); }
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(DW, mid); ctx.stroke();
+    label(ctx, '向右 +', 8, mid-gAmp, C.muted, 'left', 11, 500); label(ctx, '向左 −', 8, mid+gAmp, C.muted, 'left', 11, 500);
+    if (refTau !== null){ ctx.strokeStyle = C.ghost; ctx.setLineDash([6,5]); ctx.lineWidth = 1.5; ctx.beginPath();
+      for (let x=X0;x<=DW;x+=2){ const y = mid - dispAt(x, refTau, amp)/amp*gAmp; x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); ctx.setLineDash([]); }
+    ctx.strokeStyle = C.spring; ctx.lineWidth = 3; ctx.beginPath();
+    for (let x=X0;x<=DW;x+=2){ const y = mid - dispAt(x, tau, amp)/amp*gAmp; x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
+    if ($('labels').checked && src!=='pulse'){
+      for (let n=0;n<40;n++){ const xd = X0 + L()*(tau-n), xs = xd - L()/2; if (xd < X0) break;
+        if (xd <= DW) label(ctx,'密', xd, mid, C.dense, 'center', 12);
+        if (xs >= X0 && xs <= DW) label(ctx,'疏', xs, mid, C.sparse, 'center', 12); }
+    }
+    tracked.forEach((s,i) => { const x0 = X0 + s*L(), y = mid - dispAt(x0, tau, amp)/amp*gAmp, c = C[HOT[i]];
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x0, y, 6, 0, 7); ctx.fill(); label(ctx, 'PQR'[i], x0, y - 14, c, 'center', 12); });
+  }
+
+  // ---- status text ----
+  function updateStatus(){
+    const el = $('status'), amp = isL()?ampL():A();
+    if (!tracked.length){ el.textContent = isL() ? '點一下彈簧的某一圈開始追蹤它。' : '點一下繩（彈簧）上的質點開始追蹤它。'; return; }
+    const parts = tracked.map((s,i) => {
+      const x0 = X0 + s*L(), y = dispAt(x0, tau, amp)/amp, v = velAt(x0, tau, amp), yq = dispAt(x0, tau+0.25, amp)/amp;
+      const dirWord = isL() ? ['向右','向左'] : ['向上','向下'];
+      const pos = v => Math.abs(v) < 0.02 ? '平衡位置' : (Math.abs(Math.abs(v)-1) < 0.02 ? (v>0 ? (isL()?'最右端':'最高點（波峰）') : (isL()?'最左端':'最低點（波谷）')) : `${v>0?'+':'−'}${Math.abs(v).toFixed(2)}A`);
+      const motion = Math.abs(v) < 1e-6 ? (Math.abs(y)<0.02 && (x0 > X0 + L()*tau || src==='pulse') ? '還沒被波動到，靜止' : '瞬間速度為零（正在折返）') : `正在${dirWord[v>0?0:1]}動`;
+      return `<span class="pill" style="background:var(--${HOT[i]})">${'PQR'[i]}</span> 位移 ${pos(y)}，${motion}；再過 ¼T 會在 <b>${pos(yq)}</b>`;
+    });
+    el.innerHTML = `t = ${fmtT(tau)} T。` + parts.join('　') + `<br><span style="color:var(--muted)">波形在這段時間向右移了 ${fmtT(tau)} λ；每 ¼T 移 ¼λ。</span>`;
+  }
+
+  // ---- loop / controls ----
+  function drawAll(){ if (!MW) return; drawMain(); drawTimeline(); drawPt(); drawDisp(); $('tdisp').innerHTML = `t = ${fmtT(tau)} <small>T</small>`; updateStatus(); }
+  function setTau(v){ tau = Math.max(0, v); }
+  function pause(){ playing = false; $('play').textContent = '▶ 播放'; }
+  function loop(now){ const dt = Math.min(0.05, (now-last)/1000); last = now;
+    if (playing) tau += dt * (+$('spd').value); drawAll(); requestAnimationFrame(loop); }
+  $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 暫停' : '▶ 播放'; };
+  function step(dir){ pause(); if ($('autoghost').checked) refTau = tau; setTau(Math.round((tau + dir*stepSize)*64)/64); }
+  $('fwd').onclick = () => step(1); $('back').onclick = () => step(-1);
+  $('reset').onclick = () => { pause(); tau = 0; refTau = null; };
+  $('mark').onclick = () => { refTau = tau; };
+  $('spd').oninput = () => { const v = +$('spd').value; $('spdv').textContent = v>=1 ? '1 週期／秒' : (Math.abs(v-0.25)<0.01?'¼ 週期／秒':Math.abs(v-0.5)<0.01?'½ 週期／秒':`${v.toFixed(2)} 週期／秒`); };
+  document.querySelectorAll('[data-step]').forEach(b => b.onclick = () => { stepSize = +b.dataset.step; document.querySelectorAll('[data-step]').forEach(x => x.setAttribute('aria-pressed', x===b)); });
+  document.querySelectorAll('[data-med]').forEach(b => b.onclick = () => { med = b.dataset.med; document.querySelectorAll('[data-med]').forEach(x => x.setAttribute('aria-pressed', x===b));
+    $('dispbox').hidden = !isL(); $('mainlab').textContent = isL() ? '彈簧俯視：每條直線是一圈彈簧；點一圈可追蹤（最多 3 個）' : (med==='rope' ? '繩子側視：點一下繩上的質點可追蹤它（最多 3 個）' : '彈簧側視（上下抖）：點一下質點可追蹤它（最多 3 個）'); resize(); });
+  document.querySelectorAll('[data-src]').forEach(b => b.onclick = () => { src = b.dataset.src; document.querySelectorAll('[data-src]').forEach(x => x.setAttribute('aria-pressed', x===b)); });
+  addEventListener('keydown', e => { if (e.target.tagName==='INPUT') return; if (e.key==='ArrowRight'){ step(1); e.preventDefault(); } else if (e.key==='ArrowLeft'){ step(-1); e.preventDefault(); } else if (e.key===' '){ $('play').click(); e.preventDefault(); } });
+
+  // click a particle to (un)track it
+  main.addEventListener('pointerdown', e => {
+    const r = main.getBoundingClientRect(), cx = e.clientX - r.left, cy = e.clientY - r.top;
+    const lam = L(), spacing = isL() ? lam/12 : lam/16, amp = isL()?ampL():A(), mid = MH*0.5;
+    let best = null, bd = 1e9;
+    for (let x0 = X0; x0 <= MW; x0 += spacing){
+      const px_ = isL() ? x0 + dispAt(x0, tau, amp) : x0, py_ = isL() ? mid : mid - dispAt(x0, tau, amp);
+      const d = isL() ? Math.hypot(px_-cx, Math.max(0, Math.abs(py_-cy)-36)) : Math.hypot(px_-cx, py_-cy);
+      if (d < bd){ bd = d; best = x0; }
+    }
+    if (best === null || bd > 28) return;
+    const s = Math.round((best - X0)/lam*1000)/1000;
+    const i = tracked.findIndex(t => Math.abs(t-s) < 1e-6);
+    if (i >= 0) tracked.splice(i,1); else { if (tracked.length >= 3) tracked.shift(); tracked.push(s); }
+  });
+
+  tracked = [0.75];  // default: particle 0.75 λ from the source
+  resize(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
