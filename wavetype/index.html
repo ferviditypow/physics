@@ -59,7 +59,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
   <header>
     <div class="crumb"><a href="../">自然科模擬動畫</a> · 波動 · <a href="../wave/">水波側視</a> · <a href="../wave3d/">水波 3D</a></div>
     <h1>橫波與縱波：繩波、彈簧波</h1>
-    <p class="sub">波形往右傳，質點卻留在原地來回振動。用「▸ ¼T」一格一格推進，比較每經過四分之一週期波形怎麼變、質點跑到哪。</p>
+    <p class="sub">波形往右傳，質點卻留在原地來回振動。選「✋ 用手拉」可以自己拖曳左端的手把，想怎麼抖就怎麼抖。用「▸ ¼T」一格一格推進，比較每經過四分之一週期波形怎麼變、質點跑到哪。</p>
   </header>
 
   <div class="row">
@@ -72,6 +72,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
       <button data-src="cont" aria-pressed="true">連續波</button>
       <button data-src="pulse" aria-pressed="false">單一脈波</button>
       <button data-src="full" aria-pressed="false">整條已有波</button>
+      <button data-src="hand" aria-pressed="false">✋ 用手拉</button>
     </span>
   </div>
 
@@ -162,7 +163,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
   let tracked = [];                // rest positions (in units of λ, so they survive λ changes)
   const TMAX = 8;                  // timeline length in periods
   const HOT = ['hot','hot2','hot3'];
-  let hist = [];                   // [tau, y] samples of tracked particles for the y-t graph (recomputed analytically, so no storage needed)
+  const HRES = 256;                // hand-mode source history: samples per period
+  let hist = [];                   // hist[round(tau*HRES)] = source displacement (px) in hand mode
+  let handY = 0, dragging = false;
 
   let C = {};
   function readColors(){ const s = getComputedStyle(document.documentElement);
@@ -188,6 +191,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
     const ph = t - s;                  // phase in periods: source motion delayed by s periods
     if (src === 'cont'){ if (ph < 0) return 0; return amp*Math.sin(2*Math.PI*ph); }
     if (src === 'pulse'){ if (ph < 0 || ph > 0.5) return 0; return amp*Math.sin(2*Math.PI*ph); }
+    if (src === 'hand'){ if (ph < 0) return 0; const i = Math.round(ph*HRES); return i < hist.length ? hist[i] : (hist.length ? hist[hist.length-1] : 0); }
     return amp*Math.sin(2*Math.PI*ph); // full: wave already everywhere
   }
   function velAt(x0, t, amp){ // d/dt in px per period
@@ -195,6 +199,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
     if (s < 0) return 0;
     if (src === 'cont' && ph < 0) return 0;
     if (src === 'pulse' && (ph < 0 || ph > 0.5)) return 0;
+    if (src === 'hand'){ if (ph < 0) return 0; const i = Math.min(hist.length-1, Math.round(ph*HRES)); if (i < 1) return 0; return (hist[i]-hist[i-1])*HRES; }
     return amp*2*Math.PI*Math.cos(2*Math.PI*ph);
   }
   const isL = () => med === 'springL';
@@ -272,7 +277,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
       }
       ctx.globalAlpha = 1;
       // crest / trough labels
-      if ($('labels').checked && src !== 'pulse'){
+      if ($('labels').checked && src !== 'pulse' && src !== 'hand'){
         for (let n=0; n<40; n++){
           const xc = X0 + lam*(tau - 0.25 - n), xt = xc - lam/2; // crest where phase = 1/4 period
           if (xc < X0 || xc > MW) { if (xc < X0) break; else continue; }
@@ -323,7 +328,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
       }
       ctx.globalAlpha = 1;
       // compression / rarefaction labels: strain dξ/dx = -(2π/λ)·amp·cos(2π(τ-s)); compression when cos=1 → s = τ - n
-      if ($('labels').checked && src !== 'pulse'){
+      if ($('labels').checked && src !== 'pulse' && src !== 'hand'){
         for (let n=0; n<40; n++){
           const xd = X0 + lam*(tau - n), xs = xd - lam/2;
           if (xd < X0) break;
@@ -349,7 +354,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
     // propagation arrow
     arrow(ctx, X0, 24, X0+110, 24, C.fg, 2); label(ctx,'傳播方向', X0+120, 24, C.fg, 'left', 12);
     // source hand
-    if (src !== 'full'){ ctx.fillStyle = C.muted; ctx.beginPath(); ctx.arc(isL()? X0 + dispAt(X0, tau, amp) - 14 : X0-14, isL()? mid : mid - dispAt(X0, tau, amp), 6, 0, 7); ctx.fill(); }
+    if (src !== 'full'){ const hx = isL()? X0 + dispAt(X0, tau, amp) - 14 : X0-14, hy = isL()? mid : mid - dispAt(X0, tau, amp), hand = src==='hand';
+      ctx.fillStyle = hand ? C.hot : C.muted; ctx.beginPath(); ctx.arc(hx, hy, hand?12:6, 0, 7); ctx.fill();
+      if (hand){ ctx.strokeStyle = C.panel; ctx.lineWidth = 2; ctx.stroke(); label(ctx, isL()?'⟷':'⇕', hx, hy, C.panel, 'center', 14, 700);
+        ctx.strokeStyle = C.hot; ctx.setLineDash([3,4]); ctx.lineWidth = 1; ctx.beginPath();
+        if (isL()){ ctx.moveTo(X0-14-amp, mid+50); ctx.lineTo(X0-14+amp, mid+50); } else { ctx.moveTo(hx, mid-amp-10); ctx.lineTo(hx, mid+amp+10); }
+        ctx.stroke(); ctx.setLineDash([]); if (!dragging) label(ctx, isL()?'拖曳手把左右推':'拖曳手把上下抖', X0+6, mid+amp+54, C.hot, 'left', 12); } }
   }
 
   // ---- timeline ----
@@ -411,7 +421,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
       for (let x=X0;x<=DW;x+=2){ const y = mid - dispAt(x, refTau, amp)/amp*gAmp; x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); ctx.setLineDash([]); }
     ctx.strokeStyle = C.spring; ctx.lineWidth = 3; ctx.beginPath();
     for (let x=X0;x<=DW;x+=2){ const y = mid - dispAt(x, tau, amp)/amp*gAmp; x>X0?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
-    if ($('labels').checked && src!=='pulse'){
+    if ($('labels').checked && src!=='pulse' && src!=='hand'){
       for (let n=0;n<40;n++){ const xd = X0 + L()*(tau-n), xs = xd - L()/2; if (xd < X0) break;
         if (xd <= DW) label(ctx,'密', xd, mid, C.dense, 'center', 12);
         if (xs >= X0 && xs <= DW) label(ctx,'疏', xs, mid, C.sparse, 'center', 12); }
@@ -435,7 +445,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
   }
 
   // ---- loop / controls ----
-  function drawAll(){ if (!MW) return; drawMain(); drawTimeline(); drawPt(); drawDisp(); $('tdisp').innerHTML = `t = ${fmtT(tau)} <small>T</small>`; updateStatus(); }
+  function recordHand(){ if (src !== 'hand') return; const n = Math.round(tau*HRES); for (let i = hist.length; i <= n; i++) hist.push(handY); if (n < hist.length) hist[n] = handY; }
+  function drawAll(){ if (!MW) return; recordHand(); drawMain(); drawTimeline(); drawPt(); drawDisp(); $('tdisp').innerHTML = `t = ${fmtT(tau)} <small>T</small>`; updateStatus(); }
   function setTau(v){ tau = Math.max(0, v); }
   function pause(){ playing = false; $('play').textContent = '▶ 播放'; }
   function loop(now){ const dt = Math.min(0.05, (now-last)/1000); last = now;
@@ -443,18 +454,26 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--hot);outline-of
   $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 暫停' : '▶ 播放'; };
   function step(dir){ pause(); if ($('autoghost').checked) refTau = tau; setTau(Math.round((tau + dir*stepSize)*64)/64); }
   $('fwd').onclick = () => step(1); $('back').onclick = () => step(-1);
-  $('reset').onclick = () => { pause(); tau = 0; refTau = null; };
+  $('reset').onclick = () => { pause(); tau = 0; refTau = null; hist = []; handY = 0; };
   $('mark').onclick = () => { refTau = tau; };
   $('spd').oninput = () => { const v = +$('spd').value; $('spdv').textContent = v>=1 ? '1 週期／秒' : (Math.abs(v-0.25)<0.01?'¼ 週期／秒':Math.abs(v-0.5)<0.01?'½ 週期／秒':`${v.toFixed(2)} 週期／秒`); };
   document.querySelectorAll('[data-step]').forEach(b => b.onclick = () => { stepSize = +b.dataset.step; document.querySelectorAll('[data-step]').forEach(x => x.setAttribute('aria-pressed', x===b)); });
   document.querySelectorAll('[data-med]').forEach(b => b.onclick = () => { med = b.dataset.med; document.querySelectorAll('[data-med]').forEach(x => x.setAttribute('aria-pressed', x===b));
     $('dispbox').hidden = !isL(); $('mainlab').textContent = isL() ? '彈簧俯視：每條直線是一圈彈簧；點一圈可追蹤（最多 3 個）' : (med==='rope' ? '繩子側視：點一下繩上的質點可追蹤它（最多 3 個）' : '彈簧側視（上下抖）：點一下質點可追蹤它（最多 3 個）'); resize(); });
-  document.querySelectorAll('[data-src]').forEach(b => b.onclick = () => { src = b.dataset.src; document.querySelectorAll('[data-src]').forEach(x => x.setAttribute('aria-pressed', x===b)); });
+  document.querySelectorAll('[data-src]').forEach(b => b.onclick = () => { src = b.dataset.src; document.querySelectorAll('[data-src]').forEach(x => x.setAttribute('aria-pressed', x===b));
+    if (src === 'hand'){ tau = 0; refTau = null; hist = []; handY = 0; playing = true; $('play').textContent = '❚❚ 暫停'; } });
   addEventListener('keydown', e => { if (e.target.tagName==='INPUT') return; if (e.key==='ArrowRight'){ step(1); e.preventDefault(); } else if (e.key==='ArrowLeft'){ step(-1); e.preventDefault(); } else if (e.key===' '){ $('play').click(); e.preventDefault(); } });
 
   // click a particle to (un)track it
+  function handPos(e){ const r = main.getBoundingClientRect(), mid = MH*0.5, lim = isL()?ampL():A();
+    const v = isL() ? (e.clientX - r.left) - (X0-14) : mid - (e.clientY - r.top); handY = Math.max(-lim, Math.min(lim, v)); }
+  main.addEventListener('pointermove', e => { if (dragging) handPos(e); });
+  main.addEventListener('pointerup', () => { dragging = false; });
+  main.addEventListener('pointercancel', () => { dragging = false; });
   main.addEventListener('pointerdown', e => {
     const r = main.getBoundingClientRect(), cx = e.clientX - r.left, cy = e.clientY - r.top;
+    if (src === 'hand'){ const mid0 = MH*0.5, hx = isL()? X0 + dispAt(X0, tau, A()) - 14 : X0-14, hy = isL()? mid0 : mid0 - dispAt(X0, tau, A());
+      if (Math.hypot(cx-hx, cy-hy) < 34 || cx < X0+10){ dragging = true; main.setPointerCapture(e.pointerId); handPos(e); return; } }
     const lam = L(), spacing = isL() ? lam/12 : lam/16, amp = isL()?ampL():A(), mid = MH*0.5;
     let best = null, bd = 1e9;
     for (let x0 = X0; x0 <= MW; x0 += spacing){
