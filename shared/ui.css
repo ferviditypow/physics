@@ -1,0 +1,124 @@
+/* 自然科模擬動畫 — 共用介面樣式
+   每個模擬頁面都先引入這一份（<link rel="stylesheet" href="../shared/ui.css">），
+   頁面自己的 <style> 只放該模擬的專屬顏色（例如 --water、--lens）與版面。
+   規則：
+   - 顏色一律用變數，深色模式由 prefers-color-scheme 或 <html data-theme="dark"> 切換。
+   - 標題用 Noto Serif TC（--f-display），內文 Noto Sans TC（--f-body），數值 IBM Plex Mono（--f-mono）。
+   - 主要動作（播放／暫停）用 .btn.primary（墨色），其他按鈕用 .btn（白底細框），
+     多選一用 .seg（選中墨色），開關用 .tog，快速情境用 .chip。
+   - 可拖曳的東西與目前狀態用 --accent（橘），第二種顏色用 --blue。
+*/
+:root{
+  --bg:#eaeef2; --panel:#ffffff; --ink:#16202a; --muted:#56616d; --line:#d3dae1; --grid:#e3e8ee;
+  --accent:#c2410c; --accent-soft:#fbe7dc; --blue:#1c68ad; --blue-soft:#dcebf8; --green:#1f8a5b; --red:#d23b2f; --purple:#6a4fb3;
+  --fg:var(--ink);
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --tap:40px; --radius:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#222c37;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --blue-soft:#1b2f44; --green:#4cc28e; --red:#ff7468; --purple:#b9a2ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1318; --panel:#161d25; --ink:#e4e9ee; --muted:#93a0ad; --line:#2a3541; --grid:#222c37;
+  --accent:#ff8a57; --accent-soft:#3a2219; --blue:#5ba8ec; --blue-soft:#1b2f44; --green:#4cc28e; --red:#ff7468; --purple:#b9a2ff; color-scheme:dark}
+@media (min-width:1700px){html{font-size:17px}:root{--tap:48px}}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+img{max-width:100%}
+a{color:var(--blue)}
+
+/* 頁首：麵包屑 → 標題 → 一句說明 */
+header{display:grid;gap:4px;justify-items:start}
+header:has(> div > h1){display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px}
+.eyebrow,.crumb{font-size:.8rem;letter-spacing:.12em;color:var(--muted);font-weight:500;margin:0}
+.eyebrow a,.crumb a{color:inherit}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:2px 0 0;letter-spacing:.02em;text-wrap:balance}
+header p,.sub{margin:0;color:var(--muted);max-width:60ch;font-size:.92rem}
+.formula{font-family:var(--f-mono);color:var(--muted);font-size:.92rem;margin:0}
+
+/* 盒子 */
+.panel,.stage,.bench,.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);min-width:0}
+.stage{padding:10px}
+.card{padding:16px 18px}
+.ptitle,.lab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 10px;font-weight:700;font-size:.95rem;margin:0}
+.ptitle{padding:9px 12px 0}
+.lab{font-weight:500;font-size:.78rem;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.ptitle small{font-weight:400;color:var(--muted);font-size:.78rem}
+.cbox{padding:8px 10px 6px}
+canvas{display:block;width:100%;touch-action:none;border-radius:7px}
+.hint,.note{font-size:.82rem;color:var(--muted);margin:0}
+.panel .hint{padding:0 12px 10px}
+
+/* 按鈕 */
+button,select{font:inherit;font-size:.92rem;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;min-height:var(--tap);padding:0 12px;cursor:pointer;font-weight:500;white-space:nowrap;line-height:1.3}
+.btn:hover{border-color:var(--muted)}
+.btn.primary,.btn.big{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:86px}
+.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.seg{display:inline-flex;justify-self:start;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;border-left:1px solid var(--line);background:transparent;min-height:calc(var(--tap) - 2px);padding:0 11px;cursor:pointer;color:var(--muted);white-space:nowrap;border-radius:0}
+.seg button:first-child{border-left:0}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:34px;padding:2px 12px;cursor:pointer;font-size:.86rem}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.tog{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;min-height:34px;padding:2px 12px 2px 9px;cursor:pointer;font-size:.86rem;user-select:none;background:var(--panel)}
+.tog input{accent-color:var(--accent);margin:0;width:16px;height:16px}
+.tog:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+select{border:1px solid var(--line);border-radius:8px;min-height:34px;background:var(--panel);padding:0 8px}
+
+/* 控制列與滑桿 */
+.toolbar,.controls,.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.toolbar{padding:9px 12px}
+.toolbar + .toolbar{border-top:1px solid var(--line)}
+.tlabel{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.grp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.slider{display:flex;align-items:center;gap:10px;flex:1 1 300px;min-width:240px}
+.slider input{flex:1;min-height:var(--tap)}
+.slider output{font-family:var(--f-mono);font-weight:600;min-width:5.6em;text-align:right}
+input[type=range]{accent-color:var(--accent);margin:0}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent);margin:0;width:16px;height:16px}
+label{display:inline-flex;align-items:center;gap:6px}
+.mono,output{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* 數據、圖例、結論 */
+.kv{display:grid;grid-template-columns:5.4em minmax(0,1fr);gap:6px}
+.kv>span:first-child{color:var(--muted)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px}
+dt{color:var(--muted)}
+dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}
+.key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.pill{display:inline-block;font-weight:700;padding:0 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.verdict,.story{border-left:4px solid var(--accent);background:var(--panel);border-radius:0 8px 8px 0;padding:8px 12px}
+.story{padding:10px 14px 12px;position:relative}
+.story h3{margin:0 30px 4px 0;font-size:1rem}
+.story p{margin:0;font-size:.95rem}
+.story .x{position:absolute;right:8px;top:6px;border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;min-width:var(--tap);min-height:var(--tap)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.notes h2,.notes h3,.card h2{font-size:1rem;margin:0 0 6px}
+.notes p{margin:0 0 6px;font-size:.95rem}
+.notes > div{min-width:0}
+
+/* 分頁 */
+.tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:9px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabpane{padding:12px 14px 16px}
+
+/* 表格 */
+table{border-collapse:collapse;font-size:.88rem}
+td,th{border:1px solid var(--line);padding:5px 10px;text-align:left}
+th{background:var(--accent-soft);font-weight:700}
+
+@media (max-width:600px){body{font-size:16px}.wrap{gap:10px}}

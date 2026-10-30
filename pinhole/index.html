@@ -3,83 +3,54 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}img{max-width:100%}</style>
+
 <title>針孔成像實驗台</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
 <style>
 /* Layout: a wide optical bench (side view of the camera obscura) on top; the screen as seen from behind + controls below; stacks to one column on phones */
-:root{
-  --bg:#10131a;
-  --panel:#171c25;
-  --panel-2:#1d2330;
-  --line:#2b3344;
-  --wall:#4a5366;
-  --fg:#ebe5d7;
-  --muted:#8f98a8;
-  --flame:#ffb54a;
-  --cool:#80b9ff;
-  --paper:#c9c2b1;
-  --f-display:"Noto Serif TC","Songti TC",serif;
-  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.6}
-.wrap{max-width:1180px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
-header{display:grid;gap:6px}
-.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--flame);font-weight:500}
-h1{font-family:var(--f-display);font-weight:900;font-size:clamp(28px,5vw,44px);line-height:1.15;margin:0;text-wrap:balance}
-header p{margin:0;color:var(--muted);max-width:62ch}
-.bench{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.side-wrap{position:relative;width:100%;aspect-ratio:2.3/1;min-height:240px}
+:root{/* 暗箱場景固定用深色（本來就是暗房），頁面其餘部分跟著共用主題 */
+  --sc-bg:#10131a;--sc-panel:#171c25;--sc-panel-2:#1d2330;--sc-line:#2b3344;--sc-wall:#4a5366;--sc-fg:#ebe5d7;--sc-muted:#8f98a8;--flame:#e08a1e;--cool:#3f8fe0;--paper:#c9c2b1;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--flame:#ffb54a;--cool:#80b9ff;}}
+:root[data-theme="dark"]{--flame:#ffb54a;--cool:#80b9ff;}
+.side-wrap{position:relative;width:100%;aspect-ratio:2.3/1;min-height:240px;background:var(--sc-panel);border-radius:9px 9px 0 0;overflow:hidden}
 #side{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
-.bench-foot{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-.key{display:inline-flex;align-items:center;gap:6px}
+.bench-foot{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 14px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
 .sw{width:18px;height:3px;border-radius:2px;display:inline-block}
 .grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px}
 @media (max-width:820px){.grid{grid-template-columns:1fr}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:14px;align-content:start;min-width:0}
-.panel h2{font-size:15px;margin:0;font-weight:700;letter-spacing:.02em}
 .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.sub{font-size:12px;color:var(--muted)}
 .scr-wrap{position:relative;width:100%;max-width:520px;aspect-ratio:1/1;justify-self:center}
-#scr{position:absolute;inset:0;width:100%;height:100%;border-radius:6px;display:block}
+#scr{position:absolute;inset:0;width:100%;height:100%;border-radius:6px;display:block;background:var(--sc-bg)}
 .ref{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
-#ref{width:44px;height:66px;background:var(--panel-2);border-radius:4px;border:1px solid var(--line)}
-.formula{font-family:var(--f-mono);font-size:14px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
-.formula b{color:var(--flame);font-weight:600}
+#ref{width:44px;height:66px;background:var(--sc-panel-2);border-radius:4px;border:1px solid var(--sc-line)}
+.formula b{color:var(--accent);font-weight:600}
+.seg.mode button{font-size:1rem;padding:0 18px}
+.note .btn{justify-self:start}
+.panel h2{font-size:1rem;margin:0;font-weight:700}
 .ctl{display:grid;gap:6px}
-.ctl-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px}
-.ctl-row output{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--flame);font-size:13px}
-input[type=range]{width:100%;accent-color:var(--flame);margin:0}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button,.btn{font:inherit;font-size:13px;color:var(--fg);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
-.seg.mode button{font-size:15px;padding:8px 18px}
-.seg button[aria-pressed="true"]{background:var(--flame);color:#1b1408;border-color:var(--flame);font-weight:700}
-.seg button:hover,.btn:hover{border-color:var(--muted)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--cool);outline-offset:2px}
-.label{font-size:12px;color:var(--muted);letter-spacing:.08em}
-.readout{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}
-.readout dt{color:var(--muted)}
-.readout dd{margin:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ctl-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.92rem}
+.ctl-row output{font-weight:600;font-size:.9rem}
+.label{font-size:.78rem;color:var(--muted);letter-spacing:.08em}
+.readout{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:.92rem}
 .toggles{display:flex;flex-wrap:wrap;gap:8px}
-.btn[aria-pressed="true"]{border-color:var(--flame);color:var(--flame)}
-.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:8px;align-content:start}
-.note h3{margin:0;font-size:15px}
-.note p{margin:0;font-size:14px;color:var(--muted)}
+.note h3{margin:0;font-size:1rem}
+.note p{margin:0;font-size:.92rem;color:var(--muted)}
 .note .btn{justify-self:start}
 hr{border:0;border-top:1px solid var(--line);margin:0}
+.wrap{gap:18px}
+header{display:grid;gap:6px;justify-items:start}
+.panel{padding:16px;display:grid;gap:14px;align-content:start}
+.formula{font-size:.9rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:grid;gap:8px;align-content:start;font-size:inherit;color:inherit}
 </style>
 
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">光學 · 光的直線傳播</div>
+    <div class="eyebrow"><a href="../">自然科模擬動畫</a> · 光學 · 光的直線傳播</div>
     <h1 id="h1">針孔成像</h1>
     <p id="intro">拖曳光源、針孔或屏幕改變距離，再調整孔的大小、形狀與數量，觀察屏幕上的像或影子如何變化。</p>
     <div class="seg mode" data-k="mode" role="group" aria-label="模式">
@@ -197,7 +168,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 const $=s=>document.querySelector(s);
 const cs=getComputedStyle(document.documentElement);
 const C=n=>cs.getPropertyValue(n).trim();
-const col={panel:C('--panel'),panel2:C('--panel-2'),line:C('--line'),wall:C('--wall'),fg:C('--fg'),muted:C('--muted'),flame:C('--flame'),cool:C('--cool'),paper:C('--paper')};
+const col={panel:C('--sc-panel'),panel2:C('--sc-panel-2'),line:C('--sc-line'),wall:C('--sc-wall'),fg:C('--sc-fg'),muted:C('--sc-muted'),flame:'#ffb54a',cool:'#80b9ff',paper:C('--paper')};
 const MONO=C('--f-mono');
 const DEF={mode:'pinhole',xc:0,xp:30,xs:52,yc:4,a:0.4,shape:'circle',holes:1,obj:'candle',rays:true,auto:false};
 const S=Object.assign({},DEF);

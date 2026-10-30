@@ -4,76 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>透鏡成像模擬</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
 <style>
 /* 版面：標題 → 光學台（SVG 畫面）→ 下方「控制」與「數據」兩欄，手機時疊成一欄 */
-:root {
-  --bg: #edf0f4;
-  --panel: #ffffff;
-  --ink: #1b2430;
-  --muted: #5b6878;
-  --line: #cfd7e0;
-  --axis: #7d8a99;
-  --lens: #4f63d6;
-  --lens-fill: rgba(79, 99, 214, 0.16);
-  --zone: rgba(79, 99, 214, 0.06);
-  --obj: #17775f;
-  --img: #c0442a;
-  --ray1: #e0572d;   /* 平行光線 */
-  --ray2: #2a7bd6;   /* 通過光心 */
-  --ray3: #b88400;   /* 通過焦點 */
-  --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
-  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-}
+:root {--axis: #7d8a99;--lens: #4f63d6;--lens-fill: rgba(79, 99, 214, 0.16);--zone: rgba(79, 99, 214, 0.06);--obj: #17775f;--img: #c0442a;--ray1: #e0572d;/* 平行光線 */
+  --ray2: #2a7bd6;/* 通過光心 */
+  --ray3: #b88400;/* 通過焦點 */
+  --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0f141a; --panel: #171f29; --ink: #e5eaf0; --muted: #93a2b2; --line: #2b3746;
-    --axis: #6f7e8f; --lens: #8e9cff; --lens-fill: rgba(142, 156, 255, 0.2); --zone: rgba(142, 156, 255, 0.07);
-    --obj: #4cc7a4; --img: #ff7c5e; --ray1: #ff7d55; --ray2: #5cabff; --ray3: #f1c13a;
-    color-scheme: dark;
-  }
+  :root:not([data-theme="light"]) {--axis: #6f7e8f;--lens: #8e9cff;--lens-fill: rgba(142, 156, 255, 0.2);--zone: rgba(142, 156, 255, 0.07);--obj: #4cc7a4;--img: #ff7c5e;--ray1: #ff7d55;--ray2: #5cabff;--ray3: #f1c13a;color-scheme: dark;}
 }
-:root[data-theme="dark"] {
-  --bg: #0f141a; --panel: #171f29; --ink: #e5eaf0; --muted: #93a2b2; --line: #2b3746;
-  --axis: #6f7e8f; --lens: #8e9cff; --lens-fill: rgba(142, 156, 255, 0.2); --zone: rgba(142, 156, 255, 0.07);
-  --obj: #4cc7a4; --img: #ff7c5e; --ray1: #ff7d55; --ray2: #5cabff; --ray3: #f1c13a;
-  color-scheme: dark;
-}
-
-* { box-sizing: border-box; }
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--f-body);
-  font-size: 15px;
-  line-height: 1.6;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 24px 40px;
-}
+:root[data-theme="dark"] {--axis: #6f7e8f;--lens: #8e9cff;--lens-fill: rgba(142, 156, 255, 0.2);--zone: rgba(142, 156, 255, 0.07);--obj: #4cc7a4;--img: #ff7c5e;--ray1: #ff7d55;--ray2: #5cabff;--ray3: #f1c13a;color-scheme: dark;}
 .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 18px; }
 
 header { display: grid; gap: 4px; }
-h1 {
-  font-family: var(--f-display);
-  font-weight: 900;
-  font-size: clamp(1.6rem, 3.6vw, 2.3rem);
-  letter-spacing: 0.04em;
-  margin: 0;
-  text-wrap: balance;
-}
-.formula { font-family: var(--f-mono); color: var(--muted); font-size: 0.92rem; margin: 0; }
-.hint { color: var(--muted); margin: 0; font-size: 0.92rem; }
-.crumb { font-size: 0.9rem; color: var(--muted); }
-.crumb a { color: var(--lens); }
-
-/* 凸透鏡／凹透鏡切換 */
-.seg { display: inline-flex; justify-self: start; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.seg button { border: 0; border-radius: 0; min-height: 40px; padding: 6px 18px; font-size: 1rem; }
-.seg button + button { border-left: 1px solid var(--line); }
-.seg button[aria-pressed="true"] { background: var(--lens); color: var(--panel); }
 
 /* 光學台 */
 .bench {
@@ -96,7 +41,6 @@ h1 {
 
 /* 手機：光學台固定在上方，捲動調整拉桿時仍看得到光路 */
 @media (max-width: 720px) {
-  body { padding-block: 12px 32px; font-size: 16px; }
   .wrap { gap: 12px; }
   .bench { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.35); }
   body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
@@ -112,28 +56,12 @@ h1 {
 .slider-row { display: grid; gap: 6px; }
 .slider-row .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .slider-row output { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
-input[type="range"] { width: 100%; accent-color: var(--lens); height: 28px; margin: 0; }
+input[type="range"] { width: 100%;  height: 28px; margin: 0; }
 
 .rays { display: grid; gap: 6px; }
 .rays label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .swatch { width: 22px; height: 3px; border-radius: 2px; flex: none; }
-input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--lens); margin: 0; }
-
-button {
-  justify-self: start;
-  font: inherit; font-size: 0.9rem;
-  color: var(--ink); background: transparent;
-  border: 1px solid var(--line); border-radius: 6px;
-  padding: 6px 14px; cursor: pointer;
-}
-button:hover { border-color: var(--lens); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--lens); outline-offset: 2px; }
-
-dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; }
-dt { color: var(--muted); }
-dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
-.verdict { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { font-size: 0.85rem; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); }
 .chip.real { border-color: var(--img); color: var(--img); }
 .chip.virtual { border-style: dashed; border-color: var(--img); color: var(--img); }
 .region { margin: 0; font-weight: 500; }
@@ -185,7 +113,7 @@ dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
         <label><input type="checkbox" id="r2" checked><span class="swatch" style="background: var(--ray2)"></span>通過透鏡中心 → 直線前進</label>
         <label><input type="checkbox" id="r3" checked><span class="swatch" style="background: var(--ray3)"></span><span id="r3Text">通過焦點 → 折射後平行光軸</span></label>
       </div>
-      <button id="reset" type="button">重設</button>
+      <button id="reset" type="button" class="btn">重設</button>
     </section>
 
     <section class="card" aria-label="數據">

@@ -3,46 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>body{margin:0}[hidden]{display:none!important}*{box-sizing:border-box}.crumb{font-size:.85rem;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}.crumb a{color:inherit}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
+<style></style>
 <title>石頭漣漪</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+
 <style>
 /* Layout: one column lab sheet — top view of the lake, side-section beneath, controls, then the reasoning */
-:root{
-  --bg:#f3f6f7; --panel:#ffffff; --fg:#14262e; --muted:#5b6f78; --line:#d4dee2;
-  --water:#2d7fa3; --water2:#9fd1e4; --surface:#0d5574; --lake:#cfe7f0;
-  --crest:#d9480f; --trough:#6a4fb3; --buoy:#ffffff; --hot:#e0225b; --stone:#5f5a52;
-  --display:"Noto Serif TC","Songti TC",serif; --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0d1619; --panel:#132126; --fg:#e3eef2; --muted:#93a9b2; --line:#26383f;
-  --water:#1d5f7d; --water2:#123c4f; --surface:#7cc8e6; --lake:#0f2c38;
-  --crest:#ff8a4c; --trough:#b9a2ff; --buoy:#eaf6fb; --hot:#ff5c8a; --stone:#b8b0a3; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0d1619; --panel:#132126; --fg:#e3eef2; --muted:#93a9b2; --line:#26383f;
-  --water:#1d5f7d; --water2:#123c4f; --surface:#7cc8e6; --lake:#0f2c38;
-  --crest:#ff8a4c; --trough:#b9a2ff; --buoy:#eaf6fb; --hot:#ff5c8a; --stone:#b8b0a3; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.65}
+:root{--water:#2d7fa3;--water2:#9fd1e4;--surface:#0d5574;--lake:#cfe7f0;--crest:#d9480f;--trough:#6a4fb3;--buoy:#ffffff;--hot:#e0225b;--stone:#5f5a52;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--water:#1d5f7d;--water2:#123c4f;--surface:#7cc8e6;--lake:#0f2c38;--crest:#ff8a4c;--trough:#b9a2ff;--buoy:#eaf6fb;--hot:#ff5c8a;--stone:#b8b0a3;color-scheme:dark;}}
+:root[data-theme="dark"]{--water:#1d5f7d;--water2:#123c4f;--surface:#7cc8e6;--lake:#0f2c38;--crest:#ff8a4c;--trough:#b9a2ff;--buoy:#eaf6fb;--hot:#ff5c8a;--stone:#b8b0a3;color-scheme:dark;}
 .wrap{max-width:980px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
-h1{font-family:var(--display);font-size:clamp(24px,4vw,32px);margin:0;text-wrap:balance;letter-spacing:.02em}
-.sub{color:var(--muted);margin:4px 0 0}
-.lab{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:500;margin:0 0 6px}
 .stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
-canvas{display:block;width:100%}
 #top{height:380px;cursor:crosshair;border-radius:6px} #side{height:240px}
-.controls{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}
-.controls label{display:flex;align-items:center;gap:8px;font-size:14px}
-input[type=range]{width:130px;accent-color:var(--water)}
-button{font:inherit;font-weight:500;background:var(--water);color:#fff;border:0;border-radius:6px;padding:7px 16px;cursor:pointer}
-button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--crest);outline-offset:2px}
-.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-.notes > div{min-width:0}
-.notes h2{font-size:16px;margin:0 0 6px}
-.notes p{margin:0;max-width:62ch}
-.key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin-top:8px}
-.key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+input[type=range]{width:130px;}
 </style>
 
 </head>
@@ -74,9 +49,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--crest);outline-
   </section>
 
   <div class="controls">
-    <button id="drop">在中央丟石頭</button>
-    <button id="play" class="ghost">暫停</button>
-    <button id="clear" class="ghost">清除</button>
+    <button id="drop" class="btn primary">在中央丟石頭</button>
+    <button id="play" class="btn">暫停</button>
+    <button id="clear" class="btn">清除</button>
     <label for="spd">速度 <input id="spd" type="range" min="0.2" max="2" step="0.1" value="0.8"></label>
     <label for="lam">波長 <input id="lam" type="range" min="30" max="90" step="5" value="55"></label>
   </div>

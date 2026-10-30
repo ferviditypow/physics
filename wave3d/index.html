@@ -3,46 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>body{margin:0}[hidden]{display:none!important}*{box-sizing:border-box}.crumb{font-size:.85rem;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}.crumb a{color:inherit}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
+<style></style>
 <title>3D 水波剖面</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+
 <style>
 /* Layout: one column — 3D cutaway tank as the hero, controls under it, short reasoning notes */
-:root{
-  --bg:#f3f6f7; --panel:#ffffff; --fg:#14262e; --muted:#5b6f78; --line:#d4dee2;
-  --water:#1f7fa6; --crest:#d9480f; --trough:#6a4fb3; --hot:#e0225b; --tagbg:rgba(255,255,255,.88);
-  --display:"Noto Serif TC","Songti TC",serif; --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0d1619; --panel:#132126; --fg:#e3eef2; --muted:#93a9b2; --line:#26383f;
-  --water:#2a8db5; --crest:#ff8a4c; --trough:#b9a2ff; --hot:#ff5c8a; --tagbg:rgba(13,22,25,.85); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0d1619; --panel:#132126; --fg:#e3eef2; --muted:#93a9b2; --line:#26383f;
-  --water:#2a8db5; --crest:#ff8a4c; --trough:#b9a2ff; --hot:#ff5c8a; --tagbg:rgba(13,22,25,.85); color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.65}
+:root{--water:#1f7fa6;--crest:#d9480f;--trough:#6a4fb3;--hot:#e0225b;--tagbg:rgba(255,255,255,.88);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--water:#2a8db5;--crest:#ff8a4c;--trough:#b9a2ff;--hot:#ff5c8a;--tagbg:rgba(13,22,25,.85);color-scheme:dark;}}
+:root[data-theme="dark"]{--water:#2a8db5;--crest:#ff8a4c;--trough:#b9a2ff;--hot:#ff5c8a;--tagbg:rgba(13,22,25,.85);color-scheme:dark;}
 .wrap{max-width:1040px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
-h1{font-family:var(--display);font-size:clamp(24px,4vw,32px);margin:0;text-wrap:balance;letter-spacing:.02em}
-.sub{color:var(--muted);margin:4px 0 0}
 .stage{position:relative;height:clamp(360px,62vw,560px);border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel);touch-action:none}
 .stage canvas{display:block;width:100%;height:100%;cursor:grab}
 .overlay{position:absolute;inset:0;pointer-events:none}
 .tag{position:absolute;transform:translate(-50%,-50%);font-size:13px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--tagbg);white-space:nowrap}
 .tag.crest{color:var(--crest)} .tag.trough{color:var(--trough)} .tag.hot{color:var(--hot)} .tag.fg{color:var(--fg)}
-.hint{position:absolute;right:10px;bottom:8px;font-size:12px;color:var(--muted)}
-.controls{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}
-.controls label{display:flex;align-items:center;gap:8px;font-size:14px}
-input[type=range]{width:120px;accent-color:var(--water)}
-button{font:inherit;font-weight:500;background:var(--water);color:#fff;border:0;border-radius:6px;padding:7px 16px;cursor:pointer}
-button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--crest);outline-offset:2px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{border-radius:0;background:transparent;color:var(--fg);padding:6px 12px}
-.seg button[aria-pressed="true"]{background:var(--water);color:#fff}
-.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-.notes > div{min-width:0}
-.notes h2{font-size:16px;margin:0 0 6px}
-.notes p{margin:0;max-width:62ch}
+input[type=range]{width:120px;}
 </style>
 
 </head>
@@ -65,8 +43,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--crest);outline-
       <button id="mSwell" aria-pressed="false">單一湧浪</button>
       <button id="mRipple" aria-pressed="false">漣漪（點波源）</button>
     </span>
-    <button id="play">暫停</button>
-    <button id="reset" class="ghost">重設視角</button>
+    <button id="play" class="btn primary">暫停</button>
+    <button id="reset" class="btn">重設視角</button>
     <label for="spd">速度 <input id="spd" type="range" min="0.1" max="2" step="0.1" value="0.7"></label>
     <label for="amp">振幅 <input id="amp" type="range" min="0.1" max="0.6" step="0.02" value="0.34"></label>
     <label for="lam">波長 <input id="lam" type="range" min="1.6" max="5" step="0.1" value="3.2"></label>
@@ -89,9 +67,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--crest);outline-
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script>
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from '../vendor/three/OrbitControls.js';
 (() => {
   const $ = id => document.getElementById(id);
   const stage = $('stage'), overlay = $('overlay');
@@ -107,13 +86,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--crest);outline-
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
   const HOME = new THREE.Vector3(7.5, 7.2, 12.5);
   camera.position.copy(HOME);
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, -0.9, 0); controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.62;
   controls.minDistance = 7; controls.maxDistance = 30;
 
-  scene.add(new THREE.HemisphereLight(0xdff6ff, 0x0b3a4f, 0.85));
-  const sun = new THREE.DirectionalLight(0xffffff, 0.9); sun.position.set(-4, 10, 6); scene.add(sun);
-  const rim = new THREE.DirectionalLight(0x9fe8ff, 0.35); rim.position.set(6, 3, -8); scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0xdff6ff, 0x0b3a4f, 1.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(-4, 10, 6); scene.add(sun);
+  const rim = new THREE.DirectionalLight(0x9fe8ff, 0.8); rim.position.set(6, 3, -8); scene.add(rim);
 
   // ---------- wave model ----------
   const P = () => {

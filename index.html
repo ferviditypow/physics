@@ -4,24 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>自然科模擬動畫</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="shared/ui.css">
 <style>
-  :root{
-    --bg:#eef1f4; --panel:#ffffff; --ink:#18212b; --muted:#5a6673; --line:#d4dbe2;
-    --phy:#2f5fd0; --phy-soft:#e3ebfb;
-    --chem:#c2410c; --chem-soft:#fbe8dd;
-    --earth:#0f7a6c; --earth-soft:#dcf1ed;
-    --bio:#4d7c0f; --bio-soft:#e8f2d8;
-    --f-display:"Noto Serif TC","Songti TC",serif;
-    --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-  }
-  @media (prefers-color-scheme: dark){:root{
-    --bg:#0f141a; --panel:#171f29; --ink:#e6ebf0; --muted:#95a3b1; --line:#2a3644;
-    --phy:#8aa8ff; --phy-soft:#1c2740;
-    --chem:#ff9a66; --chem-soft:#36231a;
-    --earth:#4fd1bd; --earth-soft:#15302c;
-    --bio:#a6d65a; --bio-soft:#25301a; color-scheme:dark }}
+  :root{--phy:#2f5fd0;--phy-soft:#e3ebfb;--chem:#c2410c;--chem-soft:#fbe8dd;--earth:#0f7a6c;--earth-soft:#dcf1ed;--bio:#4d7c0f;--bio-soft:#e8f2d8;}
+  @media (prefers-color-scheme: dark){:root{--phy:#8aa8ff;--phy-soft:#1c2740;--chem:#ff9a66;--chem-soft:#36231a;--earth:#4fd1bd;--earth-soft:#15302c;--bio:#a6d65a;--bio-soft:#25301a;color-scheme:dark;}}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.6;
     padding:clamp(24px,5vw,56px) max(16px,env(safe-area-inset-right)) 56px max(16px,env(safe-area-inset-left))}
