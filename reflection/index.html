@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>光的反射：反射定律、平面鏡、全身鏡、光槓桿</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
+<style>
+:root{--ray:#d23b2f;--mir:#5b7fa6;--ai:#1c68ad;--ar:#1f8a5b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ray:#ff7468;--mir:#9cc0e6;--ai:#5ba8ec;--ar:#4cc28e;color-scheme:dark}}
+:root[data-theme="dark"]{--ray:#ff7468;--mir:#9cc0e6;--ai:#5ba8ec;--ar:#4cc28e;color-scheme:dark}
+.wrap{max-width:1280px}
+.benchbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 10px}
+.benchbar .seg button{font-weight:700;min-height:44px;padding:0 14px}
+.benchbar .seg button .n{font-family:var(--f-mono);margin-right:5px;opacity:.65}
+.bench{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.box{padding:10px 14px 14px}
+.box h3{margin:0 0 6px;font-size:1rem}
+.box p{margin:0 0 6px;font-size:.95rem}
+.box ul{margin:4px 0 0;padding-left:1.2em;font-size:.95rem}
+.box li{margin:2px 0}
+.big{font-family:var(--f-display);font-weight:900;font-size:1.5rem;line-height:1.3;margin:0 0 6px}
+.big .mono{font-family:var(--f-mono);font-weight:600}
+.checks{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:.95rem}
+.checks li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start}
+.checks li::before{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;margin-top:1px}
+.checks li.ok::before{content:'✓';background:var(--green)}
+.checks li.no::before{content:'✕';background:#c0453b}
+.checks li.info::before{content:'i';background:var(--blue)}
+.qgrp{margin-bottom:12px}
+.qgrp h4{margin:0 0 6px;font-size:.82rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
+.qchips{display:flex;flex-wrap:wrap;gap:7px}
+.qchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:36px;padding:3px 13px;cursor:pointer;font-size:.88rem;text-align:left;color:var(--ink)}
+.qchip:hover{border-color:var(--accent)}
+.qchip .pg{color:var(--muted);font-size:.76rem;margin-left:4px}
+.story p{white-space:pre-line}
+.trap{color:#c0453b;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../">自然科模擬動畫</a> · 高一基礎物理 · 電磁波與光（二） · <a href="../emwave/">電磁波</a></div>
+      <h1>光的反射</h1>
+    </div>
+    <p>拖曳橘色的點操作：雷射筆、眼睛、人、鏡子的上下緣都可以拖。五個實驗台對應講義 2-3；最下方有隨堂練習的題目情境。</p>
+  </header>
+
+  <nav class="panel benchbar" aria-label="實驗台">
+    <span class="tlabel">實驗台</span>
+    <span class="seg" id="benchSeg">
+      <button data-v="law" aria-pressed="true"><span class="n">1</span>反射定律</button>
+      <button data-v="diffuse" aria-pressed="false"><span class="n">2</span>鏡面反射與漫反射</button>
+      <button data-v="image" aria-pressed="false"><span class="n">3</span>平面鏡成像</button>
+      <button data-v="full" aria-pressed="false"><span class="n">4</span>全身鏡</button>
+      <button data-v="lever" aria-pressed="false"><span class="n">5</span>光槓桿與角反射器</button>
+    </span>
+  </nav>
+
+  <section class="panel story" id="story" hidden>
+    <button class="x" id="storyX" aria-label="關閉說明">×</button>
+    <h3 id="storyT"></h3>
+    <p id="storyP"></p>
+    <button class="btn" id="storyBack" style="margin-top:8px">↓ 回到講義題目列表</button>
+  </section>
+
+  <!-- ============ 1 反射定律 ============ -->
+  <section class="bench" id="b-law">
+    <div class="panel">
+      <div class="toolbar">
+        <span class="tlabel">入射角</span>
+        <span class="chips" id="pre1"><button class="chip" data-a="0">0°（垂直入射）</button><button class="chip" data-a="30">30°</button><button class="chip" data-a="45">45°</button><button class="chip" data-a="60">60°</button><button class="chip" data-a="80">80°</button></span>
+        <label class="tog"><input type="checkbox" id="mir1" checked>與鏡面的夾角</label>
+        <label class="tog"><input type="checkbox" id="pro1" checked>量角器</label>
+        <button class="btn" id="rev1">⇄ 光路可逆：從另一邊射回來</button>
+      </div>
+      <div class="cbox"><canvas id="cv1" aria-label="反射定律，可拖曳雷射筆"></canvas></div>
+      <p class="hint">拖曳橘色的雷射筆改變入射方向。藍色是入射角 i、綠色是反射角 r，都是和<b>法線</b>（虛線）的夾角。</p>
+    </div>
+    <div class="grid2">
+      <section class="panel box">
+        <p class="big" id="r1big"></p>
+        <p id="r1a"></p>
+        <p class="note" id="r1b"></p>
+      </section>
+      <section class="panel box">
+        <h3>反射定律</h3>
+        <ul>
+          <li>入射線、反射線、法線在同一平面上，入射線與反射線分居法線兩側。</li>
+          <li><b>反射角＝入射角</b>（r＝i）。</li>
+          <li>角度一律<b>從法線量起</b>，不是從鏡面量起！題目說「光線與鏡面夾 30°」，入射角是 60°。</li>
+          <li>光路可逆：光從反射光的方向射回來，會沿原本的入射路徑回去。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 2 漫反射 ============ -->
+  <section class="bench" id="b-diffuse" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <span class="tlabel">表面</span>
+        <span class="chips" id="pre2"><button class="chip" data-r="0">鏡子、平靜的水面</button><button class="chip" data-r="0.25">黑板（有點粗糙）</button><button class="chip" data-r="0.85">紙張、牆壁</button></span>
+        <label class="tog"><input type="checkbox" id="nrm2">每一點的法線</label>
+      </div>
+      <div class="cbox"><canvas id="cv2" aria-label="鏡面反射與漫反射，可拖曳眼睛"></canvas></div>
+      <div class="toolbar">
+        <label class="slider"><span class="tlabel">表面粗糙程度</span><input type="range" id="rough2" min="0" max="1" step="0.01" value="0"><output id="rough2o"></output></label>
+        <label class="slider"><span class="tlabel">入射角</span><input type="range" id="inc2" min="10" max="70" step="1" value="40"><output id="inc2o"></output></label>
+      </div>
+      <p class="hint">一束平行光照在表面上。拖曳橘色的眼睛，看它在不同位置收到多少反射光。表面被放大畫出來了，實際的凹凸非常細小。</p>
+    </div>
+    <div class="grid2">
+      <section class="panel box">
+        <p class="big" id="r2big"></p>
+        <p id="r2a"></p>
+        <p class="note" id="r2b"></p>
+      </section>
+      <section class="panel box">
+        <h3>鏡面反射與漫反射</h3>
+        <ul>
+          <li>兩者<b>都遵守反射定律</b>（打開「每一點的法線」看看），差別在表面平不平滑。</li>
+          <li>平滑表面：平行光反射後仍然平行，只有特定方向看得到，而且很亮（刺眼）。</li>
+          <li>粗糙表面：每一點的法線方向不同，反射光射向四面八方——我們能從各個角度看見書本、牆壁，靠的就是漫反射。</li>
+          <li>黑板「反光」看不清楚，是局部發生了鏡面反射。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 3 平面鏡成像 ============ -->
+  <section class="bench" id="b-image" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <span class="tlabel">從哪一點畫光線</span>
+        <span class="seg" id="pt3"><button data-v="rh" aria-pressed="true">右手</button><button data-v="lh">左手</button><button data-v="nose">鼻子</button></span>
+        <label class="tog"><input type="checkbox" id="fan3">從這一點畫出很多條光線</label>
+        <button class="btn primary" id="walk3">▶ 以 1 m/s 走向鏡子</button>
+        <button class="btn" id="back3">↺ 退回原位</button>
+      </div>
+      <div class="cbox"><canvas id="cv3" aria-label="平面鏡成像俯視圖，可拖曳人與鏡子兩端"></canvas></div>
+      <p class="hint">從<b>正上方往下看</b>（俯視圖）：你站在鏡子前面，臉朝鏡子。拖曳人可以前後左右移動，拖曳鏡子兩端的橘點可以改變鏡子長度。紅線是光實際走的路，虛線是眼睛「以為」光來自的方向。</p>
+    </div>
+    <div class="grid2">
+      <section class="panel box">
+        <p class="big" id="r3big"></p>
+        <ul class="checks" id="r3c"></ul>
+        <p class="note" id="r3b" style="margin-top:8px"></p>
+      </section>
+      <section class="panel box">
+        <h3>平面鏡成像的特性</h3>
+        <ul>
+          <li><b>正立、虛像、大小與物體相同</b>。</li>
+          <li><b>物距＝像距</b>：像與物對稱於鏡面。</li>
+          <li>反射光的<b>延長線</b>交於鏡後一點，光並沒有真的到鏡子後面，所以是虛像。</li>
+          <li>像看起來「左右相反」，其實是<b>前後相反</b>：你的右手在鏡中仍在同一邊，只是臉的方向反了過來。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 4 全身鏡 ============ -->
+  <section class="bench" id="b-full" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <button class="btn primary" id="walk4">▶ 前後走動</button>
+        <span class="chips"><button class="chip" id="q18chip">剛好看到全身（第 18 題）</button><button class="chip" id="tall4">鏡子拉到最長</button></span>
+      </div>
+      <div class="cbox"><canvas id="cv4" aria-label="全身鏡側視圖，可拖曳人與鏡子上下緣"></canvas></div>
+      <div class="toolbar">
+        <label class="slider"><span class="tlabel">身高</span><input type="range" id="h4" min="140" max="190" step="1" value="170"><output id="h4o"></output></label>
+        <label class="slider"><span class="tlabel">離鏡子</span><input type="range" id="d4" min="40" max="300" step="1" value="120"><output id="d4o"></output></label>
+      </div>
+      <p class="hint">側面看：拖曳人前後走，拖曳鏡子上緣、下緣的橘點改變鏡子大小。眼睛在頭頂下方 10 cm。綠色是鏡中看得到的部分。</p>
+    </div>
+    <div class="grid2">
+      <section class="panel box">
+        <p class="big" id="r4big"></p>
+        <ul class="checks" id="r4c"></ul>
+        <p class="note" id="r4b" style="margin-top:8px"></p>
+      </section>
+      <section class="panel box">
+        <h3>想看到全身，鏡子要多長？</h3>
+        <ul>
+          <li>從頭頂和腳底射到鏡子、再反射進眼睛的兩條光線，在鏡面上的落點正好是「頭頂到眼睛」與「眼睛到腳底」的中點。</li>
+          <li><b>鏡長至少為身高的一半</b>。</li>
+          <li><b>鏡子下緣離地不可高於眼高的一半</b>。</li>
+          <li><b>結果與人站得多遠無關！</b>按「前後走動」驗證。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 5 光槓桿 ============ -->
+  <section class="bench" id="b-lever" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <span class="seg" id="mode5"><button data-v="lever" aria-pressed="true">光槓桿</button><button data-v="corner">角反射器（雷射測月）</button></span>
+        <span class="chips" id="pre5"><button class="chip" data-t="5">鏡子轉 5°</button><button class="chip" data-t="15">鏡子轉 15°</button><button class="chip" data-t="-10">鏡子轉 −10°</button></span>
+      </div>
+      <div class="cbox"><canvas id="cv5" aria-label="光槓桿與角反射器，可拖曳鏡子與雷射"></canvas></div>
+      <div class="toolbar" id="tb5a">
+        <label class="slider"><span class="tlabel">鏡子轉動</span><input type="range" id="th5" min="-10" max="20" step="0.5" value="0"><output id="th5o"></output></label>
+      </div>
+      <div class="toolbar" id="tb5b" hidden>
+        <label class="slider"><span class="tlabel">轉動角反射器</span><input type="range" id="ph5" min="-40" max="40" step="1" value="0"><output id="ph5o"></output></label>
+      </div>
+      <p class="hint" id="hint5"></p>
+    </div>
+    <div class="grid2">
+      <section class="panel box">
+        <p class="big" id="r5big"></p>
+        <p id="r5a"></p>
+        <p class="note" id="r5b"></p>
+      </section>
+      <section class="panel box" id="note5"></section>
+    </div>
+  </section>
+
+  <section class="panel" id="qpanel">
+    <p class="ptitle">講義題目情境 <small>高一基礎物理｜電磁波與光（頁碼為學生版）</small></p>
+    <div class="cbox" id="qbox"></div>
+  </section>
+</div>
+
+<script>
+// ================= common =================
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,f)=>a+(b-a)*f,TAU=Math.PI*2,D2R=Math.PI/180;
+const DPR=()=>Math.min(window.devicePixelRatio||1,2);
+const C={};
+function readColors(){const s=getComputedStyle(document.documentElement);
+  ['bg','panel','ink','muted','line','grid','accent','accent-soft','blue','green','red','purple','ray','mir','ai','ar'].forEach(k=>C[k]=s.getPropertyValue('--'+k).trim());}
+readColors();
+function fit(cv,ratio,minH,maxH){const w=Math.max(10,cv.clientWidth);const h=Math.round(clamp(w*ratio,minH,maxH));
+  cv.style.height=h+'px';const d=DPR();cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.getContext('2d').setTransform(d,0,0,d,0,0);return{W:w,H:h};}
+function segSet(el,v){el.querySelectorAll('button[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));}
+function segOn(el,fn){el.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)fn(b.dataset.v);});}
+const FONT='"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+function text(g,s,x,y,{col=C.ink,size=13,bold=false,align='left',base='alphabetic',bg=null}={}){
+  g.font=`${bold?700:500} ${size}px ${FONT}`;g.textAlign=align;g.textBaseline=base;
+  if(bg){const w=g.measureText(s).width,px=align==='center'?x-w/2:align==='right'?x-w:x,py=base==='middle'?y-size/2:y-size;g.save();g.fillStyle=bg;g.globalAlpha=.85;g.fillRect(px-4,py-2,w+8,size+6);g.restore();}
+  g.fillStyle=col;g.fillText(s,x,y);}
+function line(g,x1,y1,x2,y2,col,w=2,dash=null){g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.setLineDash([]);}
+function head(g,x,y,ang,col,size=9){g.fillStyle=col;g.beginPath();g.moveTo(x+Math.cos(ang)*size*.5,y+Math.sin(ang)*size*.5);g.lineTo(x-size*Math.cos(ang-.45),y-size*Math.sin(ang-.45));g.lineTo(x-size*Math.cos(ang+.45),y-size*Math.sin(ang+.45));g.closePath();g.fill();}
+// 光線：實線＋中間一個箭頭
+function ray(g,x1,y1,x2,y2,col=C.ray,w=2.4,dash=null,arrowAt=.55){line(g,x1,y1,x2,y2,col,w,dash);if(arrowAt!=null)head(g,lerp(x1,x2,arrowAt),lerp(y1,y2,arrowAt),Math.atan2(y2-y1,x2-x1),col,11);}
+function arc(g,x,y,r,a1,a2,col,w=2){g.strokeStyle=col;g.lineWidth=w;g.beginPath();g.arc(x,y,r,Math.min(a1,a2),Math.max(a1,a2));g.stroke();}
+function handle(g,x,y,r=9){g.fillStyle=C.accent;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.strokeStyle=C.panel;g.lineWidth=2;g.stroke();}
+function hatch(g,x1,y1,x2,y2,side,col,len=9,step=9){ // 鏡子背面的斜線，side：法線反方向（背面）的單位向量
+  const L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L;g.strokeStyle=col;g.lineWidth=1.2;g.beginPath();
+  for(let s=0;s<=L;s+=step){const px=x1+ux*s,py=y1+uy*s;g.moveTo(px,py);g.lineTo(px+side[0]*len+ux*len*.7,py+side[1]*len+uy*len*.7);}g.stroke();}
+function mirrorSeg(g,x1,y1,x2,y2,back){hatch(g,x1,y1,x2,y2,back,C.muted);line(g,x1,y1,x2,y2,C.mir,5);}
+function eyeIcon(g,x,y,ang,size=14){g.save();g.translate(x,y);g.rotate(ang);g.fillStyle=C.panel;g.strokeStyle=C.ink;g.lineWidth=2;
+  g.beginPath();g.moveTo(-size,0);g.quadraticCurveTo(0,-size*.8,size,0);g.quadraticCurveTo(0,size*.8,-size,0);g.closePath();g.fill();g.stroke();
+  g.fillStyle=C.ink;g.beginPath();g.arc(size*.25,0,size*.32,0,TAU);g.fill();g.restore();}
+// 拖曳：handles() 回傳 [{x,y,r,move(x,y)}]
+function dragger(cv,handles,after){let cur=null;const pos=ev=>{const r=cv.getBoundingClientRect();return[ev.clientX-r.left,ev.clientY-r.top];};
+  const pick=(x,y)=>{let best=null,bd=1e9;for(const h of handles()){const d=Math.hypot(x-h.x,y-h.y);if(d<(h.r||26)&&d<bd){bd=d;best=h;}}return best;};
+  cv.addEventListener('pointerdown',ev=>{const[x,y]=pos(ev);const h=pick(x,y);if(!h)return;cur={h,dx:h.x-x,dy:h.y-y};h.start&&h.start();cv.setPointerCapture(ev.pointerId);ev.preventDefault();});
+  cv.addEventListener('pointermove',ev=>{const[x,y]=pos(ev);if(!cur){cv.style.cursor=pick(x,y)?'grab':'default';return;}cur.h.move(x+cur.dx,y+cur.dy);after();});
+  const up=()=>{cur=null;};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);}
+const deg=x=>Math.round(x*10)/10+'°';
+
+// ================= bench switching / loop =================
+let bench='law';const BENCHES=['law','diffuse','image','full','lever'];
+const SIZE={},DRAW={},TICK={};
+function setBench(b,noHash){if(!BENCHES.includes(b))b='law';bench=b;segSet($('benchSeg'),b);
+  BENCHES.forEach(k=>$('b-'+k).hidden=k!==b);if(!noHash)history.replaceState(null,'','#'+b);SIZE[b]();kick();}
+segOn($('benchSeg'),v=>{hideStory();setBench(v);});
+let raf=0,lastT=0;
+function kick(){if(!raf)raf=requestAnimationFrame(loop);}
+function loop(now){raf=0;const dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;
+  const more=TICK[bench]?TICK[bench](dt):false;DRAW[bench]();
+  if(more&&!raf)raf=requestAnimationFrame(loop);else if(!more&&!raf)lastT=0;}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();kick();});
+function showStory(t,p){$('storyT').textContent=t;$('storyP').innerHTML=p;$('story').hidden=false;}
+function hideStory(){$('story').hidden=true;}
+$('storyX').addEventListener('click',hideStory);
+$('storyBack').addEventListener('click',()=>$('qpanel').scrollIntoView({behavior:'smooth',block:'start'}));
+
+// =====================================================================
+// 1 反射定律
+// =====================================================================
+const R1={a:-40,mir:true,pro:true,rev:false};   // a：入射角，負＝雷射在法線左邊
+const cv1=$('cv1'),g1=cv1.getContext('2d');let W1=800,H1=420;
+SIZE.law=()=>{const r=fit(cv1,.52,300,520);W1=r.W;H1=r.H;};
+function geo1(){const my=H1*.84,O={x:W1/2,y:my},R=Math.min(W1*.42,H1*.72);return{O,R,my};}
+DRAW.law=()=>{const g=g1,W=W1,H=H1,{O,R,my}=geo1();g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  const i=Math.abs(R1.a)*D2R,s=R1.a<0?-1:1;
+  const S={x:O.x+R*s*Math.sin(i),y:O.y-R*Math.cos(i)},Q={x:O.x-R*s*Math.sin(i),y:O.y-R*Math.cos(i)};
+  // 量角器
+  if(R1.pro){const pr=R*.5;g.strokeStyle=C.line;g.lineWidth=1;g.beginPath();g.arc(O.x,O.y,pr,Math.PI,TAU);g.stroke();
+    for(let k=-90;k<=90;k+=5){const a=-Math.PI/2+k*D2R,l=k%30===0?12:k%10===0?8:4;line(g,O.x+Math.cos(a)*pr,O.y+Math.sin(a)*pr,O.x+Math.cos(a)*(pr-l),O.y+Math.sin(a)*(pr-l),C.muted,1);
+      if(k%30===0&&Math.abs(k)<90)text(g,Math.abs(k)+'',O.x+Math.cos(a)*(pr-24),O.y+Math.sin(a)*(pr-24)+4,{col:C.muted,size:11,align:'center'});}}
+  mirrorSeg(g,W*.06,my,W*.94,my,[0,1]);text(g,'鏡面',W*.07,my-8,{col:C.mir,size:13,bold:true});
+  line(g,O.x,O.y,O.x,O.y-R*1.08,C.muted,1.6,[6,5]);text(g,'法線',O.x+6,O.y-R*1.08+12,{col:C.muted,size:12,bold:true});
+  // 夾角
+  const aS=Math.atan2(S.y-O.y,S.x-O.x),aQ=Math.atan2(Q.y-O.y,Q.x-O.x),aN=-Math.PI/2,ri=Math.min(R*.24,70);
+  if(R1.a!==0){arc(g,O.x,O.y,ri,aN,aS,C.ai,3);arc(g,O.x,O.y,ri+6,aN,aQ,C.ar,3);
+    const bi=(aN+aS)/2,br=(aN+aQ)/2;text(g,'i',O.x+Math.cos(bi)*(ri+14),O.y+Math.sin(bi)*(ri+14)+5,{col:C.ai,size:15,bold:true,align:'center'});
+    text(g,'r',O.x+Math.cos(br)*(ri+20),O.y+Math.sin(br)*(ri+20)+5,{col:C.ar,size:15,bold:true,align:'center'});
+    if(R1.mir&&Math.abs(R1.a)<89){const aM=s<0?-Math.PI:0,rm=Math.min(R*.38,110);g.setLineDash([4,3]);arc(g,O.x,O.y,rm,aM,aS,C.muted,2);g.setLineDash([]);
+      const bm=(aM+aS)/2;text(g,'與鏡面 '+Math.round(90-Math.abs(R1.a))+'°',O.x+Math.cos(bm)*(rm+8)+(s<0?-4:4),O.y+Math.sin(bm)*(rm+8),{col:C.muted,size:12,align:s<0?'right':'left',bg:C.panel});}}
+  // 光線（可逆時箭頭反向）
+  if(!R1.rev){ray(g,S.x,S.y,O.x,O.y);ray(g,O.x,O.y,Q.x,Q.y);}else{ray(g,Q.x,Q.y,O.x,O.y);ray(g,O.x,O.y,S.x,S.y);}
+  {const pS=[lerp(S.x,O.x,.3),lerp(S.y,O.y,.3)],pQ=[lerp(O.x,Q.x,.7),lerp(O.y,Q.y,.7)];
+   text(g,R1.rev?'反射光':'入射光',pS[0]+(s<0?-14:14),pS[1],{col:C.ray,size:13,bold:true,align:s<0?'right':'left',bg:C.panel});
+   text(g,R1.rev?'入射光（反過來射）':'反射光',pQ[0]+(s<0?14:-14),pQ[1],{col:C.ray,size:13,bold:true,align:s<0?'left':'right',bg:C.panel});}
+  // 雷射筆
+  const L=R1.rev?Q:S,la=Math.atan2(O.y-L.y,O.x-L.x);g.save();g.translate(L.x,L.y);g.rotate(la);g.fillStyle=C.ink;g.fillRect(-46,-7,46,14);g.fillStyle=C.ray;g.fillRect(-4,-4,4,8);g.restore();
+  handle(g,L.x-Math.cos(la)*30,L.y-Math.sin(la)*30,10);
+  text(g,'雷射筆',L.x-Math.cos(la)*30,L.y-Math.sin(la)*30+(la>0?-18:26),{col:C.accent,size:12,bold:true,align:'center',bg:C.panel});
+};
+function ui1(){const i=Math.abs(R1.a);$('r1big').innerHTML=`入射角 i ＝ 反射角 r ＝ <span class="mono">${i}°</span>`;
+  $('r1a').innerHTML=i===0?'垂直入射：光沿原路反射回去（入射角 0°，不是 90°）。':`入射光與<b>鏡面</b>的夾角是 ${90-i}°——<span class="trap">這不是入射角！</span>入射角要從法線量：90° − ${90-i}° ＝ ${i}°。`;
+  $('r1b').textContent=R1.rev?'光路可逆：光從原本反射光的方向射回來，就沿著原本的入射路徑回去。':'把雷射筆拖到另一邊，或按「光路可逆」看看光反過來走的樣子。';
+  $('mir1').checked=R1.mir;$('pro1').checked=R1.pro;
+  document.querySelectorAll('#pre1 .chip').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.a===i)));}
+function set1(o){Object.assign(R1,o);ui1();kick();}
+dragger(cv1,()=>{const{O,R}=geo1(),i=Math.abs(R1.a)*D2R,s=R1.a<0?-1:1,sg=R1.rev?-s:s,L={x:O.x+R*sg*Math.sin(i),y:O.y-R*Math.cos(i)},la=Math.atan2(O.y-L.y,O.x-L.x);
+  return[{x:L.x-Math.cos(la)*30,y:L.y-Math.sin(la)*30,r:34,move:(x,y)=>{const dx=x-O.x,dy=Math.min(y-O.y,-2);let a=clamp(Math.round(Math.atan2(dx,-dy)/D2R),-89,89);if(R1.rev)a=-a;R1.a=a;ui1();}}];},kick);
+document.querySelectorAll('#pre1 .chip').forEach(b=>b.addEventListener('click',()=>set1({a:R1.a<=0?-(+b.dataset.a):+b.dataset.a,rev:false})));
+$('mir1').addEventListener('change',e=>set1({mir:e.target.checked}));
+$('pro1').addEventListener('change',e=>set1({pro:e.target.checked}));
+$('rev1').addEventListener('click',()=>set1({rev:!R1.rev}));
+
+// =====================================================================
+// 2 鏡面反射與漫反射
+// =====================================================================
+const R2={rough:0,i:40,nrm:false,eye:{fx:.8,fy:.2}};
+const cv2=$('cv2'),g2=cv2.getContext('2d');let W2=800,H2=400;
+SIZE.diffuse=()=>{const r=fit(cv2,.48,300,480);W2=r.W;H2=r.H;};
+const BUMPS=[[46,0.4,3.5],[71,1.9,3],[29,3.1,1.5],[113,.7,3],[37,2.4,1.5]]; // 波長(px)、相位、振幅(px)
+const surf=x=>{let y=0,d=0;for(const[l,p,A]of BUMPS){y+=A*Math.sin(TAU*x/l+p);d+=A*TAU/l*Math.cos(TAU*x/l+p);}return[R2.rough*y,R2.rough*d];};
+function rays2(){const W=W2,H=H2,y0=H*.76,i=R2.i*D2R,d=[Math.sin(i),Math.cos(i)],N=13,out=[];
+  for(let k=0;k<N;k++){const x=W*(.3+.3*k/(N-1)),[f,fp]=surf(x),hy=y0+f;let n=[fp,-1];const nl=Math.hypot(n[0],n[1]);n=[n[0]/nl,n[1]/nl];
+    const dn=d[0]*n[0]+d[1]*n[1],r=[d[0]-2*dn*n[0],d[1]-2*dn*n[1]],L=(hy-H*.03)/Math.cos(i);
+    out.push({hx:x,hy,sx:x-d[0]*L,sy:hy-d[1]*L,r,n});}return out;}
+function eyeHits2(rs){const ex=R2.eye.fx*W2,ey=R2.eye.fy*H2;let n=0;for(const q of rs){if(q.r[1]>-.03)continue;const vx=ex-q.hx,vy=ey-q.hy,t=vx*q.r[0]+vy*q.r[1];if(t<=0)continue;const dist=Math.abs(vx*q.r[1]-vy*q.r[0]);if(dist<18)n++;}return n;}
+DRAW.diffuse=()=>{const g=g2,W=W2,H=H2,y0=H*.76;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  const rs=rays2();
+  // 表面
+  g.fillStyle=C.grid;g.beginPath();g.moveTo(0,H);for(let x=0;x<=W;x+=2){g.lineTo(x,y0+surf(x)[0]);}g.lineTo(W,H);g.closePath();g.fill();
+  g.strokeStyle=C.mir;g.lineWidth=3;g.beginPath();for(let x=0;x<=W;x+=2){const y=y0+surf(x)[0];x?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
+  for(const q of rs){ray(g,q.sx,q.sy,q.hx,q.hy,C.ray,1.8,null,.5);
+    if(q.r[1]<-.03){const L=Math.max(W,H)*1.3;ray(g,q.hx,q.hy,q.hx+q.r[0]*L,q.hy+q.r[1]*L,C.ray,1.8,null,.12);}
+    if(R2.nrm)line(g,q.hx,q.hy,q.hx+q.n[0]*34,q.hy+q.n[1]*34,C.muted,1.2,[4,3]);}
+  text(g,'平行的入射光',rs[0].sx+8,rs[0].sy+16,{col:C.ray,size:13,bold:true,bg:C.panel});
+  const ex=R2.eye.fx*W,ey=R2.eye.fy*H,hits=eyeHits2(rs);
+  if(hits){g.fillStyle=C.accent;g.globalAlpha=clamp(hits/8,.15,.45);g.beginPath();g.arc(ex,ey,30,0,TAU);g.fill();g.globalAlpha=1;}
+  // 眼睛朝向表面中央
+  eyeIcon(g,ex,ey,Math.atan2(y0-ey,W*.45-ex),14);handle(g,ex,ey+22,7);
+  text(g,'眼睛',ex,ey+44,{col:C.accent,size:12,bold:true,align:'center',bg:C.panel});
+};
+function ui2(){const rs=rays2(),hits=eyeHits2(rs),sm=R2.rough<.06;
+  $('rough2o').textContent=Math.round(R2.rough*100)+'%';$('inc2o').textContent=R2.i+'°';$('rough2').value=R2.rough;$('inc2').value=R2.i;$('nrm2').checked=R2.nrm;
+  $('r2big').textContent=sm?'鏡面反射':'漫反射';
+  $('r2a').innerHTML=sm?(hits>=4?'眼睛收到大部分的反射光：<b>很亮、刺眼</b>（像黑板反光）。':hits?'眼睛收到一部分反射光。':'這個位置<b>完全看不到</b>反射光。把眼睛拖到反射光的方向上試試。')
+    :(hits?`眼睛收到 <b>${hits}</b> 條反射光：從這個角度看得到表面。`:'這個位置收到的反射光很少，換個位置看看。');
+  $('r2b').textContent=sm?'平行光反射後仍然平行，只有特定方向看得到。':'反射光射向四面八方，所以從各個角度都看得到一點——這是我們能看見不發光物體的原因。';
+  document.querySelectorAll('#pre2 .chip').forEach(b=>b.setAttribute('aria-pressed',String(Math.abs(+b.dataset.r-R2.rough)<.01)));}
+function set2(o){Object.assign(R2,o);ui2();kick();}
+dragger(cv2,()=>[{x:R2.eye.fx*W2,y:R2.eye.fy*H2,r:34,move:(x,y)=>{R2.eye.fx=clamp(x/W2,.04,.96);R2.eye.fy=clamp(y/H2,.06,.62);ui2();}}],kick);
+$('rough2').addEventListener('input',e=>set2({rough:+e.target.value}));
+$('inc2').addEventListener('input',e=>set2({i:+e.target.value}));
+$('nrm2').addEventListener('change',e=>set2({nrm:e.target.checked}));
+document.querySelectorAll('#pre2 .chip').forEach(b=>b.addEventListener('click',()=>set2({rough:+b.dataset.r})));
+
+// =====================================================================
+// 3 平面鏡成像（俯視）
+// =====================================================================
+const R3={px:.3,py:.5,top:.1,bot:.9,pt:'rh',fan:false,walk:false,wt:0,x0:.3};
+const cv3=$('cv3'),g3=cv3.getContext('2d');let W3=800,H3=420;
+SIZE.image=()=>{const r=fit(cv3,.5,320,520);W3=r.W;H3=r.H;};
+const XM=()=>W3*.58,PPM=()=>W3*.13;   // 鏡子位置、每公尺幾 px
+const SC3=()=>clamp(H3/420,.75,1.25);
+function body3(px,py){const k=SC3();return{head:[px,py],nose:[px+20*k,py],rh:[px+2*k,py+40*k],lh:[px+2*k,py-40*k],eye:[px+10*k,py]};}
+function mirrorBody(B,xm){const o={};for(const k in B)o[k]=[2*xm-B[k][0],B[k][1]];return o;}
+// 俯視：臉朝 +x（東）時，右手在南（畫面下方）
+function drawPerson(g,b,dir,ghost){const k=SC3(),px=b.head[0],py=b.head[1];g.save();if(ghost){g.globalAlpha=.55;g.setLineDash([5,4]);}
+  g.fillStyle=ghost?'transparent':C.grid;g.strokeStyle=C.ink;g.lineWidth=2;g.beginPath();g.ellipse(px-dir*4*k,py,14*k,38*k,0,0,TAU);if(!ghost)g.fill();g.stroke();
+  g.beginPath();g.arc(px,py,15*k,0,TAU);g.fillStyle=C.panel;g.fill();g.stroke();
+  g.setLineDash([]);g.fillStyle=C.ink;g.beginPath();g.moveTo(px+dir*14*k,py-6*k);g.lineTo(px+dir*24*k,py);g.lineTo(px+dir*14*k,py+6*k);g.closePath();g.fill();
+  g.fillStyle=C.red;g.beginPath();g.arc(b.rh[0],b.rh[1],7*k,0,TAU);g.fill();g.fillStyle=C.blue;g.beginPath();g.arc(b.lh[0],b.lh[1],7*k,0,TAU);g.fill();g.restore();}
+DRAW.image=()=>{const g=g3,W=W3,H=H3,xm=XM(),k=SC3();g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  g.fillStyle=C.grid;g.globalAlpha=.6;g.fillRect(xm,0,W-xm,H);g.globalAlpha=1;
+  text(g,'鏡子後面（光到不了）',xm+12,22,{col:C.muted,size:12});text(g,'鏡子前面',12,22,{col:C.muted,size:12});
+  const yt=R3.top*H,yb=R3.bot*H;line(g,xm,0,xm,H,C.line,1,[3,4]);mirrorSeg(g,xm,yt,xm,yb,[1,0]);handle(g,xm,yt,8);handle(g,xm,yb,8);
+  const px=R3.px*W,py=R3.py*H,ix=2*xm-px,B=body3(px,py),I=mirrorBody(B,xm);
+  drawPerson(g,I,-1,true);drawPerson(g,B,1,false);
+  text(g,'你',px-34*k,py-44*k,{col:C.ink,size:14,bold:true,align:'center'});text(g,'鏡中的你（虛像）',ix,py-50*k,{col:C.muted,size:13,bold:true,align:'center',bg:C.panel});
+  text(g,'右手',B.rh[0]+12,B.rh[1]+5,{col:C.red,size:12,bold:true});text(g,'左手',B.lh[0]+12,B.lh[1]+5,{col:C.blue,size:12,bold:true});
+  text(g,'右手的像',I.rh[0]-12,I.rh[1]+5,{col:C.red,size:12,bold:true,align:'right'});text(g,'左手的像',I.lh[0]-12,I.lh[1]+5,{col:C.blue,size:12,bold:true,align:'right'});
+  // 物距、像距
+  const yd=Math.min(H-16,py+62*k);line(g,px,yd,xm,yd,C.muted,1);line(g,xm,yd,ix,yd,C.muted,1);
+  const dm=(xm-px)/PPM();text(g,'物距 '+dm.toFixed(2)+' m',(px+xm)/2,yd-5,{col:C.muted,size:12,align:'center',bg:C.panel});text(g,'像距 '+dm.toFixed(2)+' m',(xm+ix)/2,yd-5,{col:C.muted,size:12,align:'center',bg:C.panel});
+  // 光線
+  const T=B[R3.pt],Ti=[2*xm-T[0],T[1]],E=B.eye;
+  if(R3.fan){for(let j=0;j<7;j++){const my=lerp(yt+10,yb-10,j/6),dx=xm-T[0],dy=my-T[1],L=Math.hypot(dx,dy),ux=-dx/L,uy=dy/L;
+      ray(g,T[0],T[1],xm,my,C.ray,1.4,null,.5);ray(g,xm,my,xm+ux*W*.45,my+uy*W*.45,C.ray,1.4,null,.35);line(g,xm,my,Ti[0],Ti[1],C.ray,1.1,[4,4]);}}
+  const ym=Ti[1]+(E[1]-Ti[1])*(xm-Ti[0])/(E[0]-Ti[0]);let seen=ym>=yt&&ym<=yb;
+  if(seen){ray(g,T[0],T[1],xm,ym,C.ray,2.6);ray(g,xm,ym,E[0],E[1],C.ray,2.6);line(g,xm,ym,Ti[0],Ti[1],C.ray,1.8,[7,5]);
+    g.fillStyle=C.ray;g.beginPath();g.arc(Ti[0],Ti[1],4,0,TAU);g.fill();}
+  else text(g,'鏡子太短：從這裡看不到'+{rh:'右手',lh:'左手',nose:'鼻子'}[R3.pt]+'的像',xm-10,yt>40?yt-10:yb+20,{col:'#c0453b',size:13,bold:true,align:'right',bg:C.panel});
+  handle(g,px-4*k,py+12*k,7);
+  R3._seen=seen;
+};
+function ui3(){const dm=(XM()-R3.px*W3)/PPM(),nm={rh:'右手',lh:'左手',nose:'鼻子'}[R3.pt];
+  $('r3big').innerHTML=R3.walk?`走了 <span class="mono">${R3.wt.toFixed(1)}</span> 秒`:`物距 ＝ 像距 ＝ <span class="mono">${dm.toFixed(2)}</span> m`;
+  const L=[['ok','正立、虛像，大小和你一樣。'],['ok',`像在鏡子後面 ${dm.toFixed(2)} m，和你到鏡子的距離相同（對稱於鏡面）。`],
+    ['info',`紅色的手（你的右手）和它的像<b>在同一邊</b>（畫面下方）；改變的是臉的方向——鏡子顛倒的是<b>前後</b>。`]];
+  if(R3.walk||R3.wt>0)L.push(['info',`你以 1 m/s 走向鏡子，像也以 1 m/s 走向鏡子（方向相反），你和像互相接近：<b>相對速率 2 m/s</b>。你和像的距離每秒少 2 m，現在相距 ${(2*dm).toFixed(2)} m。`]);
+  $('r3c').innerHTML=L.map(([c,t])=>`<li class="${c}"><span>${t}</span></li>`).join('');
+  $('r3b').innerHTML=`紅線：光從${nm}出發，在鏡面反射後進入眼睛。眼睛把光往回延長（虛線），以為光來自鏡子後面那一點——那裡就是${nm}的像。`;
+  segSet($('pt3'),R3.pt);$('fan3').checked=R3.fan;$('walk3').textContent=R3.walk?'❚❚ 停下':'▶ 以 1 m/s 走向鏡子';}
+TICK.image=dt=>{if(!R3.walk)return false;const v=PPM()/W3;R3.px+=v*dt;R3.wt+=dt;const lim=(XM()-50*SC3())/W3;if(R3.px>=lim){R3.px=lim;R3.walk=false;}ui3();return R3.walk;};
+function set3(o){Object.assign(R3,o);ui3();kick();}
+dragger(cv3,()=>{const xm=XM(),k=SC3();return[
+  {x:R3.px*W3-4*k,y:R3.py*H3,r:46*k,move:(x,y)=>{R3.walk=false;R3.px=clamp(x/W3,(2*xm-W3+40)/W3,(xm-50*k)/W3);R3.py=clamp(y/H3,.18,.82);R3.x0=R3.px;R3.wt=0;ui3();}},
+  {x:xm,y:R3.top*H3,r:24,move:(x,y)=>{R3.top=clamp(y/H3,.02,R3.bot-.06);ui3();}},
+  {x:xm,y:R3.bot*H3,r:24,move:(x,y)=>{R3.bot=clamp(y/H3,R3.top+.06,.98);ui3();}}];},kick);
+segOn($('pt3'),v=>set3({pt:v}));
+$('fan3').addEventListener('change',e=>set3({fan:e.target.checked}));
+$('walk3').addEventListener('click',()=>{if(R3.walk)R3.walk=false;else{const lim=(XM()-50*SC3())/W3;if(R3.px>=lim-.002){R3.px=R3.x0;R3.wt=0;}if(R3.wt===0)R3.x0=R3.px;R3.walk=true;}ui3();kick();});
+$('back3').addEventListener('click',()=>set3({walk:false,px:.3,py:.5,wt:0,x0:.3}));
+
+// =====================================================================
+// 4 全身鏡（側視）
+// =====================================================================
+const R4={h:170,d:120,b:100,t:150,walk:false,dir:1};
+const cv4=$('cv4'),g4=cv4.getContext('2d');let W4=800,H4=420;
+SIZE.full=()=>{const r=fit(cv4,.5,320,520);W4=r.W;H4=r.H;R4.d=clamp(R4.d,40,dmax4());ui4();};
+const eye4=()=>R4.h-10;
+function geo4(){const gy=H4*.93,s=(H4*.84)/200,xm=W4*.58;return{gy,s,xm,Y:cm=>gy-cm*s};}
+function dmax4(){const{s,xm}=geo4();return Math.floor(Math.min(300,(W4-30-xm)/s,(xm-30)/s));}
+function stick(g,x,Y,h,s,dir,ghost,col){const e=h-10,hr=11*s,hc=Y(h-11);g.save();g.strokeStyle=col;g.lineWidth=3;if(ghost){g.globalAlpha=.6;g.setLineDash([6,4]);}
+  g.beginPath();g.arc(x,hc,hr,0,TAU);g.stroke();
+  g.beginPath();g.moveTo(x,Y(h-22));g.lineTo(x,Y(h*.48));g.lineTo(x-10*s,Y(0));g.moveTo(x,Y(h*.48));g.lineTo(x+10*s,Y(0));
+  g.moveTo(x,Y(h-30));g.lineTo(x+dir*14*s,Y(h*.55));g.moveTo(x,Y(h-30));g.lineTo(x-dir*8*s,Y(h*.56));g.stroke();g.setLineDash([]);
+  g.fillStyle=col;g.beginPath();g.arc(x+dir*hr*.55,Y(e),Math.max(2.5,2*s),0,TAU);g.fill();g.restore();}
+DRAW.full=()=>{const g=g4,W=W4,H=H4,{gy,s,xm,Y}=geo4();g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  const h=R4.h,e=eye4(),px=xm-R4.d*s,ix=xm+R4.d*s;
+  g.fillStyle=C.grid;g.globalAlpha=.6;g.fillRect(xm,0,W-xm,gy);g.globalAlpha=1;
+  line(g,0,gy,W,gy,C.muted,2);text(g,'地面',8,gy-6,{col:C.muted,size:12});
+  line(g,xm,Y(205),xm,gy,C.line,2);mirrorSeg(g,xm,Y(R4.t),xm,Y(R4.b),[1,0]);handle(g,xm,Y(R4.t),8);handle(g,xm,Y(R4.b),8);
+  text(g,'上緣 '+Math.round(R4.t)+' cm',xm-12,Y(R4.t)-8,{col:C.accent,size:12,bold:true,align:'right',bg:C.panel});
+  text(g,'下緣 '+Math.round(R4.b)+' cm',xm-12,Y(R4.b)+18,{col:C.accent,size:12,bold:true,align:'right',bg:C.panel});
+  // 看得到的範圍（畫在像上）
+  const lo=clamp(2*R4.b-e,0,h),hi=clamp(2*R4.t-e,0,h);
+  if(hi>lo){g.fillStyle=C.green;g.globalAlpha=.22;g.fillRect(ix-22*s,Y(hi),44*s,(hi-lo)*s);g.globalAlpha=1;}
+  stick(g,ix,Y,h,s,-1,true,C.muted);stick(g,px,Y,h,s,1,false,C.ink);
+  text(g,'你',px-22*s,Y(h)-6,{col:C.ink,size:13,bold:true,align:'center'});text(g,'鏡中的像',ix,Y(h)-8,{col:C.muted,size:13,bold:true,align:'center',bg:C.panel});
+  // 頭頂、腳底的光線
+  const E=[px+11*s*.55,Y(e)];
+  for(const[cm,name]of[[h,'頭頂'],[0,'腳底']]){const mc=(cm+e)/2,ok=mc>=R4.b-1e-6&&mc<=R4.t+1e-6,src=[px,Y(cm)],M=[xm,Y(mc)];
+    if(ok){ray(g,src[0],src[1],M[0],M[1],C.ray,2.2);ray(g,M[0],M[1],E[0],E[1],C.ray,2.2);line(g,M[0],M[1],ix,Y(cm),C.ray,1.4,[6,5]);g.fillStyle=C.ray;g.beginPath();g.arc(M[0],M[1],4,0,TAU);g.fill();}
+    else{line(g,src[0],src[1],M[0],M[1],C.muted,1.4,[3,4]);line(g,M[0],M[1],E[0],E[1],C.muted,1.4,[3,4]);text(g,'✕',M[0]+6,M[1]+5,{col:'#c0453b',size:15,bold:true});}
+    text(g,W<640?mc+' cm':name+'的光在 '+mc+' cm 處反射',xm+12,Y(mc)+(cm?-6:14),{col:ok?C.ray:C.muted,size:12,bold:ok,bg:C.panel});}
+  // 距離
+  line(g,px,gy+10,xm,gy+10,C.muted,1);text(g,R4.d+' cm',(px+xm)/2,gy+24>H?gy-12:gy+24,{col:C.muted,size:12,align:'center'});
+  handle(g,px,Y(h*.48),9);
+};
+function ui4(){const h=R4.h,e=eye4(),lo=clamp(2*R4.b-e,0,h),hi=clamp(2*R4.t-e,0,h),full=lo<=0&&hi>=h,ml=R4.t-R4.b;
+  $('r4big').innerHTML=full?'✓ 看得到全身':(hi>lo?`看得到 <span class="mono">${Math.round(lo)}～${Math.round(hi)}</span> cm`:'鏡中看不到自己');
+  const L=[[ml>=h/2?'ok':'no',`鏡長至少要身高的一半：${h/2} cm（現在 ${Math.round(ml)} cm）`],
+    [R4.b<=e/2?'ok':'no',`下緣不可高於眼高的一半：${e/2} cm（現在 ${Math.round(R4.b)} cm）${R4.b>e/2?'——看不到腳':''}`],
+    [R4.t>=(h+e)/2?'ok':'no',`上緣至少要到頭頂與眼睛的中點：${(h+e)/2} cm（現在 ${Math.round(R4.t)} cm）${R4.t<(h+e)/2?'——看不到頭頂':''}`]];
+  $('r4c').innerHTML=L.map(([c,t])=>`<li class="${c}"><span>${t}</span></li>`).join('');
+  $('r4b').textContent=`身高 ${h} cm、眼高 ${e} cm。前後走動時，反射點的高度都不變，所以看得到的範圍與距離無關。`;
+  $('h4o').textContent=h+' cm';$('d4o').textContent=R4.d+' cm';$('h4').value=h;$('d4').max=dmax4();$('d4').value=R4.d;$('walk4').textContent=R4.walk?'❚❚ 停下':'▶ 前後走動';}
+TICK.full=dt=>{if(!R4.walk)return false;R4.d+=R4.dir*60*dt;const mx=dmax4();if(R4.d>mx){R4.d=mx;R4.dir=-1;}if(R4.d<40){R4.d=40;R4.dir=1;}R4.d=Math.round(R4.d*10)/10;ui4();$('d4o').textContent=Math.round(R4.d)+' cm';return true;};
+function set4(o){Object.assign(R4,o);R4.d=Math.round(clamp(R4.d,40,dmax4()));ui4();kick();}
+dragger(cv4,()=>{const{s,xm,Y}=geo4();return[
+  {x:xm-R4.d*s,y:Y(R4.h*.48),r:40,move:(x,y)=>{R4.walk=false;R4.d=Math.round(clamp((xm-x)/s,40,dmax4()));ui4();}},
+  {x:xm,y:Y(R4.t),r:22,move:(x,y)=>{R4.t=Math.round(clamp((geo4().gy-y)/s,R4.b+5,200));ui4();}},
+  {x:xm,y:Y(R4.b),r:22,move:(x,y)=>{R4.b=Math.round(clamp((geo4().gy-y)/s,0,R4.t-5));ui4();}}];},kick);
+$('h4').addEventListener('input',e=>set4({h:+e.target.value}));
+$('d4').addEventListener('input',e=>set4({d:+e.target.value,walk:false}));
+$('walk4').addEventListener('click',()=>set4({walk:!R4.walk}));
+$('q18chip').addEventListener('click',()=>set4({h:170,b:80,t:165}));
+$('tall4').addEventListener('click',()=>set4({b:0,t:200}));
+
+// =====================================================================
+// 5 光槓桿與角反射器
+// =====================================================================
+const R5={mode:'lever',th:0,phi:0,la:-18};
+const cv5=$('cv5'),g5=cv5.getContext('2d');let W5=800,H5=420;
+SIZE.lever=()=>{const r=fit(cv5,.5,320,520);W5=r.W;H5=r.H;};
+const rot=(v,a)=>[v[0]*Math.cos(a)-v[1]*Math.sin(a),v[0]*Math.sin(a)+v[1]*Math.cos(a)];
+const refl=(d,n)=>{const k=d[0]*n[0]+d[1]*n[1];return[d[0]-2*k*n[0],d[1]-2*k*n[1]];};
+function lever5(){const O=[W5*.2,H5*.7],th=-R5.th*D2R,n=rot([Math.SQRT1_2,-Math.SQRT1_2],th),u=rot([Math.SQRT1_2,Math.SQRT1_2],th),ml=H5*.2,xr=O[0]+Math.min(W5*.68,H5*.64/Math.tan(41*D2R),H5*.27/Math.tan(21*D2R));
+  const r=refl([0,1],n),r0=[1,0];return{O,n,u,ml,xr,r,r0,n0:[Math.SQRT1_2,-Math.SQRT1_2]};}
+function drawLever(g,W,H){const{O,n,u,ml,xr,r,n0}=lever5(),D=xr-O[0];
+  // 尺
+  line(g,xr,H*.04,xr,H*.96,C.ink,3);
+  const cmpx=D/100;for(let c=-60;c<=60;c+=5){const y=O[1]+c*cmpx;if(y<H*.04||y>H*.96)continue;line(g,xr,y,xr-(c%10===0?14:7),y,C.ink,1.2);if(c%20===0)text(g,(-c>0?'+':'')+(-c),xr+6,y+4,{col:C.muted,size:11});}
+  text(g,'尺（cm）',xr,H*.04-2>14?H*.04-4:H*.99,{col:C.muted,size:12,align:'center'});
+  // 雷射
+  const L=[O[0],H*.08];g.fillStyle=C.ink;g.fillRect(L[0]-7,L[1]-34,14,34);text(g,'雷射',L[0]+12,L[1]-14,{col:C.ink,size:12,bold:true});
+  ray(g,L[0],L[1],O[0],O[1]);
+  // θ=0 的反射光（虛線）與法線
+  line(g,O[0],O[1],xr,O[1],C.muted,1.6,[6,5]);line(g,O[0],O[1],O[0]+n0[0]*ml*1.2,O[1]+n0[1]*ml*1.2,C.muted,1,[3,4]);
+  // 鏡子
+  mirrorSeg(g,O[0]-u[0]*ml/2,O[1]-u[1]*ml/2,O[0]+u[0]*ml/2,O[1]+u[1]*ml/2,[-n[0],-n[1]]);
+  line(g,O[0],O[1],O[0]+n[0]*ml*1.2,O[1]+n[1]*ml*1.2,C.ai,1.6,[6,4]);
+  // 反射光
+  const t=(xr-O[0])/r[0],sy=O[1]+r[1]*t;ray(g,O[0],O[1],xr,sy,C.ray,2.6,null,.6);g.fillStyle=C.ray;g.beginPath();g.arc(xr,sy,6,0,TAU);g.fill();
+  if(Math.abs(R5.th)>=.5){const aN0=Math.atan2(n0[1],n0[0]),aN=Math.atan2(n[1],n[0]),aR=Math.atan2(r[1],r[0]);
+    arc(g,O[0],O[1],ml*.8,aN0,aN,C.ai,2.5);const bm=(aN0+aN)/2;text(g,'θ',O[0]+Math.cos(bm)*(ml*.8+14),O[1]+Math.sin(bm)*(ml*.8+14)+5,{col:C.ai,size:15,bold:true,align:'center'});
+    arc(g,O[0],O[1],D*.45,0,aR,C.ray,2.5);text(g,'2θ',O[0]+D*.45+8,O[1]+Math.sin(aR/2)*D*.45+(aR<0?-4:14),{col:C.ray,size:15,bold:true});}
+  text(g,'鏡子',O[0]-u[0]*ml/2-8,O[1]-u[1]*ml/2-6,{col:C.mir,size:13,bold:true,align:'right'});
+  text(g,'原本的反射光',O[0]+D*.62,O[1]+16,{col:C.muted,size:12,align:'center',bg:C.panel});
+  const hx=O[0]+u[0]*ml/2,hy=O[1]+u[1]*ml/2;handle(g,hx,hy,9);
+  return{spot:(sy-O[1])/cmpx};}
+// 角反射器：兩面互相垂直的鏡子
+function corner5(){const Cc=[W5*.62,H5*.55],ph=R5.phi*D2R,bis=rot([-1,0],ph),a1=rot(bis,-Math.PI/4),a2=rot(bis,Math.PI/4),Lm=Math.min(H5*.42,W5*.25);
+  return{Cc,bis,A:[Cc[0]+rot([1,0],Math.atan2(a1[1],a1[0]))[0]*Lm,Cc[1]+rot([1,0],Math.atan2(a1[1],a1[0]))[1]*Lm],B:[Cc[0]+a2[0]*Lm,Cc[1]+a2[1]*Lm],Lm};}
+function srcDist5(aim,dir){let L=W5*.55;if(dir[0]>.05)L=Math.min(L,(aim[0]-60)/dir[0]);if(dir[1]>.05)L=Math.min(L,(aim[1]-40)/dir[1]);if(dir[1]<-.05)L=Math.min(L,(H5-40-aim[1])/-dir[1]);return Math.max(80,L);}
+function segHit(p,d,a,b){const ex=b[0]-a[0],ey=b[1]-a[1],den=d[0]*ey-d[1]*ex;if(Math.abs(den)<1e-9)return null;
+  const t=((a[0]-p[0])*ey-(a[1]-p[1])*ex)/den,u=((a[0]-p[0])*d[1]-(a[1]-p[1])*d[0])/den;return(t>1e-6&&u>=0&&u<=1)?t:null;}
+function drawCorner(g,W,H){const{Cc,bis,A,B,Lm}=corner5();
+  const n1=(()=>{const ex=A[0]-Cc[0],ey=A[1]-Cc[1],l=Math.hypot(ex,ey);let n=[-ey/l,ex/l];if(n[0]*bis[0]+n[1]*bis[1]<0)n=[-n[0],-n[1]];return n;})();
+  const n2=(()=>{const ex=B[0]-Cc[0],ey=B[1]-Cc[1],l=Math.hypot(ex,ey);let n=[-ey/l,ex/l];if(n[0]*bis[0]+n[1]*bis[1]<0)n=[-n[0],-n[1]];return n;})();
+  mirrorSeg(g,Cc[0],Cc[1],A[0],A[1],[-n1[0],-n1[1]]);mirrorSeg(g,Cc[0],Cc[1],B[0],B[1],[-n2[0],-n2[1]]);
+  // 雷射：從左邊射向角落附近
+  const la=R5.la*D2R,dir=rot([1,0],la),aim=[Cc[0]+bis[0]*Lm*.45+rot(bis,Math.PI/2)[0]*Lm*.18,Cc[1]+bis[1]*Lm*.45+rot(bis,Math.PI/2)[1]*Lm*.18];
+  const Ld=srcDist5(aim,dir),S=[aim[0]-dir[0]*Ld,aim[1]-dir[1]*Ld];
+  let p=[S[0],S[1]],d=dir,pts=[p],bounces=0;
+  for(let k=0;k<4;k++){const t1=segHit(p,d,Cc,A),t2=segHit(p,d,Cc,B);let t=null,n=null;if(t1!=null&&(t2==null||t1<t2)){t=t1;n=n1;}else if(t2!=null){t=t2;n=n2;}
+    if(t==null)break;p=[p[0]+d[0]*t,p[1]+d[1]*t];pts.push(p);d=refl(d,n);bounces++;}
+  const end=[p[0]+d[0]*W*1.2,p[1]+d[1]*W*1.2];pts.push(end);
+  for(let k=0;k<pts.length-1;k++)ray(g,pts[k][0],pts[k][1],pts[k+1][0],pts[k+1][1],C.ray,2.4,null,k===pts.length-2?.25:.55);
+  g.save();g.translate(S[0],S[1]);g.rotate(la);g.fillStyle=C.ink;g.fillRect(-40,-7,40,14);g.restore();handle(g,S[0]-dir[0]*20,S[1]-dir[1]*20,10);
+  text(g,'雷射',S[0]-dir[0]*20,S[1]-dir[1]*20+26,{col:C.accent,size:12,bold:true,align:'center',bg:C.panel});
+  text(g,'角反射器（兩面互相垂直的鏡子）',Cc[0],Cc[1]+Lm*.85+16>H-6?H-8:Cc[0]>0?Math.max(A[1],B[1])+22:0,{col:C.mir,size:13,bold:true,align:'center',bg:C.panel});
+  const par=bounces===2&&Math.abs(d[0]+dir[0])<1e-6+.001&&Math.abs(d[1]+dir[1])<.001;return{bounces,S,dir,par};}
+DRAW.lever=()=>{const g=g5,W=W5,H=H5;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  if(R5.mode==='lever'){const r=drawLever(g,W,H);R5._spot=r.spot;}else{const r=drawCorner(g,W,H);R5._cr=r;}};
+const NOTE5={lever:`<h3>光槓桿</h3><ul><li>入射光不動，把平面鏡轉 θ 角，法線也轉 θ，入射角與反射角各增減 θ，所以<b>反射光轉 2θ</b>。</li><li>光點打在遠處的尺上，轉動被放大，可以偵測非常微小的轉動。</li><li>卡文狄西用扭秤測萬有引力常數時，就是看反射光點在遠處尺上的移動。</li></ul>`,
+  corner:`<h3>角反射器與雷射測月</h3><ul><li>光在兩面互相垂直的鏡子各反射一次，<b>射出的光和射入的光平行、方向相反</b>，不管從哪個方向射進來都一樣。</li><li>阿波羅太空人在月面放了角反射器（立體版是三面互相垂直的鏡子）。地面的雷射打上去會原路反射回來，量往返時間就能測得月地距離，精度可達公分級。</li><li>腳踏車的反光片、道路的反光標誌也是很多小角反射器組成的。</li></ul>`};
+function ui5(){const lv=R5.mode==='lever';$('tb5a').hidden=!lv;$('tb5b').hidden=lv;$('pre5').hidden=!lv;segSet($('mode5'),R5.mode);$('note5').innerHTML=NOTE5[R5.mode];
+  $('th5').value=R5.th;$('th5o').textContent=(R5.th>0?'+':'')+R5.th+'°';$('ph5').value=R5.phi;$('ph5o').textContent=(R5.phi>0?'+':'')+R5.phi+'°';
+  $('hint5').textContent=lv?'雷射從上方垂直往下照。拖曳鏡子右下端的橘點（或用滑桿）轉動鏡子；灰色虛線是鏡子沒轉時的反射光。尺離鏡子 100 cm。':'拖曳橘色的雷射改變入射方向，或用滑桿轉動整個角反射器。';
+  if(lv){const t=R5.th,sp=100*Math.tan(2*t*D2R);$('r5big').innerHTML=`鏡子轉 <span class="mono">${t}°</span> → 反射光轉 <span class="mono">${2*t}°</span>`;
+    $('r5a').innerHTML=`法線跟著轉 ${t}°，入射角和反射角各改變 ${Math.abs(t)}°，兩條線之間的夾角共改變 ${Math.abs(2*t)}°。`;
+    $('r5b').textContent=`光點在 100 cm 外的尺上移動 100 × tan ${Math.abs(2*t)}° ≈ ${Math.abs(sp).toFixed(1)} cm。`;
+    document.querySelectorAll('#pre5 .chip').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.t===t)));}
+  else{const r=R5._cr;$('r5big').textContent=r&&r.bounces===2?'射回原來的方向 ↩':'這個角度沒有在兩面鏡子各反射一次';
+    $('r5a').textContent=r&&r.bounces===2?'射出的光和射入的光平行、方向相反。轉動角反射器或換個入射方向，結果都一樣。':'把雷射對準角落附近再試試。';$('r5b').textContent='';}}
+function set5(o){Object.assign(R5,o);kick();requestAnimationFrame(ui5);}
+dragger(cv5,()=>{if(R5.mode==='lever'){const{O,u,ml}=lever5();return[{x:O[0]+u[0]*ml/2,y:O[1]+u[1]*ml/2,r:30,move:(x,y)=>{const a=Math.atan2(y-O[1],x-O[0])/D2R;R5.th=clamp(Math.round((45-a)*2)/2,-10,20);requestAnimationFrame(ui5);}}];}
+  const{Cc,bis,Lm}=corner5(),la=R5.la*D2R,dir=rot([1,0],la),aim=[Cc[0]+bis[0]*Lm*.45+rot(bis,Math.PI/2)[0]*Lm*.18,Cc[1]+bis[1]*Lm*.45+rot(bis,Math.PI/2)[1]*Lm*.18],S=[aim[0]-dir[0]*srcDist5(aim,dir),aim[1]-dir[1]*srcDist5(aim,dir)];
+  return[{x:S[0]-dir[0]*20,y:S[1]-dir[1]*20,r:34,move:(x,y)=>{const a=Math.atan2(aim[1]-y,aim[0]-x)/D2R;R5.la=clamp(Math.round(a),-60,60);requestAnimationFrame(ui5);}}];},kick);
+segOn($('mode5'),v=>set5({mode:v}));
+$('th5').addEventListener('input',e=>set5({th:+e.target.value}));
+$('ph5').addEventListener('input',e=>set5({phi:+e.target.value}));
+document.querySelectorAll('#pre5 .chip').forEach(b=>b.addEventListener('click',()=>set5({th:+b.dataset.t})));
+
+// =====================================================================
+// 講義題目情境
+// =====================================================================
+const QS=[{g:'2-3 光的反射',items:[
+  {n:'第 17 題　光線與鏡面夾 30°',pg:'p.16',b:'law',set:()=>set1({a:-60,mir:true,rev:false}),t:'第 17 題　答案 (C)',
+   p:'入射角是和「法線」的夾角：90° − 30° ＝ 60°，反射角＝入射角＝60°。\n畫面中灰色虛線標的「與鏡面 30°」就是題目給的角度——這是最常見的陷阱！'},
+  {n:'第 18 題　全身鏡的長度與下緣',pg:'p.16',b:'full',set:()=>set4({h:170,b:80,t:165,d:120,walk:false}),t:'第 18 題　答案 (A)',
+   p:'頭頂的光在「頭頂與眼睛的中點」165 cm 處反射，腳底的光在「眼睛與腳底的中點」80 cm 處反射。\n鏡長＝165 − 80 ＝ 85 cm＝身高的一半；下緣只要不高於眼高的一半＝80 cm。\n按「前後走動」：答案與人離鏡子多遠無關。'},
+  {n:'第 19 題　平面鏡轉 15°',pg:'p.16',b:'lever',set:()=>set5({mode:'lever',th:15}),t:'第 19 題　答案 (C)',
+   p:'光槓桿：鏡面轉 θ，法線也轉 θ，入射角與反射角各改變 θ，所以反射線轉 2θ ＝ 30°。'},
+  {n:'第 20 題　走向鏡子時像的相對速率',pg:'p.16',b:'image',set:()=>{set3({px:.22,py:.5,wt:0,x0:.22,walk:true});},t:'第 20 題　答案 (D)',
+   p:'像也以 1 m/s 朝鏡子靠近（方向與小明相反），兩者互相接近，相對速率＝1＋1＝2 m/s。\n看畫面：小明和像的距離每秒縮短 2 m。'}]}];
+{const box=$('qbox');QS.forEach(gr=>{const d=document.createElement('div');d.className='qgrp';d.innerHTML=`<h4>${gr.g}</h4>`;const c=document.createElement('div');c.className='qchips';
+  gr.items.forEach(it=>{const b=document.createElement('button');b.className='qchip';b.innerHTML=`${it.n}<span class="pg">${it.pg}</span>`;
+    b.addEventListener('click',()=>{setBench(it.b);it.set();showStory(it.t,it.p);$('story').scrollIntoView({behavior:'smooth',block:'start'});});c.appendChild(b);});
+  d.appendChild(c);box.appendChild(d);});}
+
+// ================= start =================
+ui1();ui2();ui3();ui5();
+let lastWW=0;new ResizeObserver(()=>{const w=document.querySelector('.wrap').clientWidth;if(w===lastWW)return;lastWW=w;SIZE[bench]();kick();}).observe(document.querySelector('.wrap'));
+setBench((location.hash||'#law').slice(1),true);ui4();
+window.addEventListener('hashchange',()=>setBench(location.hash.slice(1),true));
+</script>
+</body>
+</html>
