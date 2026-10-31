@@ -139,23 +139,25 @@
           <button data-v="osc" aria-pressed="true">上下振盪（天線）</button>
           <button data-v="circle">等速率圓周</button>
           <button data-v="brake">急煞車</button>
+          <button data-v="hand">✋ 用手拖曳</button>
         </span>
         <label class="tog"><input type="checkbox" id="q1" checked>帶電（取消＝中子）</label>
         <label class="tog"><input type="checkbox" id="va1" checked>速度、加速度箭頭</label>
+        <label class="tog"><input type="checkbox" id="pr1" checked>接收天線</label>
       </div>
-      <div class="cbox"><canvas id="cv1" aria-label="電荷周圍的電場線，可拖曳接收天線"></canvas></div>
+      <div class="cbox"><canvas id="cv1" aria-label="電荷周圍的電場線，可拖曳電荷與接收天線"></canvas></div>
       <div class="toolbar">
         <button class="btn primary" id="play1">❚❚ 暫停</button>
         <button class="btn" id="restart1">↺ 從頭播放</button>
         <label class="slider" id="fwrap1"><span class="tlabel">振盪頻率</span><input type="range" id="f1" min="0.3" max="1.2" step="0.05" value="0.6"><output id="f1o"></output></label>
         <label class="slider" id="awrap1"><span class="tlabel">振幅</span><input type="range" id="a1" min="0.1" max="1" step="0.05" value="0.4"><output id="a1o"></output></label>
       </div>
-      <p class="hint">紅線是電場線。電荷加速時，電場線上會出現「彎折」，彎折以光速往外跑——那就是電磁波。拖曳藍色的接收天線換位置。動畫中的光速已大幅放慢。</p>
+      <p class="hint">紅線是電場線。<b>直接拖曳紅色電荷</b>可以自己移動它：甩一下、突然停住，電場線上的「彎折」會以光速往外跑——那就是電磁波。右邊藍色的接收天線就像收音機的天線，彎折傳到時，天線裡的電子（藍點）會被推得上下動，這就是「收到訊號」；接收天線也可以拖曳。動畫中的光速已大幅放慢。</p>
     </div>
 
     <div class="grid2">
-      <section class="panel">
-        <p class="ptitle">接收天線收到的訊號 <small>遠處的電場（輻射部分）隨時間的變化</small></p>
+      <section class="panel" id="sigPanel">
+        <p class="ptitle">接收天線收到的訊號 <small>天線裡的電子被推動的情形，最近 6 秒</small></p>
         <div class="cbox"><canvas id="cv1s" aria-label="接收天線收到的訊號"></canvas></div>
         <p class="hint" id="sig1"></p>
       </section>
@@ -412,11 +414,16 @@ $('storyBack').addEventListener('click',()=>$('qpanel').scrollIntoView({behavior
 // =====================================================================
 // 1 電荷怎麼發出電磁波
 // =====================================================================
-const B1={mode:'osc',q:true,va:true,play:true,tau:0,clock:0,f:.6,amp:.4,probe:{fx:.84,fy:.3},trace:[]};
+const B1={mode:'osc',q:true,va:true,play:true,tau:0,clock:0,f:.6,amp:.4,probe:{fx:.84,fy:.3},probeOn:true,trace:[],
+  hand:{hist:[],x:0,y:0,vx:0,vy:0,ax:0,ay:0,tx:0,ty:0,drag:false,acc:false}};
 const cv1=$('cv1'),g1=cv1.getContext('2d'),cv1s=$('cv1s'),g1s=cv1s.getContext('2d');
 let W1=800,H1=400,c1=136,W1s=400,H1s=120;
 function size1(){const r=fit(cv1,.5,300,540);W1=r.W;H1=r.H;c1=W1*.17;const s=fit(cv1s,.3,110,150);W1s=s.W;H1s=s.H;}
 const BRAKE=()=>{const v0=.4*c1,x0=W1*.12,tb=(W1*.24)/v0,D=.12;return{v0,x0,tb,D};};
+function handAt(t){const H=B1.hand,h=H.hist;if(!h.length)return{x:H.x,y:H.y,vx:0,vy:0,ax:0,ay:0};
+  if(t<=h[0].t)return{x:h[0].x,y:h[0].y,vx:0,vy:0,ax:0,ay:0};const L=h[h.length-1];if(t>=L.t)return L;
+  let lo=0,hi=h.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(h[m].t<=t)lo=m;else hi=m;}
+  const p=h[lo],q=h[hi],f=(t-p.t)/((q.t-p.t)||1),r={};for(const k of['x','y','vx','vy','ax','ay'])r[k]=p[k]+(q[k]-p[k])*f;return r;}
 function mot(t){const cx=W1*.42,cy=H1*.5,c=c1,w=TAU*B1.f;
   switch(B1.mode){
     case 'static':return{x:cx,y:cy,vx:0,vy:0,ax:0,ay:0};
@@ -427,13 +434,28 @@ function mot(t){const cx=W1*.42,cy=H1*.5,c=c1,w=TAU*B1.f;
       if(t<tb)return{x:x0+v0*t,y:cy,vx:v0,vy:0,ax:0,ay:0};const u=t-tb;
       if(u<D)return{x:x0+v0*tb+v0*(u-u*u/(2*D)),y:cy,vx:v0*(1-u/D),vy:0,ax:-v0/D,ay:0};
       return{x:x0+v0*tb+v0*D/2,y:cy,vx:0,vy:0,ax:0,ay:0};}
+    case 'hand':return handAt(t);
   }}
+function resetHand(p){const H=B1.hand;Object.assign(H,{x:p.x,y:p.y,vx:0,vy:0,ax:0,ay:0,tx:p.x,ty:p.y,acc:false});H.hist=[{t:B1.tau,x:p.x,y:p.y,vx:0,vy:0,ax:0,ay:0}];}
+// 用手拖：電荷朝手指位置移動（速度上限 0.3c，畫面才不會亂），停手時很快煞住
+function stepHand(dt){const H=B1.hand;if(dt<=0)return;
+  const tx=H.drag?H.tx:H.x,ty=H.drag?H.ty:H.y,vmax=.3*c1;let dvx=(tx-H.x)/.12,dvy=(ty-H.y)/.12;const sp=Math.hypot(dvx,dvy);if(sp>vmax){dvx*=vmax/sp;dvy*=vmax/sp;}
+  const k=Math.min(1,dt/.09),nvx=H.vx+(dvx-H.vx)*k,nvy=H.vy+(dvy-H.vy)*k,ka=Math.min(1,dt/.05);
+  H.ax+=((nvx-H.vx)/dt-H.ax)*ka;H.ay+=((nvy-H.vy)/dt-H.ay)*ka;H.vx=nvx;H.vy=nvy;
+  if(Math.hypot(H.vx,H.vy)<.5&&!H.drag){H.vx=H.vy=0;}
+  H.x+=H.vx*dt;H.y+=H.vy*dt;
+  if(H.x<14||H.x>W1-14){H.x=clamp(H.x,14,W1-14);H.vx=0;}if(H.y<14||H.y>H1-14){H.y=clamp(H.y,14,H1-14);H.vy=0;}
+  if(Math.hypot(H.ax,H.ay)<.004*AREF()){H.ax=H.ay=0;}
+  H.hist.push({t:B1.tau,x:H.x,y:H.y,vx:H.vx,vy:H.vy,ax:H.ax,ay:H.ay});
+  const keep=B1.tau-Math.hypot(W1,H1)*1.15/c1-.5;while(H.hist.length>2&&H.hist[1].t<keep)H.hist.shift();
+  const acc=Math.hypot(H.ax,H.ay)>.08*AREF();if(acc!==H.acc){H.acc=acc;ui1();}}
 function loopLen1(){if(B1.mode==='uniform')return W1*.7/(.35*c1);if(B1.mode==='brake'){const b=BRAKE();return b.tb+b.D+Math.hypot(W1,H1)/c1+1.2;}return Infinity;}
 const AREF=()=>.4*.5*c1*TAU*.6;
+// 接收天線（直立）量到的：推遲時間的加速度、垂直於視線的分量，取鉛直方向（畫面往上為正）
 function probeVal(){if(!B1.q)return 0;const P={x:B1.probe.fx*W1,y:B1.probe.fy*H1};let tr=B1.tau,m;
   for(let i=0;i<5;i++){m=mot(tr);tr=B1.tau-Math.hypot(P.x-m.x,P.y-m.y)/c1;}m=mot(tr);
-  let nx=P.x-m.x,ny=P.y-m.y;const r=Math.hypot(nx,ny)||1;nx/=r;ny/=r;let ex=-ny,ey=nx;if(ey>0||(ey===0&&ex<0)){ex=-ex;ey=-ey;}
-  return clamp(-(m.ax*ex+m.ay*ey)/AREF()*(.35*W1)/Math.max(r,40),-1.6,1.6);}
+  let nx=P.x-m.x,ny=P.y-m.y;const r=Math.hypot(nx,ny)||1;nx/=r;ny/=r;const an=m.ax*nx+m.ay*ny,apy=m.ay-an*ny;
+  return clamp(apy/AREF()*(.35*W1)/Math.max(r,40),-1.6,1.6);}
 function draw1(){const g=g1,W=W1,H=H1;g.clearRect(0,0,W,H);
   g.fillStyle=C.panel;g.fillRect(0,0,W,H);
   g.strokeStyle=C.grid;g.lineWidth=1;g.beginPath();for(let x=0;x<W;x+=40){g.moveTo(x+.5,0);g.lineTo(x+.5,H);}for(let y=0;y<H;y+=40){g.moveTo(0,y+.5);g.lineTo(W,y+.5);}g.stroke();
@@ -457,52 +479,80 @@ function draw1(){const g=g1,W=W1,H=H1;g.clearRect(0,0,W,H);
     if(B1.mode==='osc'||B1.mode==='circle')text(g,'彎折以光速往外跑 →',W-10,cy-8,{col:C.accent,size:13,bold:true,align:'right',bg:C.panel});
   }
   // charge
+  const hand=B1.mode==='hand';
+  if(hand){g.strokeStyle=C.accent;g.lineWidth=2;g.setLineDash([3,3]);g.beginPath();g.arc(m.x,m.y,17,0,TAU);g.stroke();g.setLineDash([]);
+    if(B1.hand.drag){g.strokeStyle=C.accent;g.globalAlpha=.5;g.lineWidth=1.5;g.beginPath();g.moveTo(m.x,m.y);g.lineTo(B1.hand.tx,B1.hand.ty);g.stroke();g.globalAlpha=1;}}
   g.fillStyle=B1.q?C.ef:C.muted;g.beginPath();g.arc(m.x,m.y,11,0,TAU);g.fill();
   text(g,B1.q?'+':'n',m.x,m.y+1,{col:'#fff',size:B1.q?18:14,bold:true,align:'center',base:'middle'});
   if(B1.va){const vs=60/c1,as=40/AREF()*1.6;const vl=Math.hypot(m.vx,m.vy),al=Math.hypot(m.ax,m.ay);
     if(vl>1){arrow(g,m.x,m.y,m.x+m.vx*vs,m.y+m.vy*vs,C.blue,2.5,9);text(g,'v',m.x+m.vx*vs+6,m.y+m.vy*vs-4,{col:C.blue,size:13,bold:true});}
     if(al>1){const k=Math.min(as,70/al);arrow(g,m.x,m.y,m.x+m.ax*k,m.y+m.ay*k,C.green,2.5,9);text(g,'a',m.x+m.ax*k+6,m.y+m.ay*k+12,{col:C.green,size:13,bold:true});}}
-  // probe
-  const px=B1.probe.fx*W,py=B1.probe.fy*H;g.strokeStyle=C.blue;g.fillStyle=C.blue;g.lineWidth=3;
-  g.beginPath();g.moveTo(px,py-16);g.lineTo(px,py+12);g.stroke();g.beginPath();g.arc(px,py+14,4,0,TAU);g.fill();
-  g.beginPath();g.moveTo(px-8,py-16);g.lineTo(px+8,py-16);g.stroke();
-  text(g,'接收天線',px,py+32,{col:C.blue,size:12,bold:true,align:'center',bg:C.panel});
-  const NAMES={static:'靜止的電荷',uniform:'等速度直線運動',osc:'上下振盪（像天線裡的電子）',circle:'等速率圓周運動',brake:'急煞車（像 X 光管裡的電子）'};
+  if(hand&&!B1.hand.drag&&B1.hand.hist.length<4)text(g,'拖我！',m.x,m.y-24,{col:C.accent,size:13,bold:true,align:'center',bg:C.panel});
+  // 接收天線：直立的金屬棒，裡面的電子（藍點）被傳來的電場推得上下動
+  if(B1.probeOn){const px=B1.probe.fx*W,py=B1.probe.fy*H,v=B1.trace.length?B1.trace[B1.trace.length-1][1]:0,on=Math.abs(v)>.06;
+    if(on){g.fillStyle=C.blue;g.globalAlpha=clamp(Math.abs(v)*.35,.08,.3);g.beginPath();g.arc(px,py,30,0,TAU);g.fill();g.globalAlpha=1;}
+    g.strokeStyle=C.blue;g.lineWidth=5;g.lineCap='round';g.beginPath();g.moveTo(px,py-24);g.lineTo(px,py+24);g.stroke();g.lineCap='butt';
+    const ey=py+clamp(v*14,-18,18);g.fillStyle=C.panel;g.beginPath();g.arc(px,ey,6.5,0,TAU);g.fill();g.strokeStyle=C.blue;g.lineWidth=2;g.stroke();
+    text(g,'−',px,ey+.5,{col:C.blue,size:12,bold:true,align:'center',base:'middle'});
+    text(g,'接收天線',px,py+42,{col:C.blue,size:12,bold:true,align:'center',bg:C.panel});
+    text(g,on?'收到訊號！':'沒有訊號',px,py+58,{col:on?C.accent:C.muted,size:11,bold:on,align:'center',bg:C.panel});}
+  const NAMES={static:'靜止的電荷',uniform:'等速度直線運動',osc:'上下振盪（像天線裡的電子）',circle:'等速率圓周運動',brake:'急煞車（像 X 光管裡的電子）',hand:'用手拖曳電荷'};
   text(g,(B1.q?'':'中子：')+NAMES[B1.mode],10,20,{col:C.ink,size:14,bold:true,bg:C.panel});
 }
 function draw1s(){const g=g1s,W=W1s,H=H1s;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
   const mid=H/2,span=6;g.strokeStyle=C.line;g.lineWidth=1;g.beginPath();g.moveTo(0,mid+.5);g.lineTo(W,mid+.5);g.stroke();
   text(g,'現在',W-4,H-6,{col:C.muted,size:11,align:'right'});text(g,'6 秒前',4,H-6,{col:C.muted,size:11});
-  g.strokeStyle=C.ef;g.lineWidth=2;g.beginPath();let first=true;
+  text(g,'電子往下',4,12,{col:C.muted,size:11});text(g,'電子往上',4,H-20,{col:C.muted,size:11});
+  g.strokeStyle=C.blue;g.lineWidth=2;g.beginPath();let first=true;
   for(const[t,v]of B1.trace){const x=W-(B1.clock-t)/span*W,y=mid-v/1.7*(H/2-8);if(x<0)continue;if(first){g.moveTo(x,y);first=false;}else g.lineTo(x,y);}g.stroke();}
 const FIELD1={static:'周圍只有電場，而且不隨時間改變。',uniform:'周圍有電場和磁場（相當於穩定電流），場跟著電荷一起走，不會往外「甩出」波。',
-  osc:'電場、磁場都隨時間變化，變化以光速往外傳——這就是電磁波。',circle:'速率雖然不變，方向一直在改變（向心加速度），所以也會發出電磁波。',brake:'減速的那一瞬間發出一個電磁波脈衝；X 光管就是讓高速電子撞上金屬急煞車，發出 X 射線。'};
-function ui1(){const acc=B1.mode!=='static'&&B1.mode!=='uniform';
-  const A={static:['沒有加速度：靜止不動','no'],uniform:['沒有加速度：速度大小、方向都不變','no'],osc:['有加速度：來回振盪，速度一直改變','ok'],circle:['有加速度：速率不變，但方向一直改變','ok'],brake:['有加速度：減速的那一瞬間','ok']}[B1.mode];
+  osc:'電場、磁場都隨時間變化，變化以光速往外傳——這就是電磁波。',circle:'速率雖然不變，方向一直在改變（向心加速度），所以也會發出電磁波。',brake:'減速的那一瞬間發出一個電磁波脈衝；X 光管就是讓高速電子撞上金屬急煞車，發出 X 射線。',
+  hand:'拖著電荷走：停住或等速移動時，電場線是直的；一開始動、轉彎、停下來的那一刻，電場線出現彎折往外跑——那就是電磁波。'};
+function ui1(){const hand=B1.mode==='hand',acc=hand?B1.hand.acc:(B1.mode!=='static'&&B1.mode!=='uniform');
+  const A=hand?(acc?['有加速度：電荷的速度正在改變（起動、轉彎或停下）','ok']:['現在沒有加速度：停住不動，或等速移動','no'])
+    :{static:['沒有加速度：靜止不動','no'],uniform:['沒有加速度：速度大小、方向都不變','no'],osc:['有加速度：來回振盪，速度一直改變','ok'],circle:['有加速度：速率不變，但方向一直改變','ok'],brake:['有加速度：減速的那一瞬間','ok']}[B1.mode];
   $('chk1').innerHTML=`<li class="${B1.q?'ok':'no'}">${B1.q?'帶電：這是帶正電的粒子':'不帶電：中子不帶電，周圍沒有電場'}</li><li class="${A[1]}">${A[0]}</li>`;
-  const yes=B1.q&&acc;const c=$('concl1');c.className='concl '+(yes?'yes':'no');c.textContent=yes?'→ 會輻射電磁波':'→ 不會輻射電磁波';
+  const yes=B1.q&&acc;const c=$('concl1');c.className='concl '+(yes?'yes':'no');
+  c.textContent=hand?(yes?'→ 正在輻射電磁波':(B1.q?'→ 現在沒有輻射（拖著它甩一下看看）':'→ 不會輻射電磁波')):(yes?'→ 會輻射電磁波':'→ 不會輻射電磁波');
   $('field1').textContent=B1.q?FIELD1[B1.mode]:'不帶電的粒子再怎麼運動、加速，都不會發出電磁波。';
   const osc=B1.mode==='osc'||B1.mode==='circle';$('fwrap1').style.opacity=$('awrap1').style.opacity=osc?1:.4;$('f1').disabled=$('a1').disabled=!osc;
   $('f1o').textContent=B1.f.toFixed(2)+' 次/秒';$('a1o').textContent=Math.round(B1.amp*100)+'%';
-  $('play1').textContent=B1.play?'❚❚ 暫停':'▶ 播放';segSet($('mode1'),B1.mode);$('q1').checked=B1.q;$('va1').checked=B1.va;}
-function tick1(dt){if(B1.play){B1.tau+=dt;B1.clock+=dt;if(B1.tau>loopLen1())B1.tau=0;B1.trace.push([B1.clock,probeVal()]);while(B1.trace.length&&B1.trace[0][0]<B1.clock-6.2)B1.trace.shift();}
-  draw1();draw1s();
+  $('play1').textContent=B1.play?'❚❚ 暫停':'▶ 播放';segSet($('mode1'),B1.mode);$('q1').checked=B1.q;$('va1').checked=B1.va;$('pr1').checked=B1.probeOn;$('sigPanel').hidden=!B1.probeOn;}
+function tick1(dt){if(B1.play){B1.tau+=dt;B1.clock+=dt;if(B1.mode==='hand')stepHand(dt);else if(B1.tau>loopLen1())B1.tau=0;
+    B1.trace.push([B1.clock,probeVal()]);while(B1.trace.length&&B1.trace[0][0]<B1.clock-6.2)B1.trace.shift();}
+  draw1();if(B1.probeOn)draw1s();
   const pv=B1.trace.length?Math.max(...B1.trace.map(t=>Math.abs(t[1]))):0;
-  $('sig1').textContent=!B1.q?'中子不帶電：收不到任何訊號。':pv<.02?'收不到訊號：遠處的電場沒有變化。':B1.mode==='brake'?'收到一個短短的脈衝（如果天線在運動方向的正前方，就收不到）。':'收到一直來回變化的訊號——電磁波到了。';
+  $('sig1').textContent=!B1.q?'中子不帶電：天線裡的電子不會被推動，收不到任何訊號。'
+    :pv<.02?'天線裡的電子沒有動：遠處的電場沒有變化，收不到訊號。'
+    :B1.mode==='brake'?'收到一個短短的脈衝。注意：電荷煞車之後，要等「彎折」以光速跑到天線，電子才開始動。'
+    :B1.mode==='hand'?'電子被推動了！電荷先動，過一會兒（光走過去的時間）天線裡的電子才跟著動。'
+    :'天線裡的電子被推得上下振動——電磁波傳到了。發射端的電子怎麼振盪，接收端的電子就跟著怎麼振盪，這就是收音機、手機收訊號的原理。';
   return B1.play;}
-function set1(o){Object.assign(B1,o);B1.tau=0;B1.trace=[];ui1();kick();}
+function set1(o){const prev=mot(B1.tau);Object.assign(B1,o);B1.tau=0;B1.trace=[];if(B1.mode==='hand')resetHand(prev);ui1();kick();}
 segOn($('mode1'),v=>set1({mode:v}));
 $('q1').addEventListener('change',e=>{B1.q=e.target.checked;B1.trace=[];ui1();kick();});
 $('va1').addEventListener('change',e=>{B1.va=e.target.checked;kick();});
+$('pr1').addEventListener('change',e=>{B1.probeOn=e.target.checked;ui1();if(B1.probeOn)size1();kick();});
 $('play1').addEventListener('click',()=>{B1.play=!B1.play;ui1();kick();});
 $('restart1').addEventListener('click',()=>set1({}));
 $('f1').addEventListener('input',e=>{B1.f=+e.target.value;ui1();kick();});
 $('a1').addEventListener('input',e=>{B1.amp=+e.target.value;ui1();kick();});
-{let drag=false;const pos=ev=>{const r=cv1.getBoundingClientRect();return[ev.clientX-r.left,ev.clientY-r.top];};
-  cv1.addEventListener('pointerdown',ev=>{const[x,y]=pos(ev);if(Math.hypot(x-B1.probe.fx*W1,y-(B1.probe.fy*H1))<30){drag=true;cv1.setPointerCapture(ev.pointerId);ev.preventDefault();}});
-  cv1.addEventListener('pointermove',ev=>{const[x,y]=pos(ev);if(!drag){cv1.style.cursor=Math.hypot(x-B1.probe.fx*W1,y-B1.probe.fy*H1)<30?'grab':'default';return;}
-    B1.probe.fx=clamp(x/W1,.03,.97);B1.probe.fy=clamp(y/H1,.06,.9);B1.trace=[];kick();});
-  const up=()=>drag=false;cv1.addEventListener('pointerup',up);cv1.addEventListener('pointercancel',up);}
+{let drag=null;const pos=ev=>{const r=cv1.getBoundingClientRect();return[ev.clientX-r.left,ev.clientY-r.top];};
+  const nearProbe=(x,y)=>B1.probeOn&&Math.hypot(x-B1.probe.fx*W1,y-B1.probe.fy*H1)<32;
+  const nearCharge=(x,y)=>{const m=mot(B1.tau);return Math.hypot(x-m.x,y-m.y)<30;};
+  cv1.addEventListener('pointerdown',ev=>{const[x,y]=pos(ev);
+    if(nearProbe(x,y))drag='probe';
+    else if(nearCharge(x,y)||B1.mode==='hand'){drag='charge';
+      if(B1.mode!=='hand'){const p=mot(B1.tau);B1.mode='hand';resetHand(p);}
+      const H=B1.hand;H.drag=true;H.tx=clamp(x,14,W1-14);H.ty=clamp(y,14,H1-14);if(!B1.play)B1.play=true;ui1();}
+    else return;
+    cv1.setPointerCapture(ev.pointerId);ev.preventDefault();kick();});
+  cv1.addEventListener('pointermove',ev=>{const[x,y]=pos(ev);
+    if(!drag){cv1.style.cursor=(nearProbe(x,y)||nearCharge(x,y)||B1.mode==='hand')?'grab':'default';return;}
+    if(drag==='probe'){B1.probe.fx=clamp(x/W1,.03,.97);B1.probe.fy=clamp(y/H1,.1,.82);B1.trace=[];}
+    else{B1.hand.tx=clamp(x,14,W1-14);B1.hand.ty=clamp(y,14,H1-14);}
+    kick();});
+  const up=()=>{if(drag==='charge')B1.hand.drag=false;drag=null;};cv1.addEventListener('pointerup',up);cv1.addEventListener('pointercancel',up);}
 $('symBtn').addEventListener('click',()=>{$('symA').textContent='磁場';$('symS').textContent='馬克士威 1861–1865 補上';$('symQ').classList.remove('q');});
 $('cBtn').addEventListener('click',()=>{$('cOut').hidden=!$('cOut').hidden;});
 
