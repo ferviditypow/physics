@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>電磁波：產生、性質與電磁波譜</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/ui.css">
+<style>
+:root{--ef:#d23b2f;--bf:#1c68ad;--cf:#b7791f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ef:#ff7468;--bf:#5ba8ec;--cf:#ffc04a;color-scheme:dark}}
+:root[data-theme="dark"]{--ef:#ff7468;--bf:#5ba8ec;--cf:#ffc04a;color-scheme:dark}
+.wrap{max-width:1280px}
+.benchbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 10px}
+.benchbar .seg button{font-weight:700;min-height:44px;padding:0 14px}
+.benchbar .seg button .n{font-family:var(--f-mono);margin-right:5px;opacity:.65}
+.bench{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.box{padding:10px 14px 14px}
+.box h3{margin:0 0 6px;font-size:1rem}
+.box p{margin:0 0 6px;font-size:.95rem}
+.box ul{margin:4px 0 0;padding-left:1.2em;font-size:.95rem}
+.box li{margin:2px 0}
+.checks{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.95rem}
+.checks li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start}
+.checks li::before{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;margin-top:1px}
+.checks li.ok::before{content:'✓';background:var(--green)}
+.checks li.no::before{content:'✕';background:#c0453b}
+.checks li.info::before{content:'?';background:var(--blue)}
+.concl{margin:10px 0 0;padding:8px 12px;border-radius:8px;font-weight:700;font-size:1rem}
+.concl.yes{background:var(--accent-soft);color:var(--accent)}
+.concl.no{background:var(--grid);color:var(--muted)}
+.bigname{font-family:var(--f-display);font-weight:900;font-size:1.7rem;line-height:1.2;margin:0 0 4px}
+.bigname small{font-family:var(--f-body);font-weight:500;font-size:.85rem;color:var(--muted);margin-left:8px}
+.qgrp{margin-bottom:12px}
+.qgrp h4{margin:0 0 6px;font-size:.82rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
+.qchips{display:flex;flex-wrap:wrap;gap:7px}
+.qchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;min-height:36px;padding:3px 13px;cursor:pointer;font-size:.88rem;text-align:left;color:var(--ink)}
+.qchip:hover{border-color:var(--accent)}
+.qchip .pg{color:var(--muted);font-size:.76rem;margin-left:4px}
+.story p{white-space:pre-line}
+.story .gobench{margin-top:8px}
+/* 馬克士威的對稱 */
+.sym{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 8px}
+@media (max-width:620px){.sym{grid-template-columns:minmax(0,1fr)}}
+.sym>div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.92rem}
+.sym b{display:block;font-size:1.02rem}
+.sym small{color:var(--muted)}
+.sym .q{border-style:dashed;border-color:var(--accent)}
+.sym .q b span{color:var(--accent)}
+.reveal{font-family:var(--f-mono);font-size:.9rem;background:var(--accent-soft);border-radius:8px;padding:8px 10px;margin-top:6px}
+/* 3D 舞台 */
+.stage3{position:relative;height:clamp(440px,64vh,820px);border-radius:12px;overflow:hidden;background:#0b1226;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage3:fullscreen{height:100vh;border-radius:0}
+#c2{display:block;width:100%;height:100%;border-radius:0}
+#labels2{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;white-space:nowrap;font-weight:700;font-size:clamp(12px,1vw,17px);color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000;will-change:transform}
+.lbl.sm{font-weight:500;font-size:clamp(11px,.85vw,15px)}
+.lbl.e{color:#ff8a80}.lbl.b{color:#8cc4ff}.lbl.c{color:#ffd34d}.lbl.g{font-size:13px;font-weight:700}
+.ov{position:absolute;left:0;right:0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 10px;pointer-events:none}
+.ov>*{pointer-events:auto}
+.ov.top{top:0;background:linear-gradient(rgba(5,9,25,.9),rgba(5,9,25,0))}
+.ov.bot{bottom:0;background:linear-gradient(rgba(5,9,25,0),rgba(5,9,25,.92) 40%)}
+.ov .sp{flex:1}
+.ov .seg{border-color:rgba(255,255,255,.3);background:rgba(10,16,36,.65)}
+.ov .seg button{color:#d8e0ea;border-left-color:rgba(255,255,255,.2)}
+.ov .seg button[aria-pressed="true"]{background:#fff;color:#111}
+.ov .btn{background:rgba(10,16,36,.65);color:#fff;border-color:rgba(255,255,255,.3)}
+.ov .btn.primary{background:#ff8a57;border-color:#ff8a57;color:#111}
+.ov .tog{color:#e6ecf4;border-color:rgba(255,255,255,.3);background:rgba(10,16,36,.65)}
+.ov .tog:has(input:checked){background:rgba(255,138,87,.35);border-color:#ff8a57}
+.ov .tlabel{color:#c9d2dd}.ov output{color:#fff}
+.ov .slider{min-width:200px}
+.ov .slider input{accent-color:#ff8a57}
+.myth{position:absolute;left:50%;top:62px;transform:translateX(-50%);background:rgba(192,69,59,.92);color:#fff;font-weight:700;padding:6px 14px;border-radius:8px;pointer-events:none;text-align:center;max-width:90%}
+.gizcap{position:absolute;right:14px;width:120px;text-align:center;font-size:12px;color:#c9d2dd;pointer-events:none}
+.msg3d{position:absolute;inset:0;display:grid;place-items:center;color:#fff;padding:20px;text-align:center}
+@media (max-width:700px){.stage3{height:min(78vh,620px)}.hidephone{display:none!important}}
+.pick{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.pick .tlabel{min-width:3.5em}
+.pick .seg button{font-family:var(--f-mono);min-width:44px}
+.pick.e .seg button[aria-pressed="true"]{background:var(--ef);color:#fff}
+.pick.b .seg button[aria-pressed="true"]{background:var(--bf);color:#fff}
+.dirout{font-family:var(--f-display);font-weight:900;font-size:1.5rem}
+.dirout .mono{font-family:var(--f-mono);font-weight:600}
+.meter{display:grid;grid-template-columns:2.4em minmax(0,1fr) 4.2em;gap:8px;align-items:center;font-size:.92rem;margin:4px 0}
+.meter .bar{position:relative;height:14px;border-radius:7px;background:var(--grid)}
+.meter .bar::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+.meter .bar i{position:absolute;top:0;bottom:0;border-radius:7px}
+.meter output{text-align:right;min-width:0}
+/* 電磁波譜 */
+.specgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:860px){.specgrid{grid-template-columns:minmax(0,1fr)}}
+.calc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 10px;align-items:center}
+.calc input[type=number]{font:inherit;font-family:var(--f-mono);width:100%;min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:0 10px}
+.calc select{min-height:38px}
+.out{font-size:.95rem;margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.out .mono{font-weight:600}
+.warn{border-left:4px solid #c0453b;background:var(--panel);border-radius:0 8px 8px 0;padding:8px 12px;font-size:.95rem}
+.swatch{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../">自然科模擬動畫</a> · 高一基礎物理 · 電磁波與光（一）</div>
+      <h1>電磁波</h1>
+    </div>
+    <p>四個實驗台對應講義第一部分：電荷怎麼發出電磁波、電磁波長什麼樣子、赫茲的實驗、電磁波譜。最下方有講義隨堂練習的題目情境。</p>
+  </header>
+
+  <nav class="panel benchbar" aria-label="實驗台">
+    <span class="tlabel">實驗台</span>
+    <span class="seg" id="benchSeg">
+      <button data-v="charge" aria-pressed="true"><span class="n">1</span>電荷怎麼發出電磁波</button>
+      <button data-v="wave" aria-pressed="false"><span class="n">2</span>電磁波的樣子（3D）</button>
+      <button data-v="hertz" aria-pressed="false"><span class="n">3</span>赫茲的實驗</button>
+      <button data-v="spectrum" aria-pressed="false"><span class="n">4</span>電磁波譜</button>
+    </span>
+  </nav>
+
+  <section class="panel story" id="story" hidden>
+    <button class="x" id="storyX" aria-label="關閉說明">×</button>
+    <h3 id="storyT"></h3>
+    <p id="storyP"></p>
+    <button class="btn" id="storyBack" style="margin-top:8px">↓ 回到講義題目列表</button>
+  </section>
+
+  <!-- ===================== 1 電荷 ===================== -->
+  <section class="bench" id="b-charge">
+    <div class="panel">
+      <div class="toolbar">
+        <span class="tlabel">電荷的運動</span>
+        <span class="seg" id="mode1">
+          <button data-v="static">靜止</button>
+          <button data-v="uniform">等速度直線</button>
+          <button data-v="osc" aria-pressed="true">上下振盪（天線）</button>
+          <button data-v="circle">等速率圓周</button>
+          <button data-v="brake">急煞車</button>
+        </span>
+        <label class="tog"><input type="checkbox" id="q1" checked>帶電（取消＝中子）</label>
+        <label class="tog"><input type="checkbox" id="va1" checked>速度、加速度箭頭</label>
+      </div>
+      <div class="cbox"><canvas id="cv1" aria-label="電荷周圍的電場線，可拖曳接收天線"></canvas></div>
+      <div class="toolbar">
+        <button class="btn primary" id="play1">❚❚ 暫停</button>
+        <button class="btn" id="restart1">↺ 從頭播放</button>
+        <label class="slider" id="fwrap1"><span class="tlabel">振盪頻率</span><input type="range" id="f1" min="0.3" max="1.2" step="0.05" value="0.6"><output id="f1o"></output></label>
+        <label class="slider" id="awrap1"><span class="tlabel">振幅</span><input type="range" id="a1" min="0.1" max="1" step="0.05" value="0.4"><output id="a1o"></output></label>
+      </div>
+      <p class="hint">紅線是電場線。電荷加速時，電場線上會出現「彎折」，彎折以光速往外跑——那就是電磁波。拖曳藍色的接收天線換位置。動畫中的光速已大幅放慢。</p>
+    </div>
+
+    <div class="grid2">
+      <section class="panel">
+        <p class="ptitle">接收天線收到的訊號 <small>遠處的電場（輻射部分）隨時間的變化</small></p>
+        <div class="cbox"><canvas id="cv1s" aria-label="接收天線收到的訊號"></canvas></div>
+        <p class="hint" id="sig1"></p>
+      </section>
+      <section class="panel box">
+        <h3>會不會輻射電磁波？三步判斷</h3>
+        <ul class="checks" id="chk1"></ul>
+        <div class="concl" id="concl1"></div>
+        <p class="note" style="margin-top:8px" id="field1"></p>
+      </section>
+    </div>
+
+    <div class="grid2">
+      <section class="panel box">
+        <h3>1-1 馬克士威補上的那一格</h3>
+        <div class="sym">
+          <div><b>電流 → 磁場</b><small>電流的磁效應｜厄斯特 1820</small></div>
+          <div><b>變動的磁場 → 電場</b><small>電磁感應｜法拉第 1831</small></div>
+          <div class="q" id="symQ"><b>變動的電場 → <span id="symA">？</span></b><small id="symS">哪一格空著？</small></div>
+        </div>
+        <div class="row">
+          <button class="btn" id="symBtn">揭曉</button>
+          <button class="btn" id="cBtn">用電學、磁學的常數算速率</button>
+        </div>
+        <div class="reveal" id="cOut" hidden>c = 1 ⁄ √(μ₀ε₀) = 1 ⁄ √(4π×10⁻⁷ × 8.85×10⁻¹²) ≈ 3.00×10⁸ m/s<br>和實驗測到的光速一樣！馬克士威推論：光就是電磁波。</div>
+      </section>
+      <section class="panel box">
+        <h3>重點</h3>
+        <ul>
+          <li>變動的電場產生變動的磁場、變動的磁場又產生變動的電場，擾動不需要物質就能自己往外傳：<b>電磁波</b>。</li>
+          <li>產生電磁波的關鍵：<b>帶電粒子做加速度運動</b>（振盪、圓周運動、減速）。</li>
+          <li>口訣：<b>有電、有加速，才有電磁波</b>。</li>
+          <li>接收天線放在電荷振盪方向的正上方或正下方，幾乎收不到訊號——電磁波主要往和振盪方向垂直的方向發射。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===================== 2 3D ===================== -->
+  <section class="bench" id="b-wave" hidden>
+    <section class="stage3" id="stage2">
+      <canvas id="c2" aria-label="電磁波 3D 示意，可拖曳轉動"></canvas>
+      <div id="labels2"></div>
+      <div class="myth" id="myth2" hidden>✕ 迷思：電場、磁場「輪流」出現<br><span style="font-weight:500">這個圖像是錯的；真正的電磁波裡 E 和 B 同時最大、同時為零</span></div>
+      <div class="gizcap" id="gizcap">座標軸</div>
+      <div class="ov top">
+        <span class="seg" id="view2"><button data-v="free" aria-pressed="true">斜看</button><button data-v="E">正面（看 E）</button><button data-v="B">側面（看 B）</button><button data-v="along" class="hidephone">順著前進方向</button></span>
+        <label class="tog"><input type="checkbox" id="hand2" checked>右手定則提示</label>
+        <label class="tog hidephone"><input type="checkbox" id="lab2" checked>標籤</label>
+        <label class="tog"><input type="checkbox" id="myth2t">對照迷思</label>
+        <span class="sp"></span>
+        <button class="btn" id="reset2">↺ 回復預設</button>
+        <button class="btn" id="fs2">⛶ 全螢幕</button>
+      </div>
+      <div class="ov bot">
+        <button class="btn primary" id="play2">❚❚ 暫停</button>
+        <span class="seg" id="speed2"><button data-v="0.25">慢</button><button data-v="0.5" aria-pressed="true">中</button><button data-v="1">快</button></span>
+        <span class="seg"><button data-step="-1">−⅛ 週期</button><button data-step="1">+⅛ 週期</button></span>
+        <label class="slider"><span class="tlabel">觀察點</span><input type="range" id="obs2" min="0.05" max="0.95" step="0.01" value="0.62"></label>
+      </div>
+    </section>
+    <p class="hint">拖曳空白處轉動視角、兩指或滾輪縮放。紅色是電場 E、藍色是磁場 B、黃色箭頭是前進方向 c。半透明方框是「觀察點」，看那裡的 E 和 B 怎麼一起變化。</p>
+
+    <div class="grid2">
+      <section class="panel box">
+        <h3>右手定則：四指由 E 轉向 B，大拇指就是前進方向</h3>
+        <div class="pick" style="margin-bottom:8px"><span class="tlabel">座標名稱</span><span class="seg" id="names2"><button data-v="xyz" aria-pressed="true">x、y、z</button><button data-v="geo">東西南北上下</button></span></div>
+        <div class="pick e" style="margin-bottom:6px"><span class="tlabel">電場 E</span><span class="seg" id="pickE"></span></div>
+        <div class="pick b" style="margin-bottom:10px"><span class="tlabel">磁場 B</span><span class="seg" id="pickB"></span></div>
+        <div class="dirout" id="dir2"></div>
+        <p class="note" id="dir2n"></p>
+      </section>
+      <section class="panel box">
+        <h3>觀察點的電場與磁場</h3>
+        <div class="meter"><b style="color:var(--ef)">E</b><div class="bar"><i id="mE"></i></div><output id="mEo"></output></div>
+        <div class="meter"><b style="color:var(--bf)">B</b><div class="bar"><i id="mB"></i></div><output id="mBo"></output></div>
+        <p id="phase2" style="margin:8px 0 0;font-weight:700"></p>
+        <p class="note" style="margin-top:4px">按「+⅛ 週期」一格一格前進：E 和 B 同時變大、同時變小，是互相維持，不是一個接一個輪流出現。</p>
+      </section>
+    </div>
+    <section class="panel box">
+      <h3>電磁波的六大性質</h3>
+      <ul>
+        <li><b>橫波</b>：電場、磁場與前進方向三者互相垂直（所以電磁波能「偏振」）。</li>
+        <li><b>不需要介質</b>：畫面中沒有任何物質在動，只有場在變化；太陽光就是穿過真空來到地球。</li>
+        <li><b>真空中速率都是 c ≈ 3×10⁸ m/s</b>，和頻率、波長、能量無關。</li>
+        <li><b>c = fλ</b>：頻率越高，波長越短（到「電磁波譜」實驗台拖曳看看）。</li>
+        <li>進入介質後<b>速率變慢、頻率不變、波長變短</b>。</li>
+        <li>能<b>傳遞能量</b>，也有反射、折射、繞射、干涉等所有波的行為。</li>
+      </ul>
+    </section>
+  </section>
+
+  <!-- ===================== 3 赫茲 ===================== -->
+  <section class="bench" id="b-hertz" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <button class="btn primary" id="play3">❚❚ 停止自動放電</button>
+        <button class="btn" id="spark3">⚡ 放電一次</button>
+        <span class="tlabel">中間放</span>
+        <span class="seg" id="shield3"><button data-v="none" aria-pressed="true">什麼都不放</button><button data-v="plate">金屬板</button><button data-v="cage">接收環放進金屬盒</button></span>
+        <label class="tog"><input type="checkbox" id="wave3" checked>顯示電磁波</label>
+      </div>
+      <div class="cbox"><canvas id="cv3" aria-label="赫茲實驗示意圖，可拖曳接收環"></canvas></div>
+      <div class="toolbar">
+        <label class="slider"><span class="tlabel">感應線圈電壓</span><input type="range" id="v3" min="0.3" max="1" step="0.05" value="0.7"><output id="v3o"></output></label>
+      </div>
+      <p class="hint">左邊的感應線圈讓兩根金屬棒之間跳出火花，電荷在棒子裡快速來回振盪，發出電磁波（紅、藍表示電場方向相反）。拖曳右邊的接收環換位置，看它的小缺口會不會也跳出火花。</p>
+    </div>
+    <div class="grid2">
+      <section class="panel box">
+        <h3>接收環</h3>
+        <p id="msg3" style="font-weight:700;font-size:1.05rem"></p>
+        <p class="note" id="msg3b"></p>
+      </section>
+      <section class="panel box">
+        <h3>赫茲的實驗（1886–1888）</h3>
+        <ul>
+          <li>馬克士威 1879 年過世時，還沒有人「抓到」過電磁波。</li>
+          <li>赫茲用感應線圈在一對金屬球間製造高頻火花；幾公尺外，有小缺口的金屬環缺口處也跳出微小的火花。</li>
+          <li>他還證明這種波會反射、折射、偏振，速率等於光速——完全證實馬克士威的預言。頻率單位 Hz 就是紀念他。</li>
+        </ul>
+        <div class="chips" style="margin-top:8px">
+          <button class="chip" data-story="useless">「這一點用處也沒有」</button>
+          <button class="chip" data-story="photo">順手發現光電效應</button>
+          <button class="chip" data-story="cage">法拉第籠：手機放進鐵盒</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===================== 4 波譜 ===================== -->
+  <section class="bench" id="b-spectrum" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <span class="tlabel">快速選擇</span>
+        <span class="chips" id="pre4"></span>
+      </div>
+      <div class="cbox"><canvas id="cv4" tabindex="0" aria-label="電磁波譜，左右拖曳選擇頻率"></canvas></div>
+      <p class="hint">左右拖曳橘色指標（或用鍵盤 ← →）。上方的波越往右越密：頻率越高、波長越短。下方是和波長差不多大的東西。</p>
+    </div>
+    <div class="specgrid">
+      <section class="panel box" id="read4">
+        <p class="bigname" id="band4"></p>
+        <dl id="dl4"></dl>
+        <p style="margin-top:8px" id="use4"></p>
+        <p class="note" id="tip4"></p>
+      </section>
+      <section class="panel box">
+        <h3>c = fλ 計算機</h3>
+        <div class="calc">
+          <span class="tlabel">頻率 f</span><input type="number" id="fIn" step="any"><select id="fU"><option value="1">Hz</option><option value="1e3">kHz</option><option value="1e6">MHz</option><option value="1e9">GHz</option><option value="1e12">THz</option></select>
+          <span class="tlabel">波長 λ</span><input type="number" id="lIn" step="any"><select id="lU"><option value="1e3">km</option><option value="1">m</option><option value="1e-2">cm</option><option value="1e-3">mm</option><option value="1e-6">μm</option><option value="1e-9">nm</option><option value="1e-12">pm</option></select>
+        </div>
+        <div class="pick" style="margin-top:10px"><span class="tlabel">進入</span><span class="seg" id="med4"><button data-v="1" aria-pressed="true">真空</button><button data-v="1.0003">空氣</button><button data-v="1.3333">水</button><button data-v="1.5">玻璃</button></span></div>
+        <div class="out" id="out4"></div>
+      </section>
+    </div>
+    <section class="panel box">
+      <h3>這些是電磁波嗎？</h3>
+      <div class="chips" id="notem"></div>
+      <div id="notemOut" style="margin-top:10px"></div>
+    </section>
+    <div class="grid2">
+      <section class="panel">
+        <p class="ptitle">動手做：用巧克力測光速 <small>微波爐裡的駐波（簡化成一維）</small></p>
+        <div class="cbox"><canvas id="cv4c" aria-label="微波爐中的駐波與巧克力融化點"></canvas></div>
+        <div class="toolbar">
+          <button class="btn primary" id="heat4">▶ 加熱</button>
+          <button class="btn" id="cool4">↺ 換一片巧克力</button>
+          <label class="slider"><span class="tlabel">微波頻率</span><input type="range" id="fc4" min="1.5" max="3.5" step="0.01" value="2.45"><output id="fc4o"></output></label>
+        </div>
+        <div class="box" style="padding-top:0"><div class="out" id="choc4"></div></div>
+      </section>
+      <section class="panel">
+        <p class="ptitle">光要走多久？</p>
+        <div class="toolbar"><span class="seg" id="lt4"><button data-v="moon" aria-pressed="true">雷射測月（地球↔月球）</button><button data-v="sun">太陽熄燈</button></span><button class="btn primary" id="go4">▶ 開始</button></div>
+        <div class="cbox"><canvas id="cv4l" aria-label="光從太陽或月球到地球所需的時間"></canvas></div>
+        <div class="box" style="padding-top:0"><div class="out" id="lt4o"></div></div>
+      </section>
+    </div>
+    <section class="panel box">
+      <h3>記法</h3>
+      <ul>
+        <li>頻率由低到高：<b>無線電波 → 微波 → 紅外線 → 可見光 → 紫外線 → X 射線 → γ 射線</b>（口訣「無微紅可紫 X γ」）。</li>
+        <li>可見光：紅光頻率最低、紫光最高。</li>
+        <li>主線：頻率越高、能量越大 → 紫外線會破壞 DNA（曬傷、殺菌）、X 光能穿透肌肉、γ 射線能殺死癌細胞。</li>
+        <li>各波段之間沒有明確的分界線，不同書本的數值可能略有出入。</li>
+      </ul>
+    </section>
+  </section>
+
+  <section class="panel" id="qpanel">
+    <p class="ptitle">講義題目情境 <small>高一基礎物理｜電磁波與光（頁碼為學生版）</small></p>
+    <div class="cbox" id="qbox"></div>
+  </section>
+</div>
+
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js"}}</script>
+<script type="module">
+// ================= common =================
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,f)=>a+(b-a)*f, TAU=Math.PI*2;
+const DPR=()=>Math.min(window.devicePixelRatio||1,2);
+const C={};
+function readColors(){const s=getComputedStyle(document.documentElement);
+  ['bg','panel','ink','muted','line','grid','accent','accent-soft','blue','blue-soft','green','red','purple','ef','bf','cf'].forEach(k=>C[k]=s.getPropertyValue('--'+k).trim());}
+readColors();
+function hexRGB(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function fit(cv,ratio,minH,maxH){const w=Math.max(10,cv.clientWidth);const h=Math.round(clamp(w*ratio,minH,maxH));
+  cv.style.height=h+'px';const d=DPR();cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.getContext('2d').setTransform(d,0,0,d,0,0);return{W:w,H:h};}
+function segSet(el,v){el.querySelectorAll('button[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(v))));}
+function segOn(el,fn){el.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)fn(b.dataset.v);});}
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+const sup=n=>String(n).split('').map(c=>SUP[c]||c).join('');
+function sci(x,d=2){if(!isFinite(x)||x===0)return '0';let e=Math.floor(Math.log10(Math.abs(x)));let m=x/Math.pow(10,e);let ms=m.toFixed(d-1);
+  if(Math.abs(+ms)>=10){e++;ms=(x/Math.pow(10,e)).toFixed(d-1);} return e===0?ms:ms+'×10'+sup(e);}
+function sig(x,d=3){return +x.toPrecision(d)+'';}
+function fmtLen(m){const U=[[1e3,'km'],[1,'m'],[1e-2,'cm'],[1e-3,'mm'],[1e-6,'μm'],[1e-9,'nm'],[1e-12,'pm'],[1e-15,'fm']];
+  for(const[u,n]of U){if(m>=u*0.9999){const v=m/u;return (v>=1000&&u===1e3?sci(m,3)+' m':sig(v)+' '+n);}}return sci(m,3)+' m';}
+function fmtF(f){const U=[[1e12,'THz'],[1e9,'GHz'],[1e6,'MHz'],[1e3,'kHz'],[1,'Hz']];
+  if(f>=1e15)return sci(f,3)+' Hz';for(const[u,n]of U){if(f>=u)return sig(f/u)+' '+n;}return sig(f)+' Hz';}
+function arrow(g,x1,y1,x2,y2,col,w=2,head=8){const a=Math.atan2(y2-y1,x2-x1),L=Math.hypot(x2-x1,y2-y1);if(L<2)return;
+  g.strokeStyle=col;g.fillStyle=col;g.lineWidth=w;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2-Math.cos(a)*head*.6,y2-Math.sin(a)*head*.6);g.stroke();
+  g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-head*Math.cos(a-.42),y2-head*Math.sin(a-.42));g.lineTo(x2-head*Math.cos(a+.42),y2-head*Math.sin(a+.42));g.closePath();g.fill();}
+function text(g,s,x,y,{col=C.ink,size=13,bold=false,align='left',base='alphabetic',bg=null,font=null}={}){
+  g.font=`${bold?700:500} ${size}px ${font||'"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif'}`;g.textAlign=align;g.textBaseline=base;
+  if(bg){const w=g.measureText(s).width,px=align==='center'?x-w/2:align==='right'?x-w:x;g.fillStyle=bg;g.globalAlpha*=.85;g.fillRect(px-4,y-size+(base==='middle'?size/2:0)-2,w+8,size+6);g.globalAlpha/=.85;}
+  g.fillStyle=col;g.fillText(s,x,y);}
+const MONO='"IBM Plex Mono",ui-monospace,Menlo,monospace';
+
+// ================= bench switching / loop =================
+let bench='charge';
+const BENCHES=['charge','wave','hertz','spectrum'];
+function setBench(b,noHash){if(!BENCHES.includes(b))b='charge';bench=b;segSet($('benchSeg'),b);
+  BENCHES.forEach(k=>$('b-'+k).hidden=k!==b);
+  if(!noHash)history.replaceState(null,'','#'+b);
+  if(b==='charge')size1(); if(b==='hertz')size3(); if(b==='spectrum')size4(); if(b==='wave')init3();
+  kick();}
+segOn($('benchSeg'),v=>{hideStory();setBench(v);});
+let raf=0,lastT=0;
+function kick(){if(!raf)raf=requestAnimationFrame(loop);}
+function loop(now){raf=0;const dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;let more=false;
+  if(bench==='charge')more=tick1(dt);else if(bench==='wave')more=tick2(dt);else if(bench==='hertz')more=tick3(dt);else more=tick4(dt);
+  if(more)raf=requestAnimationFrame(loop);else lastT=0;}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();kick();});
+
+// ================= story =================
+function showStory(t,p){$('storyT').textContent=t;$('storyP').innerHTML=p;$('story').hidden=false;}
+function hideStory(){$('story').hidden=true;}
+$('storyX').addEventListener('click',hideStory);
+$('storyBack').addEventListener('click',()=>$('qpanel').scrollIntoView({behavior:'smooth',block:'start'}));
+
+// =====================================================================
+// 1 電荷怎麼發出電磁波
+// =====================================================================
+const B1={mode:'osc',q:true,va:true,play:true,tau:0,clock:0,f:.6,amp:.4,probe:{fx:.84,fy:.3},trace:[]};
+const cv1=$('cv1'),g1=cv1.getContext('2d'),cv1s=$('cv1s'),g1s=cv1s.getContext('2d');
+let W1=800,H1=400,c1=136,W1s=400,H1s=120;
+function size1(){const r=fit(cv1,.5,300,540);W1=r.W;H1=r.H;c1=W1*.17;const s=fit(cv1s,.3,110,150);W1s=s.W;H1s=s.H;}
+const BRAKE=()=>{const v0=.4*c1,x0=W1*.12,tb=(W1*.24)/v0,D=.12;return{v0,x0,tb,D};};
+function mot(t){const cx=W1*.42,cy=H1*.5,c=c1,w=TAU*B1.f;
+  switch(B1.mode){
+    case 'static':return{x:cx,y:cy,vx:0,vy:0,ax:0,ay:0};
+    case 'uniform':{const v=.35*c;return{x:W1*.1+v*t,y:cy,vx:v,vy:0,ax:0,ay:0};}
+    case 'osc':{const A=B1.amp*.5*c/w,s=Math.sin(w*t),co=Math.cos(w*t);return{x:cx,y:cy-A*s,vx:0,vy:-A*w*co,ax:0,ay:A*w*w*s};}
+    case 'circle':{const R=B1.amp*.5*c/w,s=Math.sin(w*t),co=Math.cos(w*t);return{x:cx+R*co,y:cy-R*s,vx:-R*w*s,vy:-R*w*co,ax:-R*w*w*co,ay:R*w*w*s};}
+    case 'brake':{const{v0,x0,tb,D}=BRAKE();
+      if(t<tb)return{x:x0+v0*t,y:cy,vx:v0,vy:0,ax:0,ay:0};const u=t-tb;
+      if(u<D)return{x:x0+v0*tb+v0*(u-u*u/(2*D)),y:cy,vx:v0*(1-u/D),vy:0,ax:-v0/D,ay:0};
+      return{x:x0+v0*tb+v0*D/2,y:cy,vx:0,vy:0,ax:0,ay:0};}
+  }}
+function loopLen1(){if(B1.mode==='uniform')return W1*.7/(.35*c1);if(B1.mode==='brake'){const b=BRAKE();return b.tb+b.D+Math.hypot(W1,H1)/c1+1.2;}return Infinity;}
+const AREF=()=>.4*.5*c1*TAU*.6;
+function probeVal(){if(!B1.q)return 0;const P={x:B1.probe.fx*W1,y:B1.probe.fy*H1};let tr=B1.tau,m;
+  for(let i=0;i<5;i++){m=mot(tr);tr=B1.tau-Math.hypot(P.x-m.x,P.y-m.y)/c1;}m=mot(tr);
+  let nx=P.x-m.x,ny=P.y-m.y;const r=Math.hypot(nx,ny)||1;nx/=r;ny/=r;let ex=-ny,ey=nx;if(ey>0||(ey===0&&ex<0)){ex=-ex;ey=-ey;}
+  return clamp(-(m.ax*ex+m.ay*ey)/AREF()*(.35*W1)/Math.max(r,40),-1.6,1.6);}
+function draw1(){const g=g1,W=W1,H=H1;g.clearRect(0,0,W,H);
+  g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  g.strokeStyle=C.grid;g.lineWidth=1;g.beginPath();for(let x=0;x<W;x+=40){g.moveTo(x+.5,0);g.lineTo(x+.5,H);}for(let y=0;y<H;y+=40){g.moveTo(0,y+.5);g.lineTo(W,y+.5);}g.stroke();
+  const m=mot(B1.tau),cx=W*.42,cy=H*.5;
+  if(B1.mode==='osc'){const A=B1.amp*.5*c1/(TAU*B1.f);g.strokeStyle=C.muted;g.globalAlpha=.55;g.lineWidth=5;g.lineCap='round';
+    g.beginPath();g.moveTo(cx,cy-A-30);g.lineTo(cx,cy+A+30);g.stroke();g.globalAlpha=1;g.lineCap='butt';
+    text(g,'天線',cx+10,cy+A+28,{col:C.muted,size:12});}
+  if(B1.mode==='circle'){const R=B1.amp*.5*c1/(TAU*B1.f);g.strokeStyle=C.muted;g.globalAlpha=.4;g.setLineDash([4,4]);g.lineWidth=1.2;g.beginPath();g.arc(cx,cy,R,0,TAU);g.stroke();g.setLineDash([]);g.globalAlpha=1;}
+  if(B1.q){const N=24,ds=3/c1,Smax=Math.hypot(W,H)*1.1/c1,r0=12/c1,sArr=Math.min(W,H)*.2/c1;
+    g.strokeStyle=C.ef;g.lineWidth=1.6;g.globalAlpha=.85;
+    for(let k=0;k<N;k++){const th=(k+.5)/N*TAU,ux=Math.cos(th),uy=Math.sin(th);g.beginPath();let first=true,ah=null,prev=null;
+      for(let s=r0;s<=Smax;s+=ds){const p=mot(B1.tau-s),X=p.x+s*(c1*ux+p.vx),Y=p.y+s*(c1*uy+p.vy);
+        if(first){g.moveTo(X,Y);first=false;}else g.lineTo(X,Y);
+        if(!ah&&s>=sArr&&prev)ah=[prev[0],prev[1],X,Y];prev=[X,Y];
+        if(X<-80||X>W+80||Y<-80||Y>H+80)break;}
+      g.stroke();
+      if(ah){const a=Math.atan2(ah[3]-ah[1],ah[2]-ah[0]);g.fillStyle=C.ef;g.beginPath();g.moveTo(ah[2]+Math.cos(a)*5,ah[3]+Math.sin(a)*5);g.lineTo(ah[2]-6*Math.cos(a-.5),ah[3]-6*Math.sin(a-.5));g.lineTo(ah[2]-6*Math.cos(a+.5),ah[3]-6*Math.sin(a+.5));g.closePath();g.fill();}}
+    g.globalAlpha=1;
+    if(B1.mode==='brake'){const b=BRAKE(),R=c1*(B1.tau-b.tb);if(R>20&&R<Math.hypot(W,H)){const sx=b.x0+b.v0*b.tb,a=-1.05;
+      text(g,'這一圈彎折＝電磁波脈衝',clamp(sx+R*Math.cos(a)+8,6,W-170),clamp(cy+R*Math.sin(a),18,H-10),{col:C.accent,size:13,bold:true,bg:C.panel});}}
+    if(B1.mode==='osc'||B1.mode==='circle')text(g,'彎折以光速往外跑 →',W-10,cy-8,{col:C.accent,size:13,bold:true,align:'right',bg:C.panel});
+  }
+  // charge
+  g.fillStyle=B1.q?C.ef:C.muted;g.beginPath();g.arc(m.x,m.y,11,0,TAU);g.fill();
+  text(g,B1.q?'+':'n',m.x,m.y+1,{col:'#fff',size:B1.q?18:14,bold:true,align:'center',base:'middle'});
+  if(B1.va){const vs=60/c1,as=40/AREF()*1.6;const vl=Math.hypot(m.vx,m.vy),al=Math.hypot(m.ax,m.ay);
+    if(vl>1){arrow(g,m.x,m.y,m.x+m.vx*vs,m.y+m.vy*vs,C.blue,2.5,9);text(g,'v',m.x+m.vx*vs+6,m.y+m.vy*vs-4,{col:C.blue,size:13,bold:true});}
+    if(al>1){const k=Math.min(as,70/al);arrow(g,m.x,m.y,m.x+m.ax*k,m.y+m.ay*k,C.green,2.5,9);text(g,'a',m.x+m.ax*k+6,m.y+m.ay*k+12,{col:C.green,size:13,bold:true});}}
+  // probe
+  const px=B1.probe.fx*W,py=B1.probe.fy*H;g.strokeStyle=C.blue;g.fillStyle=C.blue;g.lineWidth=3;
+  g.beginPath();g.moveTo(px,py-16);g.lineTo(px,py+12);g.stroke();g.beginPath();g.arc(px,py+14,4,0,TAU);g.fill();
+  g.beginPath();g.moveTo(px-8,py-16);g.lineTo(px+8,py-16);g.stroke();
+  text(g,'接收天線',px,py+32,{col:C.blue,size:12,bold:true,align:'center',bg:C.panel});
+  const NAMES={static:'靜止的電荷',uniform:'等速度直線運動',osc:'上下振盪（像天線裡的電子）',circle:'等速率圓周運動',brake:'急煞車（像 X 光管裡的電子）'};
+  text(g,(B1.q?'':'中子：')+NAMES[B1.mode],10,20,{col:C.ink,size:14,bold:true,bg:C.panel});
+}
+function draw1s(){const g=g1s,W=W1s,H=H1s;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  const mid=H/2,span=6;g.strokeStyle=C.line;g.lineWidth=1;g.beginPath();g.moveTo(0,mid+.5);g.lineTo(W,mid+.5);g.stroke();
+  text(g,'現在',W-4,H-6,{col:C.muted,size:11,align:'right'});text(g,'6 秒前',4,H-6,{col:C.muted,size:11});
+  g.strokeStyle=C.ef;g.lineWidth=2;g.beginPath();let first=true;
+  for(const[t,v]of B1.trace){const x=W-(B1.clock-t)/span*W,y=mid-v/1.7*(H/2-8);if(x<0)continue;if(first){g.moveTo(x,y);first=false;}else g.lineTo(x,y);}g.stroke();}
+const FIELD1={static:'周圍只有電場，而且不隨時間改變。',uniform:'周圍有電場和磁場（相當於穩定電流），場跟著電荷一起走，不會往外「甩出」波。',
+  osc:'電場、磁場都隨時間變化，變化以光速往外傳——這就是電磁波。',circle:'速率雖然不變，方向一直在改變（向心加速度），所以也會發出電磁波。',brake:'減速的那一瞬間發出一個電磁波脈衝；X 光管就是讓高速電子撞上金屬急煞車，發出 X 射線。'};
+function ui1(){const acc=B1.mode!=='static'&&B1.mode!=='uniform';
+  const A={static:['沒有加速度：靜止不動','no'],uniform:['沒有加速度：速度大小、方向都不變','no'],osc:['有加速度：來回振盪，速度一直改變','ok'],circle:['有加速度：速率不變，但方向一直改變','ok'],brake:['有加速度：減速的那一瞬間','ok']}[B1.mode];
+  $('chk1').innerHTML=`<li class="${B1.q?'ok':'no'}">${B1.q?'帶電：這是帶正電的粒子':'不帶電：中子不帶電，周圍沒有電場'}</li><li class="${A[1]}">${A[0]}</li>`;
+  const yes=B1.q&&acc;const c=$('concl1');c.className='concl '+(yes?'yes':'no');c.textContent=yes?'→ 會輻射電磁波':'→ 不會輻射電磁波';
+  $('field1').textContent=B1.q?FIELD1[B1.mode]:'不帶電的粒子再怎麼運動、加速，都不會發出電磁波。';
+  const osc=B1.mode==='osc'||B1.mode==='circle';$('fwrap1').style.opacity=$('awrap1').style.opacity=osc?1:.4;$('f1').disabled=$('a1').disabled=!osc;
+  $('f1o').textContent=B1.f.toFixed(2)+' 次/秒';$('a1o').textContent=Math.round(B1.amp*100)+'%';
+  $('play1').textContent=B1.play?'❚❚ 暫停':'▶ 播放';segSet($('mode1'),B1.mode);$('q1').checked=B1.q;$('va1').checked=B1.va;}
+function tick1(dt){if(B1.play){B1.tau+=dt;B1.clock+=dt;if(B1.tau>loopLen1())B1.tau=0;B1.trace.push([B1.clock,probeVal()]);while(B1.trace.length&&B1.trace[0][0]<B1.clock-6.2)B1.trace.shift();}
+  draw1();draw1s();
+  const pv=B1.trace.length?Math.max(...B1.trace.map(t=>Math.abs(t[1]))):0;
+  $('sig1').textContent=!B1.q?'中子不帶電：收不到任何訊號。':pv<.02?'收不到訊號：遠處的電場沒有變化。':B1.mode==='brake'?'收到一個短短的脈衝（如果天線在運動方向的正前方，就收不到）。':'收到一直來回變化的訊號——電磁波到了。';
+  return B1.play;}
+function set1(o){Object.assign(B1,o);B1.tau=0;B1.trace=[];ui1();kick();}
+segOn($('mode1'),v=>set1({mode:v}));
+$('q1').addEventListener('change',e=>{B1.q=e.target.checked;B1.trace=[];ui1();kick();});
+$('va1').addEventListener('change',e=>{B1.va=e.target.checked;kick();});
+$('play1').addEventListener('click',()=>{B1.play=!B1.play;ui1();kick();});
+$('restart1').addEventListener('click',()=>set1({}));
+$('f1').addEventListener('input',e=>{B1.f=+e.target.value;ui1();kick();});
+$('a1').addEventListener('input',e=>{B1.amp=+e.target.value;ui1();kick();});
+{let drag=false;const pos=ev=>{const r=cv1.getBoundingClientRect();return[ev.clientX-r.left,ev.clientY-r.top];};
+  cv1.addEventListener('pointerdown',ev=>{const[x,y]=pos(ev);if(Math.hypot(x-B1.probe.fx*W1,y-(B1.probe.fy*H1))<30){drag=true;cv1.setPointerCapture(ev.pointerId);ev.preventDefault();}});
+  cv1.addEventListener('pointermove',ev=>{const[x,y]=pos(ev);if(!drag){cv1.style.cursor=Math.hypot(x-B1.probe.fx*W1,y-B1.probe.fy*H1)<30?'grab':'default';return;}
+    B1.probe.fx=clamp(x/W1,.03,.97);B1.probe.fy=clamp(y/H1,.06,.9);B1.trace=[];kick();});
+  const up=()=>drag=false;cv1.addEventListener('pointerup',up);cv1.addEventListener('pointercancel',up);}
+$('symBtn').addEventListener('click',()=>{$('symA').textContent='磁場';$('symS').textContent='馬克士威 1861–1865 補上';$('symQ').classList.remove('q');});
+$('cBtn').addEventListener('click',()=>{$('cOut').hidden=!$('cOut').hidden;});
+
+// =====================================================================
+// 2 電磁波 3D
+// =====================================================================
+const B2={E:'+z',B:'-y',names:'xyz',play:true,t:0,speed:.5,obs:.62,labels:true,myth:false,hand:true,view:'free'};
+const V3={'+x':[1,0,0],'-x':[-1,0,0],'+y':[0,1,0],'-y':[0,-1,0],'+z':[0,0,1],'-z':[0,0,-1]};
+const NM={xyz:{'+x':'+x','-x':'−x','+y':'+y','-y':'−y','+z':'+z','-z':'−z'},geo:{'+x':'東','-x':'西','+y':'北','-y':'南','+z':'上','-z':'下'}};
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const keyOf=v=>Object.keys(V3).find(k=>V3[k].every((x,i)=>x===v[i]));
+const cDir=()=>{const c=cross(V3[B2.E],V3[B2.B]);return c.some(x=>x)?keyOf(c):null;};
+let lastValid={E:'+z',B:'-y'};
+const PER2=2.5;
+function ui2(){const nm=NM[B2.names];
+  for(const[id,key]of[['pickE','E'],['pickB','B']]){const el=$(id);if(!el.children.length)el.innerHTML=Object.keys(V3).map(k=>`<button data-v="${k}"></button>`).join('');
+    el.querySelectorAll('button').forEach(b=>b.textContent=nm[b.dataset.v]);segSet(el,B2[key]);}
+  segSet($('names2'),B2.names);segSet($('view2'),B2.view);segSet($('speed2'),B2.speed);
+  const c=cDir();
+  if(c){$('dir2').innerHTML=`前進方向 c：<span class="mono" style="color:var(--cf)">${nm[c]}</span>`;
+    $('dir2n').textContent=`四指由 E（${nm[B2.E]}）轉向 B（${nm[B2.B]}），大拇指指向 ${nm[c]}。E、B、c 就像 x、y、z 軸一樣兩兩垂直。`;}
+  else{$('dir2').innerHTML='<span style="color:#c0453b">✕ E 和 B 必須互相垂直</span>';$('dir2n').textContent='電磁波裡的電場和磁場一定互相垂直，請換一個方向。';}
+  $('play2').textContent=B2.play?'❚❚ 暫停':'▶ 播放';$('myth2').hidden=!B2.myth;$('myth2t').checked=B2.myth;$('hand2').checked=B2.hand;$('lab2').checked=B2.labels;$('obs2').value=B2.obs;}
+segOn($('pickE'),v=>{B2.E=v;afterPick();});segOn($('pickB'),v=>{B2.B=v;afterPick();});
+function afterPick(){if(cDir()){lastValid={E:B2.E,B:B2.B};T3&&T3.orient&&(T3.orient(),T3.setView(B2.view));}ui2();kick();}
+segOn($('names2'),v=>{B2.names=v;ui2();kick();});
+segOn($('view2'),v=>{B2.view=v;T3&&T3.setView&&T3.setView(v);ui2();});
+segOn($('speed2'),v=>{B2.speed=+v;ui2();});
+document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{B2.play=false;B2.t=Math.round(B2.t/(PER2/8))*(PER2/8)+(+b.dataset.step)*PER2/8;ui2();kick();}));
+$('play2').addEventListener('click',()=>{B2.play=!B2.play;ui2();kick();});
+$('obs2').addEventListener('input',e=>{B2.obs=+e.target.value;kick();});
+$('hand2').addEventListener('change',e=>{B2.hand=e.target.checked;kick();});
+$('lab2').addEventListener('change',e=>{B2.labels=e.target.checked;kick();});
+$('myth2t').addEventListener('change',e=>{B2.myth=e.target.checked;ui2();kick();});
+$('reset2').addEventListener('click',()=>{Object.assign(B2,{E:'+z',B:'-y',names:'xyz',play:true,t:0,speed:.5,obs:.62,labels:true,myth:false,hand:true,view:'free'});lastValid={E:'+z',B:'-y'};if(T3&&T3.orient){T3.orient();T3.setView('free');}ui2();kick();});
+$('fs2').addEventListener('click',()=>{const a=$('stage2');if(document.fullscreenElement)document.exitFullscreen();else(a.requestFullscreen||a.webkitRequestFullscreen).call(a);});
+let T3=null;
+async function init3(){
+  if(T3)return;T3={};
+  try{
+    const THREE=await import('three');const{OrbitControls}=await import('../vendor/three/OrbitControls.js');
+    const stage=$('stage2'),canvas=$('c2');
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(DPR());
+    const scene=new THREE.Scene();scene.background=new THREE.Color('#0b1226');
+    const camera=new THREE.PerspectiveCamera(38,1,.1,400);
+    const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=8;controls.maxDistance=80;controls.rotateSpeed=.7;
+    controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};
+    const L=18,LAM=6,A=2.4,N=241,M=37,E_COL=0xff5a4e,B_COL=0x4fa3ff,C_COL=0xffd34d;
+    const P=v=>new THREE.Vector3(v[0],v[2],-v[1]);
+    const wave=new THREE.Group();scene.add(wave);
+    {const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-L/2-.4,0,0),new THREE.Vector3(L/2+.6,0,0)]);wave.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:C_COL})));
+      const cone=new THREE.Mesh(new THREE.ConeGeometry(.3,.9,20),new THREE.MeshBasicMaterial({color:C_COL}));cone.rotation.z=-Math.PI/2;cone.position.x=L/2+1;wave.add(cone);}
+    function field(color,axis){
+      const cpos=new Float32Array(N*3),cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.BufferAttribute(cpos,3));
+      const curve=new THREE.Line(cg,new THREE.LineBasicMaterial({color}));
+      const spos=new Float32Array(N*6),sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(spos,3));
+      const idx=[];for(let i=0;i<N-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2);}sg.setIndex(idx);
+      const sheet=new THREE.Mesh(sg,new THREE.MeshBasicMaterial({color,transparent:true,opacity:.17,side:THREE.DoubleSide,depthWrite:false}));
+      const tpos=new Float32Array(M*6),tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tpos,3));
+      const stems=new THREE.LineSegments(tg,new THREE.LineBasicMaterial({color,transparent:true,opacity:.8}));
+      [curve,sheet,stems].forEach(o=>{o.frustumCulled=false;wave.add(o);});
+      const put=(arr,o,x,v)=>{arr[o]=x;arr[o+1]=axis===1?v:0;arr[o+2]=axis===2?v:0;};
+      return{update(ph){for(let i=0;i<N;i++){const x=-L/2+L*i/(N-1),v=A*ph(x);put(cpos,i*3,x,v);put(spos,i*6,x,0);put(spos,i*6+3,x,v);}
+        for(let j=0;j<M;j++){const x=-L/2+L*j/(M-1),v=A*ph(x);put(tpos,j*6,x,0);put(tpos,j*6+3,x,v);}
+        cg.attributes.position.needsUpdate=sg.attributes.position.needsUpdate=tg.attributes.position.needsUpdate=true;}};}
+    const Ef=field(E_COL,1),Bf=field(B_COL,2);
+    function arrow3(color,r=.09){const g=new THREE.Group(),m=new THREE.MeshBasicMaterial({color});
+      const shaft=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,12),m),head=new THREE.Mesh(new THREE.ConeGeometry(r*2.6,r*6,16),m);g.add(shaft,head);
+      g.set=(dir,len)=>{if(len<.08){g.visible=false;return;}g.visible=true;const hl=Math.min(r*6,len*.6);shaft.scale.y=len-hl;shaft.position.y=(len-hl)/2;head.scale.y=hl/(r*6);head.position.y=len-hl/2;g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);};
+      return g;}
+    const obs=new THREE.Group();wave.add(obs);
+    {const pg=new THREE.PlaneGeometry(A*2.5,A*2.5);const slab=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06,side:THREE.DoubleSide,depthWrite:false}));slab.rotation.y=Math.PI/2;obs.add(slab);
+      const edge=new THREE.LineSegments(new THREE.EdgesGeometry(pg),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));edge.rotation.y=Math.PI/2;obs.add(edge);}
+    const aE=arrow3(E_COL,.11),aB=arrow3(B_COL,.11),aC=arrow3(C_COL,.08);obs.add(aE,aB,aC);
+    const curl=new THREE.Group();obs.add(curl);
+    {const R=1.25,mat=new THREE.MeshBasicMaterial({color:0xffffff});const tor=new THREE.Mesh(new THREE.TorusGeometry(R,.05,8,40,Math.PI/2*.88),mat);
+      tor.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0)));
+      const a=Math.PI/2*.88,head=new THREE.Mesh(new THREE.ConeGeometry(.16,.45,12),mat);head.position.set(0,R*Math.cos(a),R*Math.sin(a));
+      head.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(0,-Math.sin(a),Math.cos(a)));curl.add(tor,head);curl.position.x=-.5;}
+    // gizmo
+    const gScene=new THREE.Scene();gScene.background=new THREE.Color('#141d3a');const gCam=new THREE.PerspectiveCamera(32,1,.1,50);
+    for(const k of['+x','+y','+z']){const col=k==='+x'?0xff9f6b:k==='+y'?0x8be28b:0x9cc3ff;const a=arrow3(col,.05);a.set(P(V3[k]).normalize(),1.3);gScene.add(a);
+      const neg=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),P(V3[k]).multiplyScalar(-1.2)]),new THREE.LineBasicMaterial({color:col,transparent:true,opacity:.45}));gScene.add(neg);}
+    function orient(){const c=cDir()||keyOf(cross(V3[lastValid.E],V3[lastValid.B]));const E=cDir()?B2.E:lastValid.E,Bk=cDir()?B2.B:lastValid.B;
+      wave.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(P(V3[c]),P(V3[E]),P(V3[Bk])));}
+    const VIEWS={free:[-7,6.5,17],E:[0,.7,22],B:[0,22,.7],along:[-24,2.4,3.4]};
+    let trans=null,need=0;
+    function setView(v,instant){B2.view=v;const to=new THREE.Vector3(...VIEWS[v]).applyQuaternion(wave.quaternion);
+      if(camera.aspect<1)to.multiplyScalar(Math.pow(1/camera.aspect,.6));
+      if(instant){camera.position.copy(to);controls.target.set(0,0,0);controls.update();return;}
+      trans={from:camera.position.clone(),to,ft:controls.target.clone(),t0:performance.now(),dur:900};kick();}
+    controls.addEventListener('change',()=>{need=30;kick();});
+    controls.addEventListener('start',()=>{trans=null;});
+    let VW=1,VH=1;
+    function resize(){const r=stage.getBoundingClientRect();VW=Math.max(1,r.width);VH=Math.max(1,r.height);renderer.setSize(VW,VH,false);camera.aspect=VW/VH;camera.updateProjectionMatrix();}
+    new ResizeObserver(()=>{resize();kick();}).observe(stage);
+    // labels
+    const LB={},lbEl=$('labels2'),tv=new THREE.Vector3();
+    function lbl(key,txt,cls){let el=LB[key];if(!el){el=document.createElement('div');el.className='lbl '+(cls||'');lbEl.appendChild(el);LB[key]=el;}if(el._t!==txt){el.textContent=txt;el._t=txt;}el._u=true;return el;}
+    function place(key,txt,pos,cls,cam=camera,box=null){const v=tv.copy(pos).project(cam);const el=lbl(key,txt,cls);
+      if(v.z>1||v.z<-1){el.style.display='none';return;}const bx=box?box[0]:0,by=box?box[1]:0,bw=box?box[2]:VW,bh=box?box[3]:VH;
+      el.style.display='';el.style.transform=`translate(${bx+(v.x*.5+.5)*bw}px,${by+(-v.y*.5+.5)*bh}px) translate(-50%,-50%)`;}
+    const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+    function frame(now){
+      const k=TAU/LAM,w=TAU/PER2,ph0=x=>Math.sin(k*x-w*B2.t),ph1=x=>Math.sin(k*x-w*B2.t+(B2.myth?-Math.PI/2:0));
+      Ef.update(ph0);Bf.update(ph1);
+      const xo=-L/2+L*B2.obs;obs.position.x=xo;const ve=ph0(xo),vb=ph1(xo);
+      aE.set(new THREE.Vector3(0,ve>=0?1:-1,0),Math.abs(ve)*A);aB.set(new THREE.Vector3(0,0,vb>=0?1:-1),Math.abs(vb)*A);aC.set(new THREE.Vector3(1,0,0),1.9);
+      curl.visible=B2.hand;
+      if(trans){const kk=clamp((now-trans.t0)/trans.dur,0,1),s=ease(kk);camera.position.lerpVectors(trans.from,trans.to,s);controls.target.lerpVectors(trans.ft,new THREE.Vector3(),s);camera.lookAt(controls.target);
+        if(kk>=1){trans=null;controls.update();}}
+      else controls.update();
+      renderer.setScissorTest(false);renderer.setViewport(0,0,VW,VH);renderer.render(scene,camera);
+      // gizmo (top-right)
+      const gs=VW<560?92:120,gx=VW-gs-14,gyTop=(document.querySelector('#stage2 .ov.top').offsetHeight||56)+4;
+      gCam.position.copy(camera.position).sub(controls.target).setLength(6.2);gCam.up.copy(camera.up);gCam.lookAt(0,0,0);gCam.aspect=1;gCam.updateProjectionMatrix();
+      renderer.setScissorTest(true);renderer.setScissor(gx,VH-gyTop-gs,gs,gs);renderer.setViewport(gx,VH-gyTop-gs,gs,gs);renderer.render(gScene,gCam);renderer.setScissorTest(false);
+      $('gizcap').style.top=(gyTop+gs+2)+'px';$('gizcap').style.width=gs+'px';
+      // labels
+      Object.values(LB).forEach(e=>e._u=false);
+      const nm=NM[B2.names],box=[gx,gyTop,gs,gs];
+      for(const kk of(B2.names==='geo'?Object.keys(V3):['+x','+y','+z']))place('g'+kk,nm[kk].replace('+',''),P(V3[kk]).multiplyScalar(1.6),'g',gCam,box);
+      const W=v=>wave.localToWorld(v);
+      if(B2.labels){
+        place('E','E 電場',W(new THREE.Vector3(-L/2+LAM*.25,A*1.28,0)),'e');
+        place('B','B 磁場',W(new THREE.Vector3(-L/2+LAM*.25,0,A*1.3)),'b');
+        place('c','c 前進方向',W(new THREE.Vector3(L/2+1.6,.7,0)),'c');
+        place('o','觀察點',W(new THREE.Vector3(xo,-A*1.4,-A*.2)),'sm');
+        if(B2.hand)place('h','四指 E→B，拇指 c',W(new THREE.Vector3(xo-.5,A*.75,A*.75)),'sm');
+      }
+      Object.values(LB).forEach(e=>{if(!e._u)e.style.display='none';});
+      // readouts
+      const bar=(el,v,col)=>{el.style.background=col;el.style.left=(v>=0?50:50+v*50)+'%';el.style.width=Math.abs(v)*50+'%';};
+      bar($('mE'),ve,C.ef);bar($('mB'),vb,C.bf);$('mEo').textContent=(ve>=0?'+':'−')+Math.abs(ve).toFixed(2);$('mBo').textContent=(vb>=0?'+':'−')+Math.abs(vb).toFixed(2);
+      $('phase2').innerHTML=B2.myth?'<span style="color:#c0453b">✕ 迷思圖像：E 最大時 B 是 0，輪流出現</span>':'<span style="color:var(--green)">✓ E 和 B 同時最大、同時為零（同相）</span>';
+      if(need>0)need--;
+      return trans||need>0;}
+    Object.assign(T3,{orient,setView,frame});
+    resize();orient();setView(B2.view,true);ui2();kick();
+  }catch(err){console.error(err);$('stage2').insertAdjacentHTML('beforeend','<div class="msg3d">這台裝置無法顯示 3D 畫面（WebGL）。<br>請改用其他瀏覽器或電腦。</div>');T3={};}
+}
+function tick2(dt){if(!T3||!T3.frame)return false;if(B2.play)B2.t+=dt*B2.speed;const busy=T3.frame(performance.now());return B2.play||busy;}
+
+// =====================================================================
+// 3 赫茲的實驗
+// =====================================================================
+const B3={play:true,t:0,spark:-99,period:3.8,V:.7,shield:'none',wave:true,rx:.74,ry:.5,rSpark:-99,peak:0};
+const cv3=$('cv3'),g3=cv3.getContext('2d');let W3=800,H3=360,c3=128;
+const oc=document.createElement('canvas'),og=oc.getContext('2d');let OS=4,ow=1,oh=1,oimg=null;
+function size3(){const r=fit(cv3,.46,280,500);W3=r.W;H3=r.H;c3=W3*.16;OS=W3<600?3:4;ow=Math.ceil(W3/OS);oh=Math.ceil(H3/OS);oc.width=ow;oc.height=oh;oimg=og.createImageData(ow,oh);}
+const X0=()=>W3*.2,Y0=()=>H3*.5,R0=()=>W3*.3;
+const q3=u=>(u<0||u>3.2)?0:Math.exp(-1.15*u)*Math.sin(TAU*1.1*u);
+function plate3(){const xr=B3.rx*W3,xp=(X0()+xr)/2;return{xp,half:H3*.3};}
+function cage3(){const s=Math.max(W3*.075,46);return{x:B3.rx*W3,y:B3.ry*H3,s};}
+function field3(x,y){const dx=x-X0(),dy=y-Y0(),r=Math.hypot(dx,dy);if(r<4)return 0;
+  const u=B3.t-B3.spark-r/c3;let v=B3.V*q3(u)*Math.abs(dx)/r*R0()/Math.max(r,R0()*.35);
+  if(B3.shield==='plate'){const{xp,half}=plate3();
+    if(xp>X0()){if(x>xp&&Math.abs(dy)<half*(x-X0())/(xp-X0()))return 0;
+      if(x<xp){const xi=2*xp-X0(),dxi=x-xi,ri=Math.hypot(dxi,dy);if(Math.abs(dy)<half*(xi-x)/(xi-xp)){const ui=B3.t-B3.spark-ri/c3;v-=B3.V*q3(ui)*Math.abs(dxi)/ri*R0()/Math.max(ri,R0()*.35);}}}}
+  if(B3.shield==='cage'){const k=cage3();if(Math.abs(x-k.x)<k.s&&Math.abs(y-k.y)<k.s)return 0;}
+  return v;}
+function expected3(){const x=B3.rx*W3,y=B3.ry*H3,dx=x-X0(),dy=y-Y0(),r=Math.hypot(dx,dy);return{amp:B3.V*.78*Math.abs(dx)/r*R0()/Math.max(r,R0()*.35),sin:Math.abs(dx)/r,r};}
+const THR3=.22;
+function zig(g,x1,y1,x2,y2,seed){g.beginPath();g.moveTo(x1,y1);const n=6;for(let i=1;i<n;i++){const f=i/n,j=(Math.sin(seed*13.7+i*7.1)*.5)*Math.max(6,Math.abs(y2-y1)*.5+Math.abs(x2-x1)*.5);
+  g.lineTo(lerp(x1,x2,f)+(Math.abs(x2-x1)<Math.abs(y2-y1)?j:0),lerp(y1,y2,f)+(Math.abs(x2-x1)>=Math.abs(y2-y1)?j:0));}g.lineTo(x2,y2);g.stroke();}
+function draw3(){const g=g3,W=W3,H=H3;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  if(B3.wave&&oimg){const d=oimg.data,pr=hexRGB(C.panel),er=hexRGB(C.ef),br=hexRGB(C.bf);
+    for(let j=0;j<oh;j++)for(let i=0;i<ow;i++){const v=field3((i+.5)*OS,(j+.5)*OS),a=clamp(Math.abs(v)*1.1,0,.85),c=v>0?er:br,p=(j*ow+i)*4;
+      d[p]=pr[0]+(c[0]-pr[0])*a;d[p+1]=pr[1]+(c[1]-pr[1])*a;d[p+2]=pr[2]+(c[2]-pr[2])*a;d[p+3]=255;}
+    og.putImageData(oimg,0,0);g.imageSmoothingEnabled=true;g.drawImage(oc,0,0,ow*OS,oh*OS);}
+  const x0=X0(),y0=Y0(),rod=H*.34,gap=6,u=B3.t-B3.spark,q=B3.V*q3(u);
+  // coil + wires
+  const bx=W*.03,by=H*.66,bw=W*.1,bh=H*.2;g.fillStyle=C.panel;g.strokeStyle=C.muted;g.lineWidth=2;g.fillRect(bx,by,bw,bh);g.strokeRect(bx,by,bw,bh);
+  g.beginPath();for(let i=0;i<7;i++){const xx=bx+bw*(.15+.7*i/6);g.moveTo(xx,by+bh*.2);g.lineTo(xx,by+bh*.8);}g.stroke();
+  text(g,'感應線圈',bx+bw/2,by+bh+16,{col:C.muted,size:12,align:'center'});
+  g.beginPath();g.moveTo(bx+bw*.3,by);g.lineTo(bx+bw*.3,y0-gap-10);g.lineTo(x0-3,y0-gap-10);g.moveTo(bx+bw*.7,by);g.lineTo(bx+bw*.7,y0+gap+10);g.lineTo(x0-3,y0+gap+10);g.stroke();
+  // rods + balls
+  g.strokeStyle=C.ink;g.lineWidth=5;g.lineCap='round';g.beginPath();g.moveTo(x0,y0-rod);g.lineTo(x0,y0-gap);g.moveTo(x0,y0+gap);g.lineTo(x0,y0+rod);g.stroke();g.lineCap='butt';
+  const ball=(x,y,r,s)=>{g.fillStyle=C.muted;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();if(Math.abs(s)>.03){g.globalAlpha=clamp(Math.abs(s)*1.3,0,1);g.fillStyle=s>0?C.ef:C.bf;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.globalAlpha=1;
+    text(g,s>0?'+':'−',x,y+1,{col:'#fff',size:r*1.3,bold:true,align:'center',base:'middle'});}};
+  const br=Math.max(9,W*.018);ball(x0,y0-rod,br,q);ball(x0,y0+rod,br,-q);
+  if(u>=0&&u<1.1){g.strokeStyle='#ffd34d';g.lineWidth=2.5;g.shadowColor='#ffd34d';g.shadowBlur=12;zig(g,x0,y0-gap,x0,y0+gap,Math.floor(B3.t*30));g.shadowBlur=0;}
+  text(g,'發射器',x0+14,y0-rod-4,{col:C.ink,size:13,bold:true,bg:C.panel});
+  // shields
+  if(B3.shield==='plate'){const{xp,half}=plate3();g.fillStyle=C.muted;g.fillRect(xp-4,y0-half,8,half*2);text(g,'金屬板',xp,y0-half-8,{col:C.muted,size:12,align:'center',bg:C.panel});}
+  // receiver
+  const rx=B3.rx*W,ry=B3.ry*H,rr=Math.max(W*.045,26);g.strokeStyle=C.ink;g.lineWidth=4;g.beginPath();g.arc(rx,ry,rr,-Math.PI/2+.22,Math.PI*1.5-.22);g.stroke();
+  const ga=-Math.PI/2;g.fillStyle=C.ink;[ga+.22,ga-.22].forEach(a=>{g.beginPath();g.arc(rx+rr*Math.cos(a),ry+rr*Math.sin(a),4,0,TAU);g.fill();});
+  if(B3.t-B3.rSpark<.18){g.strokeStyle='#ffd34d';g.lineWidth=2.5;g.shadowColor='#ffd34d';g.shadowBlur=14;zig(g,rx+rr*Math.cos(ga+.22),ry-rr*Math.sin(.22)*0-rr,rx+rr*Math.cos(ga-.22),ry-rr,Math.floor(B3.t*40));g.shadowBlur=0;
+    text(g,'⚡',rx,ry-rr-14,{size:20,align:'center'});}
+  text(g,'接收環',rx,ry+rr+18,{col:C.ink,size:13,bold:true,align:'center',bg:C.panel});
+  if(B3.shield==='cage'){const k=cage3();g.strokeStyle=C.muted;g.lineWidth=1;g.globalAlpha=.8;g.beginPath();for(let a=-k.s;a<=k.s;a+=8){g.moveTo(k.x+a,k.y-k.s);g.lineTo(k.x+a,k.y+k.s);g.moveTo(k.x-k.s,k.y+a);g.lineTo(k.x+k.s,k.y+a);}g.stroke();g.globalAlpha=1;g.lineWidth=3;g.strokeRect(k.x-k.s,k.y-k.s,k.s*2,k.s*2);}
+  // distance
+  text(g,'距離 '+Math.round(Math.hypot(rx-x0,ry-y0)/c3*10)/10+' 格（光走 1 秒＝1 格）',W-8,H-8,{col:C.muted,size:11,align:'right'});
+}
+function ui3(){$('play3').textContent=B3.play?'❚❚ 停止自動放電':'▶ 自動放電';segSet($('shield3'),B3.shield);$('wave3').checked=B3.wave;$('v3o').textContent=Math.round(B3.V*100)+'%';$('v3').value=B3.V;
+  const e=expected3();let m,n;
+  if(B3.shield==='plate'){m='沒有火花：被金屬板擋住了';n='金屬會反射電磁波（看板子前方的波被彈回來）。這也是微波爐門上有金屬網、電梯裡收訊差的原因。';}
+  else if(B3.shield==='cage'){m='沒有火花：金屬盒裡收不到電磁波';n='這就是「法拉第籠」。把手機放進鐵製餅乾盒蓋好，打電話給它——打不通。';}
+  else if(e.sin<.35){m='幾乎沒有火花：接收環在發射器的正上方或正下方';n='電荷上下振盪時，電磁波主要往水平方向（和振盪方向垂直）發射，沿著振盪方向幾乎不發射。';}
+  else if(e.amp<THR3){m='沒有火花：太遠了';n='電磁波越往外傳越弱，傳到這裡已經不夠強。把接收環拉近，或把感應線圈的電壓調高。';}
+  else{m='⚡ 接收環的缺口跳出火花！';n='看不見的電磁波穿過空氣，在接收環上感應出電流。赫茲就是這樣證實了電磁波的存在。';}
+  $('msg3').textContent=m;$('msg3b').textContent=n;}
+function tick3(dt){if(B3.play){if(B3.t-B3.spark>B3.period)B3.spark=B3.t;}B3.t+=dt;
+  if(dt>0){const v=Math.abs(field3(B3.rx*W3,B3.ry*H3-Math.max(W3*.045,26)));if(v>THR3)B3.rSpark=B3.t;}
+  draw3();return B3.play||B3.t-B3.spark<4.5||B3.t-B3.rSpark<.3;}
+$('play3').addEventListener('click',()=>{B3.play=!B3.play;if(B3.play)B3.spark=B3.t;ui3();kick();});
+$('spark3').addEventListener('click',()=>{B3.spark=B3.t;kick();});
+segOn($('shield3'),v=>{B3.shield=v;ui3();kick();});
+$('wave3').addEventListener('change',e=>{B3.wave=e.target.checked;kick();});
+$('v3').addEventListener('input',e=>{B3.V=+e.target.value;ui3();kick();});
+{let drag=false;const pos=ev=>{const r=cv3.getBoundingClientRect();return[ev.clientX-r.left,ev.clientY-r.top];};
+  const hit=(x,y)=>Math.hypot(x-B3.rx*W3,y-B3.ry*H3)<Math.max(W3*.045,26)+18;
+  cv3.addEventListener('pointerdown',ev=>{const[x,y]=pos(ev);if(hit(x,y)){drag=true;cv3.setPointerCapture(ev.pointerId);ev.preventDefault();}});
+  cv3.addEventListener('pointermove',ev=>{const[x,y]=pos(ev);if(!drag){cv3.style.cursor=hit(x,y)?'grab':'default';return;}
+    B3.rx=clamp(x/W3,.36,.95);B3.ry=clamp(y/H3,.14,.86);ui3();kick();});
+  const up=()=>drag=false;cv3.addEventListener('pointerup',up);cv3.addEventListener('pointercancel',up);}
+const STORIES={
+  useless:['科學家小故事｜「這一點用處也沒有」','據赫茲的學生回憶，有人問他這個發現能做什麼，赫茲說：「一點用處也沒有……這只是證明馬克士威大師是對的實驗而已。」\n不到十年，義大利青年馬可尼就用電磁波發送無線電報；1901 年，訊號橫越了大西洋。今天的廣播、手機、Wi-Fi、衛星導航，全都源自這個「沒用」的實驗。赫茲 1894 年過世，年僅 36 歲。'],
+  photo:['順手發現光電效應','1887 年，赫茲注意到紫外線照到接收器的火花間隙時，火花比較容易跳出來——這就是光電效應，後來成為光具有「粒子性」的證據。\n證實光是波的人，同時找到了光是粒子的線索。'],
+  cage:['示範：法拉第籠','把手機放進鐵製餅乾盒，或用鋁箔包緊，再打電話給它——打不通。金屬會擋住（反射）電磁波。\n這也解釋了為什麼電梯裡收訊差、微波爐門上有一層金屬網。在上面選「接收環放進金屬盒」看看。']};
+document.querySelectorAll('[data-story]').forEach(b=>b.addEventListener('click',()=>{const s=STORIES[b.dataset.story];showStory(s[0],s[1]);if(b.dataset.story==='cage'){B3.shield='cage';ui3();kick();}$('story').scrollIntoView({behavior:'smooth',block:'nearest'});}));
+
+// =====================================================================
+// 4 電磁波譜
+// =====================================================================
+const CL=3e8;  // 講義用 c≈3×10⁸ m/s
+const BANDS=[
+  {k:'radio',n:'無線電波',lo:3,hi:9,col:'#5f7d95',lam:'約 30 cm 以上',use:'廣播、電視、無線電通訊、RFID',tip:'AM 廣播波長數百公尺，FM 約 3 m。'},
+  {k:'micro',n:'微波',lo:9,hi:Math.log10(3e11),col:'#3f9a8a',lam:'約 1 mm ～ 30 cm',use:'微波爐、手機、Wi-Fi、雷達、衛星通訊',tip:'微波爐約 2.45 GHz（λ≈12 cm）。'},
+  {k:'ir',n:'紅外線',lo:Math.log10(3e11),hi:Math.log10(CL/700e-9),col:'#b8513b',lam:'約 700 nm ～ 1 mm',use:'遙控器、熱像儀、夜視、暖爐',tip:'溫暖的物體（包括人體）都會放出紅外線。'},
+  {k:'vis',n:'可見光',lo:Math.log10(CL/700e-9),hi:Math.log10(CL/400e-9),col:null,lam:'約 400 nm ～ 700 nm',use:'視覺；紅→橙→黃→綠→藍→靛→紫',tip:'紫光頻率最高、紅光最低。'},
+  {k:'uv',n:'紫外線',lo:Math.log10(CL/400e-9),hi:Math.log10(CL/10e-9),col:'#7457cf',lam:'約 10 nm ～ 400 nm',use:'殺菌燈、驗鈔、使皮膚曬黑／曬傷',tip:'臭氧層吸收了大部分的紫外線。'},
+  {k:'x',n:'X 射線',lo:Math.log10(CL/10e-9),hi:Math.log10(CL/.01e-9),col:'#4669b8',lam:'約 0.01 nm ～ 10 nm',use:'醫學影像、行李檢查、晶體結構分析',tip:'能穿透肌肉，被骨骼吸收較多。'},
+  {k:'g',n:'γ 射線',lo:Math.log10(CL/.01e-9),hi:22,col:'#34446a',lam:'小於約 0.01 nm',use:'原子核衰變、癌症放射治療、食品滅菌',tip:'能量最高、穿透力最強。'}];
+const LF0=3,LF1=22;
+const SIZES=[[100,'足球場'],[1.7,'人'],[2e-2,'硬幣'],[1e-4,'頭髮粗細'],[2e-6,'細菌'],[1e-7,'病毒'],[1e-10,'原子'],[1e-14,'原子核']];
+const PRE=[['AM 廣播',6.6e5],['FM 廣播',1e8],['手機 1.9 GHz',1.9e9],['微波爐',2.45e9],['人體紅外線',CL/10e-6],['遙控器',CL/940e-9],['紅光',CL/700e-9],['橙光',CL/600e-9],['綠光',CL/530e-9],['紫光',CL/400e-9],['殺菌燈',CL/254e-9],['X 光',CL/.1e-9],['γ 射線',CL/1e-12]];
+const B4={lf:Math.log10(CL/530e-9),n:1,tags:null,heat:false,H:0,fc:2.45,lt:'moon',ltRun:false,ltT:0,choc:0};
+const cv4=$('cv4'),g4=cv4.getContext('2d');let W4=800,H4=300;
+function size4(){const r=fit(cv4,.34,300,380);W4=r.W;H4=r.H;size4c();size4l();}
+const bx0=()=>16,bx1=()=>W4-16,xOf=lf=>bx0()+(lf-LF0)/(LF1-LF0)*(bx1()-bx0()),lfOf=x=>LF0+(x-bx0())/(bx1()-bx0())*(LF1-LF0);
+function bandOf(lf){return BANDS.find(b=>lf>=b.lo&&lf<b.hi)||(lf<LF0?BANDS[0]:BANDS[6]);}
+function nmRGB(nm){let r=0,g=0,b=0;if(nm<440){r=-(nm-440)/60;b=1;}else if(nm<490){g=(nm-440)/50;b=1;}else if(nm<510){g=1;b=-(nm-510)/20;}else if(nm<580){r=(nm-510)/70;g=1;}else if(nm<645){r=1;g=-(nm-645)/65;}else r=1;
+  let f=1;if(nm<420)f=.35+.65*(nm-380)/40;else if(nm>700)f=.35+.65*(780-nm)/80;const k=v=>Math.round(255*Math.pow(clamp(v*f,0,1),.8));return`rgb(${k(r)},${k(g)},${k(b)})`;}
+function colorName(nm){return nm>=620?'紅光':nm>=590?'橙光':nm>=570?'黃光':nm>=495?'綠光':nm>=450?'藍光':nm>=430?'靛光':'紫光';}
+function draw4(){const g=g4,W=W4,H=H4;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  const small=W<640,fs=small?10:12,yW=H*.2,amp=H*.075,yB0=H*.36,yB1=H*.5;
+  // chirp
+  g.strokeStyle=C.ink;g.lineWidth=1.4;g.globalAlpha=.75;g.beginPath();let ph=0;const l0=small?60:110,l1=1.6;
+  for(let x=bx0();x<=bx1();x+=.5){const f=(x-bx0())/(bx1()-bx0()),lam=l0*Math.pow(l1/l0,f);ph+=TAU*.5/lam;const y=yW+amp*Math.sin(ph);if(x===bx0())g.moveTo(x,y);else g.lineTo(x,y);}g.stroke();g.globalAlpha=1;
+  text(g,'波長長',bx0(),yW-amp-8,{col:C.muted,size:fs});text(g,'波長短',bx1(),yW-amp-8,{col:C.muted,size:fs,align:'right'});
+  // bar
+  for(const b of BANDS){const x1=xOf(b.lo),x2=xOf(b.hi);if(b.k==='vis'){const gr=g.createLinearGradient(x1,0,x2,0);[700,650,600,550,500,450,400].forEach((nm,i)=>gr.addColorStop(i/6,nmRGB(nm)));g.fillStyle=gr;}else g.fillStyle=b.col;
+    g.fillRect(x1,yB0,x2-x1,yB1-yB0);
+    if(b.k!=='vis'){const w=x2-x1,lab=b.n;g.font=`700 ${fs+1}px "Noto Sans TC",sans-serif`;if(g.measureText(lab).width<w-4)text(g,lab,(x1+x2)/2,(yB0+yB1)/2+1,{col:'#fff',size:fs+1,bold:true,align:'center',base:'middle'});
+      else if(!small||b.k!=='ir')text(g,b.k==='ir'?'紅外':b.k==='uv'?'紫外':b.k==='micro'?'微波':b.n,(x1+x2)/2,(yB0+yB1)/2+1,{col:'#fff',size:fs,bold:true,align:'center',base:'middle'});}}
+  // visible zoom
+  {const v=BANDS[3],x1=xOf(v.lo),x2=xOf(v.hi),zy=H*.6,zh=H*.06,zw=Math.min(W*.42,360),zx=clamp((x1+x2)/2-zw/2,bx0(),bx1()-zw);
+    g.strokeStyle=C.muted;g.lineWidth=1;g.beginPath();g.moveTo(x1,yB1);g.lineTo(zx,zy);g.moveTo(x2,yB1);g.lineTo(zx+zw,zy);g.stroke();
+    const gr=g.createLinearGradient(zx,0,zx+zw,0);for(let i=0;i<=12;i++)gr.addColorStop(i/12,nmRGB(700-300*i/12));g.fillStyle=gr;g.fillRect(zx,zy,zw,zh);
+    text(g,'紅 700 nm',zx,zy+zh+fs+3,{col:C.muted,size:fs});text(g,'可見光',zx+zw/2,zy+zh+fs+3,{col:C.ink,size:fs,bold:true,align:'center'});text(g,'400 nm 紫',zx+zw,zy+zh+fs+3,{col:C.muted,size:fs,align:'right'});}
+  // f axis (above bar)
+  g.fillStyle=C.muted;g.strokeStyle=C.muted;
+  for(let e=3;e<=21;e+=3){const x=xOf(e);g.beginPath();g.moveTo(x,yB0-4);g.lineTo(x,yB0);g.stroke();text(g,'10'+sup(e),x,yB0-6,{col:C.muted,size:fs,align:'center',font:MONO});}
+  if(!B4.tags)text(g,'頻率（Hz）',bx0(),yB0-6-fs-4,{col:C.muted,size:fs});
+  // λ axis (below bar)
+  const LT=[[1e3,'1 km'],[1,'1 m'],[1e-3,'1 mm'],[1e-6,'1 μm'],[1e-9,'1 nm'],[1e-12,'1 pm']];
+  for(const[l,s]of LT){const x=xOf(Math.log10(CL/l));g.beginPath();g.moveTo(x,yB1);g.lineTo(x,yB1+4);g.stroke();text(g,s,x,yB1+fs+5,{col:C.muted,size:fs,align:'center',font:MONO});}
+  text(g,'波長',bx0(),yB1+fs+5,{col:C.muted,size:fs});
+  // size row
+  const yS=H*.86;SIZES.forEach(([l,s],i)=>{const x=xOf(Math.log10(CL/l));if(x<bx0()||x>bx1())return;const yy=yS+(i%2)*(fs+5);g.globalAlpha=.6;g.beginPath();g.moveTo(x,yy-fs-2);g.lineTo(x,yy-fs-7);g.stroke();g.globalAlpha=1;
+    text(g,s,x,yy,{col:C.ink,size:fs,align:'center'});});
+  text(g,'和波長差不多大的東西',bx0(),yS-fs-10,{col:C.muted,size:fs});
+  // tags (Q11)
+  if(B4.tags){let px=-99,lv=0;[...B4.tags].sort((a,b)=>a[1]-b[1]).forEach(([lab,f])=>{const x=xOf(Math.log10(f));lv=x-px<fs*2.2?lv+1:0;px=x;const yt=yB0-20-lv*(fs+8);g.fillStyle=C.purple;g.beginPath();g.moveTo(x,yB0-2);g.lineTo(x-7,yB0-16);g.lineTo(x+7,yB0-16);g.closePath();g.fill();
+    if(lv){g.strokeStyle=C.purple;g.lineWidth=1;g.beginPath();g.moveTo(x,yB0-16);g.lineTo(x,yt+2);g.stroke();}
+    text(g,lab,x,yt,{col:C.purple,size:fs+3,bold:true,align:'center',bg:C.panel});});}
+  // marker
+  if(B4.lf!=null){const x=xOf(B4.lf);g.strokeStyle=C.accent;g.lineWidth=2.5;g.beginPath();g.moveTo(x,yW-amp-2);g.lineTo(x,yB1+2);g.stroke();
+    g.fillStyle=C.accent;g.beginPath();g.arc(x,yB1+2,7,0,TAU);g.fill();g.beginPath();g.arc(x,yW-amp-2,5,0,TAU);g.fill();}
+}
+function read4(){const lf=B4.lf;if(lf==null)return;const f=Math.pow(10,lf),lam=CL/f,b=bandOf(lf);
+  let nm='';if(b.k==='vis'){const n=lam*1e9;nm=`<small><span class="swatch" style="background:${nmRGB(n)}"></span>${colorName(n)}</small>`;}
+  $('band4').innerHTML=b.n+nm;
+  let near=SIZES.reduce((a,s)=>Math.abs(Math.log10(s[0]/lam))<Math.abs(Math.log10(a[0]/lam))?s:a);
+  const sizeTxt=Math.abs(Math.log10(near[0]/lam))<1?near[1]:'—';
+  $('dl4').innerHTML=`<dt>頻率 f</dt><dd>${fmtF(f)}　(${sci(f,3)} Hz)</dd><dt>波長 λ</dt><dd>${fmtLen(lam)}　(${sci(lam,3)} m)</dd><dt>大小約和</dt><dd style="font-family:var(--f-body)">${sizeTxt}</dd><dt>這一段</dt><dd style="font-family:var(--f-body)">${b.lam}</dd>`;
+  $('use4').innerHTML=`<b>來源與應用：</b>${b.use}`;$('tip4').textContent=b.tip;
+  if(document.activeElement!==$('fIn')){const u=+$('fU').value;$('fIn').value=+(f/u).toPrecision(4);}
+  if(document.activeElement!==$('lIn')){const u=+$('lU').value;$('lIn').value=+(lam/u).toPrecision(4);}
+  const n=B4.n,v=CL/n,l2=lam/n,mname={1:'真空',1.0003:'空氣',1.3333:'水',1.5:'玻璃'}[n];
+  let o=`<div>在${mname}中：速率 v = c ⁄ n = <span class="mono">${sci(v,3)} m/s</span>${n>1.01?`（n = ${n===1.3333?'4/3':n}）`:''}</div><div>頻率 <b>不變</b>：<span class="mono">${fmtF(f)}</span></div><div>波長 λ' = λ ⁄ n = <span class="mono">${fmtLen(l2)}</span></div>`;
+  if(b.k==='vis'&&n>1.01)o+=`<div>顏色由頻率決定，進入${mname}後仍是 <b>${colorName(lam*1e9)}</b>，不會因為波長變短就變色。</div>`;
+  $('out4').innerHTML=o;segSet($('med4'),n);}
+function selNum(el,u){[...el.options].forEach(o=>o.selected=Math.abs(+o.value/u-1)<1e-9);}
+function setUnits4(f){const lam=CL/f;const fu=[1e12,1e9,1e6,1e3,1].find(u=>f>=u)||1;selNum($('fU'),fu);const lu=[1e3,1,1e-2,1e-3,1e-6,1e-9,1e-12].find(u=>lam>=u*.9999)||1e-12;selNum($('lU'),lu);}
+function setF4(f,keepUnits){B4.lf=clamp(Math.log10(f),LF0,LF1);if(!keepUnits)setUnits4(f);$('notemOut').innerHTML='';read4();kick();}
+$('pre4').innerHTML=PRE.map(([n],i)=>`<button class="chip" data-i="${i}">${n}</button>`).join('');
+$('pre4').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b){B4.tags=null;setF4(PRE[+b.dataset.i][1]);}});
+$('fIn').addEventListener('input',()=>{const v=+$('fIn').value*+$('fU').value;if(v>0)setF4(v,true);});
+$('lIn').addEventListener('input',()=>{const v=+$('lIn').value*+$('lU').value;if(v>0)setF4(CL/v,true);});
+$('fU').addEventListener('change',()=>{const v=+$('fIn').value*+$('fU').value;if(v>0)setF4(v,true);});
+$('lU').addEventListener('change',()=>{const v=+$('lIn').value*+$('lU').value;if(v>0)setF4(CL/v,true);});
+segOn($('med4'),v=>{B4.n=+v;read4();});
+{let drag=false;const lfAt=ev=>{const r=cv4.getBoundingClientRect();return clamp(lfOf(ev.clientX-r.left),LF0,LF1);};
+  cv4.addEventListener('pointerdown',ev=>{drag=true;cv4.setPointerCapture(ev.pointerId);B4.lf=lfAt(ev);setUnits4(Math.pow(10,B4.lf));$('notemOut').innerHTML='';read4();kick();ev.preventDefault();});
+  cv4.addEventListener('pointermove',ev=>{if(!drag)return;B4.lf=lfAt(ev);setUnits4(Math.pow(10,B4.lf));read4();kick();});
+  const up=()=>drag=false;cv4.addEventListener('pointerup',up);cv4.addEventListener('pointercancel',up);
+  cv4.addEventListener('keydown',ev=>{if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){B4.lf=clamp((B4.lf??14)+(ev.key==='ArrowRight'?.05:-.05)*(ev.shiftKey?10:1),LF0,LF1);setUnits4(Math.pow(10,B4.lf));read4();kick();ev.preventDefault();}});}
+const NOTEM=[
+  ['α 射線',false,'α 射線是<b>氦原子核</b>（帶正電的粒子流），不是電磁波。'],
+  ['β 射線',false,'β 射線是<b>高速電子流</b>（帶負電的粒子），不是電磁波。'],
+  ['陰極射線',false,'陰極射線也是<b>高速電子流</b>，不是電磁波。'],
+  ['超音波',false,'超音波是頻率很高的<b>聲波</b>：力學波、縱波，需要介質，不是電磁波。'],
+  ['聲波',false,'聲波是<b>力學波</b>（縱波），需要介質才能傳播，不是電磁波。'],
+  ['γ 射線',true,'γ 射線<b>是</b>電磁波（頻率最高的一段）。',CL/1e-12],
+  ['雷射光',true,'雷射光<b>是</b>電磁波，例如紅色雷射筆約 650 nm。',CL/650e-9],
+  ['X 射線',true,'X 射線<b>是</b>電磁波。',CL/.1e-9]];
+$('notem').innerHTML=NOTEM.map((n,i)=>`<button class="chip" data-n="${i}">${n[0]}</button>`).join('');
+function showNotem(i){const n=NOTEM[i];if(n[1]){setF4(n[3]);$('notemOut').innerHTML=`<div class="verdict">✓ ${n[2]} 已在上方波譜標出。</div>`;}
+  else $('notemOut').innerHTML=`<div class="warn">✕ ${n[2]}<br><span class="note">判斷技巧：凡是「帶電粒子流」都會被電場、磁場偏轉；電磁波不帶電，不會。</span></div>`;
+  $('notem').querySelectorAll('.chip').forEach((b,j)=>b.setAttribute('aria-pressed',String(j===i)));}
+$('notem').addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(b)showNotem(+b.dataset.n);});
+// chocolate
+const cv4c=$('cv4c'),g4c=cv4c.getContext('2d');let W4c=400,H4c=180;
+function size4c(){const r=fit(cv4c,.45,170,230);W4c=r.W;H4c=r.H;}
+const OVEN=30; // cm
+function drawChoc(){const g=g4c,W=W4c,H=H4c;g.clearRect(0,0,W,H);g.fillStyle=C.panel;g.fillRect(0,0,W,H);
+  const ox=22,ow2=W-44,sx=cm=>ox+cm/OVEN*ow2,lamcm=CL/(B4.fc*1e9)*100,half=lamcm/2,k=TAU/lamcm,yW=H*.3,A=H*.15;
+  g.strokeStyle=C.muted;g.lineWidth=3;g.strokeRect(ox,8,ow2,H-30);text(g,'微波爐內部（寬 30 cm）',ox+6,22,{col:C.muted,size:11});
+  // envelope + standing wave
+  g.setLineDash([4,4]);g.lineWidth=1;g.strokeStyle=C.muted;g.beginPath();for(let s=0;s<=1;s+=.005){const cm=s*OVEN,y=yW-A*Math.abs(Math.sin(k*cm));s?g.lineTo(sx(cm),y):g.moveTo(sx(cm),y);}g.stroke();
+  g.beginPath();for(let s=0;s<=1;s+=.005){const cm=s*OVEN,y=yW+A*Math.abs(Math.sin(k*cm));s?g.lineTo(sx(cm),y):g.moveTo(sx(cm),y);}g.stroke();g.setLineDash([]);
+  g.strokeStyle=C.ef;g.lineWidth=2;g.beginPath();const ct=Math.cos(B4.choc*TAU*.8);for(let s=0;s<=1;s+=.004){const cm=s*OVEN,y=yW-A*Math.sin(k*cm)*ct;s?g.lineTo(sx(cm),y):g.moveTo(sx(cm),y);}g.stroke();
+  // chocolate
+  const cy=H*.66,ch=H*.15,c0=2,c1_=OVEN-2;g.fillStyle='#5a3825';g.fillRect(sx(c0),cy,sx(c1_)-sx(c0),ch);
+  g.strokeStyle='#3d2416';g.lineWidth=1;for(let cm=c0+3.5;cm<c1_;cm+=3.5){g.beginPath();g.moveTo(sx(cm),cy);g.lineTo(sx(cm),cy+ch);g.stroke();}
+  const rad=clamp((B4.H-1.2)/5,0,1);const spots=[];for(let n=0;;n++){const cm=(n+.5)*half;if(cm>OVEN)break;if(cm>c0&&cm<c1_)spots.push(cm);}
+  if(rad>0)spots.forEach(cm=>{const gr=g.createRadialGradient(sx(cm),cy+ch/2,0,sx(cm),cy+ch/2,rad*ow2*.06);gr.addColorStop(0,'#c98c5a');gr.addColorStop(.6,'#a4693f');gr.addColorStop(1,'rgba(90,56,37,0)');g.fillStyle=gr;g.beginPath();g.ellipse(sx(cm),cy+ch/2,rad*ow2*.06,ch*.48,0,0,TAU);g.fill();});
+  text(g,'巧克力',sx(c0)+4,cy-5,{col:C.muted,size:11});
+  if(rad>.5&&spots.length>=2){const a=sx(spots[0]),b=sx(spots[1]),y=cy+ch+12;g.strokeStyle=C.accent;g.fillStyle=C.accent;arrow(g,(a+b)/2,y,a,y,C.accent,1.5,6);arrow(g,(a+b)/2,y,b,y,C.accent,1.5,6);
+    text(g,sig(half,2)+' cm',(a+b)/2,y-4,{col:C.accent,size:12,bold:true,align:'center',bg:C.panel});}
+  const lamcm2=lamcm;$('fc4o').textContent=B4.fc.toFixed(2)+' GHz';
+  $('choc4').innerHTML=rad>.5?`<div>相鄰融化點相距 L ≈ <span class="mono">${sig(half,3)} cm</span>（最熱的點＝駐波的腹點，相距半個波長）</div><div>λ = 2L = <span class="mono">${sig(lamcm2,3)} cm</span></div><div>c = fλ = ${sci(B4.fc*1e9,3)} × ${sig(lamcm2/100,3)} m ≈ <b class="mono">${sci(B4.fc*1e9*lamcm2/100,2)} m/s</b>　用一片巧克力就能量出光速！</div>`
+    :`<div>按「加熱」，看巧克力上哪裡先融化。</div><div class="note">紅線是爐內來回反射形成的駐波：有些地方（腹點）電場振動最大，有些地方（節點）幾乎不動。</div>`;}
+// light time
+const cv4l=$('cv4l'),g4l=cv4l.getContext('2d');let W4l=400,H4l=150;
+function size4l(){const r=fit(cv4l,.36,140,190);W4l=r.W;H4l=r.H;}
+const LT={moon:{d:3.84e8,scale:1,txt:'月球'},sun:{d:1.5e11,scale:60,txt:'太陽'}};
+function drawLT(){const g=g4l,W=W4l,H=H4l,o=LT[B4.lt],T=o.d/CL;g.clearRect(0,0,W,H);g.fillStyle='#0b1226';g.fillRect(0,0,W,H);
+  const xe=W-40,y=H*.5;let xs=40;
+  // earth
+  g.fillStyle='#3d7fd0';g.beginPath();g.arc(xe,y,16,0,TAU);g.fill();text(g,'地球',xe,y+34,{col:'#cfd8e6',size:12,align:'center'});
+  const t=B4.ltT;
+  if(B4.lt==='moon'){g.fillStyle='#c9c9c9';g.beginPath();g.arc(xs,y,11,0,TAU);g.fill();text(g,'月球（角反射器）',xs,y+30,{col:'#cfd8e6',size:12});
+    if(B4.ltRun||t>0){const tt=Math.min(t,2*T),p=tt<T?1-tt/T:(tt-T)/T,x=lerp(xs+11,xe-16,p);g.fillStyle='#ff4040';g.shadowColor='#ff4040';g.shadowBlur=10;g.beginPath();g.arc(x,y,5,0,TAU);g.fill();g.shadowBlur=0;
+      g.strokeStyle='rgba(255,64,64,.4)';g.lineWidth=2;g.beginPath();g.moveTo(xe-16,y);g.lineTo(x,y);g.stroke();}
+    const tt=Math.min(t,2*T);$('lt4o').innerHTML=`<div>月地距離約 3.84×10⁸ m，光單程 t = d ⁄ c ≈ <b class="mono">${(T).toFixed(2)} 秒</b>，來回約 ${(2*T).toFixed(2)} 秒（動畫用真實速度）。</div><div>已經過 <span class="mono">${tt.toFixed(2)}</span> 秒${tt>=2*T-1e-3?'：雷射回到地球！量來回時間就能算出月地距離，精度可達公分級。':''}</div>`;}
+  else{const off=t>0||B4.ltRun,front=Math.min(t/T,1);
+    g.fillStyle=off?'#3a2a10':'#ffcf4a';g.beginPath();g.arc(xs,y,22,0,TAU);g.fill();if(!off){g.shadowColor='#ffcf4a';g.shadowBlur=30;g.fill();g.shadowBlur=0;}
+    text(g,off?'太陽（已熄燈）':'太陽',xs,y+40,{col:'#cfd8e6',size:12});
+    const xf=lerp(xs+22,xe-16,off?front:0);g.fillStyle='rgba(255,207,74,.35)';g.fillRect(xf,y-4,(xe-16)-xf,8);
+    if(off&&front<1){g.strokeStyle='#ffcf4a';g.lineWidth=2;g.beginPath();g.moveTo(xf,y-14);g.lineTo(xf,y+14);g.stroke();text(g,'最後一道光',xf,y-20,{col:'#ffcf4a',size:11,align:'center'});}
+    const tr=Math.min(t,T),mm=Math.floor(tr/60),ss=Math.floor(tr%60);
+    $('lt4o').innerHTML=`<div>日地距離約 1.5×10¹¹ m，t = d ⁄ c = <b class="mono">500 秒 ≈ 8 分 20 秒</b>（動畫快轉 60 倍）。</div><div>熄燈後經過 <span class="mono">${mm} 分 ${String(ss).padStart(2,'0')} 秒</span>：地球上看到的太陽 <b>${tr>=T-1e-3?'熄了':'還亮著'}</b>。我們看到的太陽，永遠是 8 分多鐘以前的太陽。</div>`;}
+  $('go4').textContent=B4.lt==='sun'?(B4.ltRun?'❚❚ 暫停':'⏻ 太陽熄燈'):(B4.ltRun?'❚❚ 暫停':'▶ 發射雷射');}
+segOn($('lt4'),v=>{B4.lt=v;B4.ltRun=false;B4.ltT=0;segSet($('lt4'),v);kick();});
+$('go4').addEventListener('click',()=>{const T=LT[B4.lt].d/CL*(B4.lt==='moon'?2:1);if(B4.ltT>=T-1e-3)B4.ltT=0;B4.ltRun=!B4.ltRun;kick();});
+$('heat4').addEventListener('click',()=>{B4.heat=!B4.heat;$('heat4').textContent=B4.heat?'❚❚ 停止加熱':'▶ 加熱';kick();});
+$('cool4').addEventListener('click',()=>{B4.H=0;B4.heat=false;$('heat4').textContent='▶ 加熱';kick();});
+$('fc4').addEventListener('input',e=>{B4.fc=+e.target.value;kick();});
+function tick4(dt){B4.choc+=dt;if(B4.heat){B4.H+=dt;if(B4.H>7){B4.heat=false;$('heat4').textContent='▶ 加熱';}}
+  if(B4.ltRun){const T=LT[B4.lt].d/CL*(B4.lt==='moon'?2:1);B4.ltT+=dt*LT[B4.lt].scale;if(B4.ltT>=T){B4.ltT=T;B4.ltRun=false;}}
+  draw4();drawChoc();drawLT();return true;}
+
+// =====================================================================
+// 講義題目情境
+// =====================================================================
+const QS=[
+  {g:'1-2 電磁波怎麼產生',items:[
+    {n:'第 1 題　馬克士威的理論',pg:'p.4',b:'charge',set:()=>set1({mode:'static',q:true,play:true}),t:'第 1 題　答案 (C)',
+     p:'只有「隨時間變化」的電場才會產生磁場。現在畫面是靜止的電荷：電場線不動，接收天線完全收不到訊號；按「上下振盪」比較看看。\n(A)(B) 必須是隨時間變化的場；(D) 不存在單獨的磁單極；(E) 等速度運動不會輻射，要加速才會。'},
+    {n:'第 2 題　哪些會輻射電磁波',pg:'p.4',b:'charge',set:()=>set1({mode:'osc',q:true,play:true}),t:'第 2 題　答案 (CD)',
+     p:'口訣：「有電、有加速，才有電磁波」。\n(C) 天線裡來回振盪的電子一直在加速——就是現在的畫面。(D) 等速率圓周運動方向一直改變，有向心加速度，按「等速率圓周」看看。\n(A) 靜止、(B) 等速度都沒有加速度；(E) 中子不帶電，取消「帶電」，電場線全部消失。'},
+    {n:'第 3 題　預言與證實電磁波的人',pg:'p.4',b:'hertz',set:()=>{B3.shield='none';B3.play=true;B3.rx=.74;B3.ry=.5;ui3();},t:'第 3 題　答案 (B)',
+     p:'馬克士威 1861–1865 年從理論預言電磁波、算出速率等於光速；赫茲 1886–1888 年用這套火花裝置第一次「抓到」電磁波；之後馬可尼才把它做成無線電報（1895 年起）。'}]},
+  {g:'1-3 電磁波的性質',items:[
+    {n:'第 5 題　E 沿 +x、c 沿 +z，B？',pg:'p.7',b:'wave',set:()=>{Object.assign(B2,{E:'+x',B:'+y',names:'xyz',myth:false});afterPick();},t:'第 5 題　答案 (C)',
+     p:'右手四指由 E 轉向 B，大拇指就是前進方向。畫面設成 E 沿 +x、B 沿 +y：拇指（黃色箭頭）指向 +z。\n把 B 改成 −y 試試，波就改往 −z 跑。'},
+    {n:'第 6 題　向北傳、B 向西，E？',pg:'p.8',b:'wave',set:()=>{Object.assign(B2,{E:'-z',B:'-x',names:'geo',myth:false});afterPick();},t:'第 6 題　答案 (C)',
+     p:'座標改用方位：東＝+x、北＝+y、上＝+z。磁場向西、波往北前進，四指由 E 轉到「西」時拇指要指北，E 只能是「下」。\n在選單上換別的 E 試試，拇指都不會指北。'},
+    {n:'第 7 題　電磁波的敘述',pg:'p.8',b:'wave',set:()=>{Object.assign(B2,{E:'+z',B:'-y',names:'xyz',myth:false,play:true});afterPick();},t:'第 7 題　答案 (ABD)',
+     p:'畫面裡沒有任何物質在動，只有電場、磁場在變化，所以不需要介質 (A)；E、B 都和前進方向垂直，是橫波 (B)；電磁波可以傳遞能量 (D)。\n(C) 真空中所有電磁波的速率都是 c；(E) 電磁波不帶電，不會被磁場偏折（會被偏折的是陰極射線這種帶電粒子）。'},
+    {n:'第 8 題　AM 660 kHz 的波長',pg:'p.8',b:'spectrum',set:()=>{B4.tags=null;B4.n=1;setF4(6.6e5);},t:'第 8 題　答案 (D)',
+     p:'λ = c ⁄ f = 3×10⁸ ÷ 6.6×10⁵ ≈ 455 m。AM 廣播的波長跟一棟大樓、甚至一座小山差不多長。'},
+    {n:'第 9 題　手機 1.9 GHz 的波長',pg:'p.8',b:'spectrum',set:()=>{B4.tags=null;B4.n=1;setF4(1.9e9);},t:'第 9 題　答案 (D)',
+     p:'λ = 3×10⁸ ÷ 1.9×10⁹ ≈ 0.16 m，大約一個手掌長。'},
+    {n:'第 10 題　橙光進入水中',pg:'p.8',b:'spectrum',set:()=>{B4.tags=null;B4.n=1.3333;setF4(CL/600e-9);},t:'第 10 題　答案 (B)',
+     p:'頻率由光源決定，進入新介質不變：f = 3×10⁸ ÷ 6×10⁻⁷ = 5×10¹⁴ Hz。\n水中光速 2.25×10⁸ m/s（折射率 n = 4/3），水中波長 λ\' = 2.25×10⁸ ÷ 5×10¹⁴ = 450 nm。\n顏色由頻率決定，在水裡仍是橙光。看右邊計算機的「進入：水」。'}]},
+  {g:'1-4 電磁波譜',items:[
+    {n:'第 11 題　頻率由低到高排列',pg:'p.10',b:'spectrum',set:()=>{B4.tags=[['甲',3e13],['乙',3e17],['丙',5.5e14],['丁',1e6],['戊',1.5e15]];B4.lf=null;$('notemOut').innerHTML='';kick();},t:'第 11 題　答案 (A)',
+     p:'把五個選項標在波譜上（紫色旗子），從左（頻率低）讀到右（頻率高）：\n丁 無線電波 → 甲 紅外線 → 丙 可見光 → 戊 紫外線 → 乙 X 射線。'},
+    {n:'第 12 題　哪些不是電磁波',pg:'p.10',b:'spectrum',set:()=>{B4.tags=null;showNotem(1);},t:'第 12 題　答案 (BCD)',
+     p:'β 射線是高速電子流、α 射線是氦原子核，都是帶電粒子；超音波是聲波，需要介質。\n點下方「這些是電磁波嗎？」的按鈕逐一確認。'},
+    {n:'第 13 題　電磁波與應用配對',pg:'p.10',b:'spectrum',set:()=>{B4.tags=null;B4.n=1;setF4(CL/940e-9);},t:'第 13 題　答案 (B)',
+     p:'電視遙控器用紅外線（約 940 nm，眼睛看不到，但多數手機前鏡頭拍得到）。\n殺菌燈用紫外線；微波爐、手機用微波；骨骼影像用 X 射線。'},
+    {n:'第 14 題　巧克力測光速',pg:'p.11',b:'spectrum',set:()=>{B4.fc=2.45;$('fc4').value=2.45;B4.H=0;B4.heat=true;$('heat4').textContent='❚❚ 停止加熱';setTimeout(()=>$('cv4c').scrollIntoView({behavior:'smooth',block:'center'}),350);},t:'第 14 題　答案 (B)',
+     p:'爐內形成駐波，相鄰兩個融化點（最熱的腹點）相距半個波長：λ ≈ 2 × 6.1 = 12.2 cm。\nc = fλ = 2.45×10⁹ × 0.122 ≈ 3.0×10⁸ m/s。'},
+    {n:'第 15 題　太陽熄燈多久才發現',pg:'p.11',b:'spectrum',set:()=>{B4.lt='sun';segSet($('lt4'),'sun');B4.ltT=0;B4.ltRun=true;setTimeout(()=>$('cv4l').scrollIntoView({behavior:'smooth',block:'center'}),350);},t:'第 15 題　答案 (C)',
+     p:'t = d ⁄ c = 1.5×10¹¹ ÷ 3×10⁸ = 500 s ≈ 8 分 20 秒。太陽熄燈後，地球上還會看到它亮 8 分多鐘。'}]}];
+{const box=$('qbox');QS.forEach(gr=>{const d=document.createElement('div');d.className='qgrp';d.innerHTML=`<h4>${gr.g}</h4>`;const c=document.createElement('div');c.className='qchips';
+  gr.items.forEach(it=>{const b=document.createElement('button');b.className='qchip';b.innerHTML=`${it.n}<span class="pg">${it.pg}</span>`;
+    b.addEventListener('click',()=>{setBench(it.b);it.set();showStory(it.t,it.p);$('story').scrollIntoView({behavior:'smooth',block:'start'});});c.appendChild(b);});
+  d.appendChild(c);box.appendChild(d);});}
+
+// ================= start =================
+ui1();ui2();ui3();setF4(CL/530e-9);
+let lastWW=0;new ResizeObserver(()=>{const w=document.querySelector('.wrap').clientWidth;if(w===lastWW)return;lastWW=w;if(bench==='charge')size1();else if(bench==='hertz')size3();else if(bench==='spectrum')size4();kick();}).observe(document.querySelector('.wrap'));
+setBench((location.hash||'#charge').slice(1),true);
+window.addEventListener('hashchange',()=>setBench(location.hash.slice(1),true));
+</script>
+</body>
+</html>
