@@ -206,7 +206,6 @@
       <div class="gizcap" id="gizcap">座標軸</div>
       <div class="ov top">
         <span class="seg" id="view2"><button data-v="free" aria-pressed="true">斜看</button><button data-v="E">正面（看 E）</button><button data-v="B">側面（看 B）</button><button data-v="along" class="hidephone">順著前進方向</button></span>
-        <label class="tog"><input type="checkbox" id="ant2" checked>振盪電荷</label>
         <label class="tog"><input type="checkbox" id="hand2" checked>右手定則</label>
         <label class="tog hidephone"><input type="checkbox" id="lab2" checked>標籤</label>
         <label class="tog"><input type="checkbox" id="myth2t">對照迷思</label>
@@ -221,7 +220,7 @@
         <label class="slider"><span class="tlabel">觀察點</span><input type="range" id="obs2" min="0.05" max="0.95" step="0.01" value="0.62"></label>
       </div>
     </section>
-    <p class="hint">拖曳空白處轉動視角、兩指或滾輪縮放。紅色是電場 E、藍色是磁場 B、黃色箭頭是前進方向 c。左端是上下振盪的電荷（天線），這裡只畫出它往右發出的那一條方向；真正的天線會往四周發射，就像實驗台 1 的電場線。半透明方框是「觀察點」，看那裡的 E 和 B 怎麼一起變化。</p>
+    <p class="hint">拖曳空白處轉動視角、兩指或滾輪縮放。紅色是電場 E、藍色是磁場 B、黃色箭頭是前進方向 c。半透明方框是「觀察點」，看那裡的 E 和 B 怎麼一起變化。</p>
 
     <div class="grid2">
       <section class="panel box">
@@ -575,7 +574,7 @@ $('cBtn').addEventListener('click',()=>{$('cOut').hidden=!$('cOut').hidden;});
 // =====================================================================
 // 2 電磁波 3D
 // =====================================================================
-const B2={E:'+z',B:'-y',names:'xyz',play:true,t:0,speed:.5,obs:.62,labels:true,myth:false,hand:true,ant:true,view:'free'};
+const B2={E:'+z',B:'-y',names:'xyz',play:true,t:0,speed:.5,obs:.62,labels:true,myth:false,hand:true,view:'free'};
 const V3={'+x':[1,0,0],'-x':[-1,0,0],'+y':[0,1,0],'-y':[0,-1,0],'+z':[0,0,1],'-z':[0,0,-1]};
 const NM={xyz:{'+x':'+x','-x':'−x','+y':'+y','-y':'−y','+z':'+z','-z':'−z'},geo:{'+x':'東','-x':'西','+y':'北','-y':'南','+z':'上','-z':'下'}};
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -591,7 +590,7 @@ function ui2(){const nm=NM[B2.names];
   if(c){$('dir2').innerHTML=`前進方向 c：<span class="mono" style="color:var(--cf)">${nm[c]}</span>`;
     $('dir2n').textContent=`四指由 E（${nm[B2.E]}）轉向 B（${nm[B2.B]}），大拇指指向 ${nm[c]}。E、B、c 就像 x、y、z 軸一樣兩兩垂直。`;}
   else{$('dir2').innerHTML='<span style="color:#c0453b">✕ E 和 B 必須互相垂直</span>';$('dir2n').textContent='電磁波裡的電場和磁場一定互相垂直，請換一個方向。';}
-  $('play2').textContent=B2.play?'❚❚ 暫停':'▶ 播放';$('myth2').hidden=!B2.myth;$('myth2t').checked=B2.myth;$('hand2').checked=B2.hand;$('ant2').checked=B2.ant;$('lab2').checked=B2.labels;$('obs2').value=B2.obs;}
+  $('play2').textContent=B2.play?'❚❚ 暫停':'▶ 播放';$('myth2').hidden=!B2.myth;$('myth2t').checked=B2.myth;$('hand2').checked=B2.hand;$('lab2').checked=B2.labels;$('obs2').value=B2.obs;}
 segOn($('pickE'),v=>{B2.E=v;afterPick();});segOn($('pickB'),v=>{B2.B=v;afterPick();});
 function afterPick(){if(cDir()){lastValid={E:B2.E,B:B2.B};T3&&T3.orient&&(T3.orient(),T3.setView(B2.view));}ui2();kick();}
 segOn($('names2'),v=>{B2.names=v;ui2();kick();});
@@ -600,11 +599,10 @@ segOn($('speed2'),v=>{B2.speed=+v;ui2();});
 document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{B2.play=false;B2.t=Math.round(B2.t/(PER2/8))*(PER2/8)+(+b.dataset.step)*PER2/8;ui2();kick();}));
 $('play2').addEventListener('click',()=>{B2.play=!B2.play;ui2();kick();});
 $('obs2').addEventListener('input',e=>{B2.obs=+e.target.value;kick();});
-$('ant2').addEventListener('change',e=>{B2.ant=e.target.checked;kick();});
 $('hand2').addEventListener('change',e=>{B2.hand=e.target.checked;kick();});
 $('lab2').addEventListener('change',e=>{B2.labels=e.target.checked;kick();});
 $('myth2t').addEventListener('change',e=>{B2.myth=e.target.checked;ui2();kick();});
-$('reset2').addEventListener('click',()=>{Object.assign(B2,{E:'+z',B:'-y',names:'xyz',play:true,t:0,speed:.5,obs:.62,labels:true,myth:false,hand:true,ant:true,view:'free'});lastValid={E:'+z',B:'-y'};if(T3&&T3.orient){T3.orient();T3.setView('free');}ui2();kick();});
+$('reset2').addEventListener('click',()=>{Object.assign(B2,{E:'+z',B:'-y',names:'xyz',play:true,t:0,speed:.5,obs:.62,labels:true,myth:false,hand:true,view:'free'});lastValid={E:'+z',B:'-y'};if(T3&&T3.orient){T3.orient();T3.setView('free');}ui2();kick();});
 $('fs2').addEventListener('click',()=>{const a=$('stage2');if(document.fullscreenElement)document.exitFullscreen();else(a.requestFullscreen||a.webkitRequestFullscreen).call(a);});
 let T3=null;
 async function init3(){
@@ -620,7 +618,7 @@ async function init3(){
     const L=18,LAM=6,A=2.4,N=241,M=37,E_COL=0xff5a4e,B_COL=0x4fa3ff,C_COL=0xffd34d;
     const P=v=>new THREE.Vector3(v[0],v[2],-v[1]);
     const wave=new THREE.Group();scene.add(wave);
-    {const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-L/2-1.5,0,0),new THREE.Vector3(L/2+.6,0,0)]);wave.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:C_COL})));
+    {const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-L/2-.4,0,0),new THREE.Vector3(L/2+.6,0,0)]);wave.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:C_COL})));
       const cone=new THREE.Mesh(new THREE.ConeGeometry(.3,.9,20),new THREE.MeshBasicMaterial({color:C_COL}));cone.rotation.z=-Math.PI/2;cone.position.x=L/2+1;wave.add(cone);}
     function field(color,axis){
       const cpos=new Float32Array(N*3),cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.BufferAttribute(cpos,3));
@@ -644,10 +642,6 @@ async function init3(){
     {const pg=new THREE.PlaneGeometry(A*2.5,A*2.5);const slab=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06,side:THREE.DoubleSide,depthWrite:false}));slab.rotation.y=Math.PI/2;obs.add(slab);
       const edge=new THREE.LineSegments(new THREE.EdgesGeometry(pg),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));edge.rotation.y=Math.PI/2;obs.add(edge);}
     const aE=arrow3(E_COL,.11),aB=arrow3(B_COL,.11),aC=arrow3(C_COL,.08);obs.add(aE,aB,aC);
-    // 波的起點：振盪的電荷（天線），沿 E 的方向上下振盪
-    const XS=-L/2-1.5,AQ=.75,ant=new THREE.Group();ant.position.x=XS;wave.add(ant);
-    {const rod=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,2*AQ+1.4,12),new THREE.MeshBasicMaterial({color:0x9aa6b4}));ant.add(rod);}
-    const qball=new THREE.Mesh(new THREE.SphereGeometry(.34,24,16),new THREE.MeshBasicMaterial({color:0xff5a4e}));ant.add(qball);
     const curl=new THREE.Group();obs.add(curl);
     {const R=1.25,mat=new THREE.MeshBasicMaterial({color:0xffffff});const tor=new THREE.Mesh(new THREE.TorusGeometry(R,.05,8,40,Math.PI/2*.88),mat);
       tor.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0)));
@@ -682,7 +676,7 @@ async function init3(){
       Ef.update(ph0);Bf.update(ph1);
       const xo=-L/2+L*B2.obs;obs.position.x=xo;const ve=ph0(xo),vb=ph1(xo);
       aE.set(new THREE.Vector3(0,ve>=0?1:-1,0),Math.abs(ve)*A);aB.set(new THREE.Vector3(0,0,vb>=0?1:-1),Math.abs(vb)*A);aC.set(new THREE.Vector3(1,0,0),1.9);
-      curl.visible=B2.hand;ant.visible=B2.ant;qball.position.y=AQ*ph0(XS);
+      curl.visible=B2.hand;
       if(trans){const kk=clamp((now-trans.t0)/trans.dur,0,1),s=ease(kk);camera.position.lerpVectors(trans.from,trans.to,s);controls.target.lerpVectors(trans.ft,new THREE.Vector3(),s);camera.lookAt(controls.target);
         if(kk>=1){trans=null;controls.update();}}
       else controls.update();
@@ -701,7 +695,6 @@ async function init3(){
         place('E','E 電場',W(new THREE.Vector3(-L/2+LAM*.25,A*1.28,0)),'e');
         place('B','B 磁場',W(new THREE.Vector3(-L/2+LAM*.25,0,A*1.3)),'b');
         place('c','c 前進方向',W(new THREE.Vector3(L/2+1.6,.7,0)),'c');
-        if(B2.ant)place('q','振盪的電荷',W(new THREE.Vector3(XS,-AQ-1.3,0)),'e');
         place('o','觀察點',W(new THREE.Vector3(xo,-A*1.4,-A*.2)),'sm');
         if(B2.hand)place('h','四指 E→B，拇指 c',W(new THREE.Vector3(xo-.5,A*.75,A*.75)),'sm');
       }
