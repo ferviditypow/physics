@@ -399,7 +399,8 @@ let raf=0,lastT=0;
 function kick(){if(!raf)raf=requestAnimationFrame(loop);}
 function loop(now){raf=0;const dt=lastT?Math.min(.05,(now-lastT)/1000):0;lastT=now;let more=false;
   if(bench==='charge')more=tick1(dt);else if(bench==='wave')more=tick2(dt);else if(bench==='hertz')more=tick3(dt);else more=tick4(dt);
-  if(more)raf=requestAnimationFrame(loop);else lastT=0;}
+  // 迴圈中途若已有人 kick() 排了下一格，就不要再排一次（否則迴圈會倍增）
+  if(more&&!raf)raf=requestAnimationFrame(loop);else if(!more&&!raf)lastT=0;}
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();kick();});
 
 // ================= story =================
